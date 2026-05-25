@@ -1,240 +1,253 @@
 /*
- * ═══════════════════════════════════════════════════════════════
  * ColaMD 主题：Academic Paper (学术论文打印)
- * ═══════════════════════════════════════════════════════════════
+ * 版本：v3.0（遵循 theme-paradigm.md 范式）
  *
- * 📋 基本信息
- * ────────────────────────────────────────────────
- * 配色方案：纯白底 + 纯黑正文 + 灰度 Mermaid 图表
- * 排版规范：遵循中文学术论文排版规范（GB/T 7713）
- * 兼容平台：ColaMD (body.theme-custom) / Typora / VSCode
- * 导入方式：Theme > Import Theme
- * 模板类型：@template: light (浅色主题)
+ * 风格特征：
+ *   - 纯白底 + 纯黑正文 + 灰度 Mermaid 图表
+ *   - 遵循中文学术论文排版规范（GB/T 7713）
+ *   - 宋体正文 + 黑体标题，首行缩进 2em
+ *   - 三线表规范，无彩色设计，印刷友好
  *
- * 🎨 设计特点
- * ────────────────────────────────────────────────
- * 1. 字体系统：
- *    - 正文：宋体 (SimSun) 小四号 16px
- *    - 标题：黑体 (SimHei) 三号~五号 22px~14px
- *    - 代码：Courier New 五号 14px
- *    - Mermaid：黑体 小五号 12px
+ * 字体系统：
+ *   - 正文：宋体 (SimSun) 小四号 16px
+ *   - 标题：黑体 (SimHei) 三号~五号 22px~14px
+ *   - 代码：Courier New 五号 14px
+ *   - Mermaid：黑体 小五号 12px
  *
- * 2. 色彩系统：
- *    - 采用 10 级灰度色板（--gray-0 至 --gray-9）
- *    - 无彩色设计，确保打印/屏幕一致性
- *    - 符合 WCAG AAA 对比度标准（≥7:1）
+ * 单位规范：
+ *   - 强制使用 px 单位（偶数整数原则）
+ *   - 禁止使用 pt 单位（会导致 PDF 导出时缩小 25%）
+ *   - 转换公式：px = pt × 1.3333
  *
- * 3. 排版规范：
- *    - 页面尺寸：A4 (210mm × 297mm)
- *    - 页边距：上25mm 下25mm 左30mm 右25mm
- *    - 正文行距：1.5 倍，首行缩进 2em
- *    - 标题层级：h1(三号) → h2(四号) → h3/h4(小四号) → h5/h6(五号)
- *
- * ⚙️ 开发规范（必须遵守）
- * ────────────────────────────────────────────────
- * 【单位使用】
- * ✅ 强制要求：所有字号、间距、边距统一使用 px 单位
- * ✅ 偶数整数原则：px 值优先使用偶数（2, 4, 6, 8, ...）
- * ❌ 禁止使用：pt 单位（会导致 PDF 导出时缩小 25%）
- *
- * 【转换公式】
- *   px = pt × (96/72) ≈ pt × 1.3333
- *   示例：12pt → 16px, 10.5pt → 14px, 9pt → 12px
- *
- * 【常用值对照表】
- *   中文字号 | pt | px (偶数) | 用途
- *   ─────────┼────┼──────────┼──────────
- *   三号     | 16 | 22        | 一级标题(h1)
- *   四号     | 14 | 18        | 二级标题(h2)
- *   小四号   | 12 | 16        | 正文/三四级标题
- *   五号     |10.5| 14        | 代码块/表格/图题
- *   小五号   | 9  | 12        | Mermaid/脚注
- *
- * 【允许的非 px 单位】
- *   • mm：页面尺寸、页边距（如 max-width: 210mm）
- *   • em：相对字号（如 font-size: 0.88em 用于内联代码）
- *   • %：百分比宽度（如 width: 100%）
- *   • 无单位：零值（margin: 0）、行高倍率（line-height: 1.5）
- *
- * 【特殊例外】
- *   • 1px 边框：分割线、表格竖线等需最细效果时可保留奇数
- *
- * 🔧 验证方法
- * ────────────────────────────────────────────────
- * 1. 检查是否还有 pt 单位残留：
- *    grep -n "pt" academic-paper.css
- *    预期结果：No matches found
- *
- * 2. 验证所有 px 值为偶数：
- *    grep -oP '\d+px' academic-paper.css | grep -vP '^[02468]px'
- *    预期结果：仅少量 1px 边框
- *
- * 3. 导出 PDF 验证字号一致性：
- *    屏幕显示字号 = PDF 导出后字号（无缩放损失）
- *
- * 📚 相关文档
- * ────────────────────────────────────────────────
- * • 范式定义：docs/theme-paradigm.md (v3.3)
- * • 单位规范：docs/theme-paradigm.md Section 9
- * • GB/T 7713：《科学技术报告、学位论文和学术论文的编写格式》
- *
- * 📅 版本信息
- * ────────────────────────────────────────────────
- * 最后更新：2026-05-24
- * 主要变更：从 pt 单位全面迁移至 px 偶数整数单位系统
- *           新增单位转换公式和验证清单
- *           修复 p:has(strong):first-of-type 误匹配作者信息行
- *           新增 academic-paper-pt.css 作为 pt 单位对比版本
- *
- * ═══════════════════════════════════════════════════════════════
+ * 导入：Theme > Import Theme
  */
 
-/* ── 1. 根变量 & 主题变量 ── */
+/* ═══════════════════════════════════════════════════════════
+   SECTION 1 — 设计令牌 (Design Tokens)
+   ═══════════════════════════════════════════════════════════ */
+
 :root {
-    --side-bar-bg-color: #f5f5f5;
-    --control-text-color: #333;
-    --active-file-bg-color: #e8e8e8;
-    --active-file-text-color: #000;
-    --active-file-border-color: #000;
-
-    /* ═══════════════════════════════════════════
-       印刷友好灰度色板（GB/T 7713 学术论文规范）
-       基于10级亮度感知，确保打印/屏幕一致性
-       ═══════════════════════════════════════════ */
-    --gray-0:   #ffffff;   /* 纯白 - 页面背景 */
-    --gray-1:   #fafafa;   /* 极浅灰 - 次要表面 */
-    --gray-2:   #f5f5f5;   /* 浅灰 - 代码/区块背景 */
-    --gray-3:   #eeeeee;   /* 中浅灰 - 表头底色 */
-    --gray-4:   #e0e0e0;   /* 浅中灰 - 高亮标记 */
-    --gray-5:   #cccccc;   /* 中灰 - 边框/分割线 */
-    --gray-6:   #999999;   /* 中深灰 - 次要文字 */
-    --gray-7:   #666666;   /* 深灰 - 弱化文字 */
-    --gray-8:   #333333;   /* 近黑 - 强调边框 */
-    --gray-9:   #000000;   /* 纯黑 - 正文/标题 */
-
-    /* 核心语义变量（基于灰度色板） */
-    --bg-color: var(--gray-0);
-    --text-color: var(--gray-9);
-    --select-text-bg-color: rgba(0, 0, 0, 0.12);
-    --select-text-font-color: var(--gray-9);
-    --rawblock-edit-panel-bd: var(--gray-5);
+  --side-bar-bg-color: #f5f5f5;
+  --control-text-color: #333;
+  --active-file-bg-color: #e8e8e8;
+  --active-file-text-color: #000;
+  --active-file-border-color: #000;
+  --bg-color: #ffffff;
+  --text-color: #111111;
+  --select-text-bg-color: rgba(0, 0, 0, 0.12);
+  --select-text-font-color: #111111;
+  --rawblock-edit-panel-bd: #cccccc;
 }
 
 body.theme-custom {
-    /* ═══ 核心语义变量（GB/T 7713 印刷优化） ═══ */
-    --bg-color: var(--gray-0);
-    --text-color: var(--gray-9);
-    --heading-color: var(--gray-9);
-    --border-color: var(--gray-9);
 
-    /* 背景层次（从浅到深） */
-    --code-bg: var(--gray-2);
-    --code-color: var(--gray-9);
-    --code-block-bg: var(--gray-2);
-    --code-block-text: var(--gray-9);
-    --code-block-color: var(--gray-9);
-    --blockquote-bg: var(--gray-1);
-    --blockquote-border: var(--gray-9);
-    --surface-color: var(--gray-2);
-    --surface-alt: var(--gray-1);
+  /* ═══════════════════════════════════════════════════════════
+     1.1 种子色板 — 10 级灰度（GB/T 7713 学术论文规范）
+     ═══════════════════════════════════════════════════════════ */
 
-    /* 文字层次（从深到浅，按重要性降序） */
-    --link-color: var(--gray-9);
-    --accent-color: var(--gray-9);
-    --accent-dark: var(--gray-9);
-    --accent-light: var(--gray-4);
-    --text-muted: var(--gray-8);
-    --text-dim: var(--gray-7);
+  --seed-surface:       #ffffff;   /* L0 页面背景（纯白）      */
+  --seed-panel:         #f5f5f5;   /* L1 代码/区块背景（浅灰）  */
+  --seed-panel-alt:     #fafafa;   /* L2 次要表面（极浅灰）     */
 
-    /* 交互状态 */
-    --selection-bg: rgba(0, 0, 0, 0.12);
+  --seed-ink:           #111111;   /* T0 正文/标题（近黑）      */
+  --seed-ink-muted:     #333333;   /* T1 次要文字              */
+  --seed-ink-dim:       #666666;   /* T2 弱化/禁用文字          */
 
-    /* 表格系统（三线表规范 GB/T 7713） */
-    --table-header-bg: transparent;  /* 三线表：表头无底色或极浅 */
-    --table-stripe: rgba(0, 0, 0, 0.02);  /* 长表格斑马纹（可选） */
+  --seed-border:        #111111;   /* 强调边框                 */
+  --seed-border-light:  #cccccc;   /* 浅边框/分割线            */
 
-    /* 滚动条 */
-    --scrollbar-thumb: var(--gray-5);
-    --scrollbar-thumb-hover: var(--gray-6);
+  /* ═══════════════════════════════════════════════════════════
+     1.2 字体系统 — GB/T 7713 学术论文规范
+     ═══════════════════════════════════════════════════════════ */
 
-    /* 分割线 */
-    --hr-color: var(--gray-9);
-    /* Mermaid 全局字体：黑体 小五号 12px（GB/T 7713 图表字），独立于正文 */
-    --mermaid-font-family: "SimHei", "Heiti SC", "Source Han Sans SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
-    --mermaid-font-size: 12px;
-    --mermaid-dark-mode: false;
-    /* ═══ Mermaid 图表系统（印刷友好灰度） ═══ */
-    /* 背景与边框 */
-    --mermaid-background: var(--gray-0);
-    --mermaid-border-color: var(--gray-5);
-    --mermaid-border-radius: 0;
-    --mermaid-padding: 20px;
+  --font-body: "SimSun", "Songti SC", "Source Han Serif SC", "Noto Serif SC",
+               Georgia, "Times New Roman", serif;
 
-    /* 节点色块：莫兰迪浅灰（确保打印可辨） */
-    --mermaid-primary-color: var(--gray-3);
-    --mermaid-primary-border-color: var(--gray-8);
-    --mermaid-primary-text-color: var(--gray-9);
-    --mermaid-secondary-color: var(--gray-2);
-    --mermaid-secondary-border-color: var(--gray-7);
-    --mermaid-secondary-text-color: var(--gray-9);
-    --mermaid-tertiary-color: var(--gray-4);
-    --mermaid-tertiary-border-color: var(--gray-6);
-    --mermaid-tertiary-text-color: var(--gray-9);
-    --mermaid-node-fill: var(--gray-3);
-    --mermaid-node-bkg: var(--gray-2);
-    --mermaid-node-stroke: var(--gray-8);
-    --mermaid-node-stroke-width: 1px;
-    --mermaid-node-text: var(--gray-9);
+  --font-heading: "SimHei", "Heiti SC", "Source Han Sans SC", "Noto Sans SC",
+                  "Microsoft YaHei", "Arial", sans-serif;
 
-    /* 聚类 */
-    --mermaid-cluster-fill: var(--gray-1);
-    --mermaid-cluster-bkg: var(--gray-1);
-    --mermaid-cluster-stroke: var(--gray-7);
-    --mermaid-cluster-dasharray: none;
+  --font-code: "Courier New", "Consolas", "Source Code Pro", monospace;
 
-    /* 边线/连线：深灰黑色便于打印 */
-    --mermaid-edge-stroke: var(--gray-8);
-    --mermaid-edge-stroke-width: 1px;
+  --font-mermaid: var(--font-heading);
 
-    /* 标签 */
-    --mermaid-label-text: var(--gray-9);
-    --mermaid-label-text-color: var(--gray-9);
-    --mermaid-label-background: var(--gray-0);
-    --mermaid-label-offset-y: 0px;
+  /* ═══════════════════════════════════════════════════════════
+     1.3 字号 & 间距 — 屏幕 px 单位
+     ═══════════════════════════════════════════════════════════ */
 
-    /* 边标签 */
-    --mermaid-edge-label-text: var(--gray-9);
-    --mermaid-edge-label-bg: var(--gray-0);
-    --mermaid-edge-label-background: var(--gray-0);
+  --font-size-root: 16px;
 
-    /* 主色/对比色 */
-    --mermaid-main-bkg: var(--gray-3);
-    --mermaid-second-bkg: var(--gray-2);
-    --mermaid-main-contrast-color: var(--gray-9);
-    --mermaid-title-text: var(--gray-9);
-    --mermaid-axis-text: var(--gray-7);
-    --mermaid-highlight: var(--gray-8);
-    --mermaid-line-color: var(--gray-6);
+  --font-scale-h1: 1.375;    /* 22px — 三号（论文题目）  */
+  --font-scale-h2: 1.125;    /* 18px — 四号（一级节）    */
+  --font-scale-h3: 1.0;      /* 16px — 小四号（二级节）  */
+  --font-scale-h4: 1.0;      /* 16px — 小四号（三级节）  */
+  --font-scale-h5: 0.875;    /* 14px — 五号              */
+  --font-scale-h6: 0.875;    /* 14px — 五号              */
 
-    /* 人物/角色 */
-    --mermaid-person-stroke: var(--gray-8);
-    --mermaid-person-bkg: var(--gray-2);
-    /* 莫兰迪灰色阶色板（Graph/Chart 多系列区分，基于灰度色板） */
-    --mermaid-cscale0: var(--gray-6);   /* #999999 → gray-6 */
-    --mermaid-cscale1: var(--gray-7);   /* #8C8E90 ≈ gray-7 */
-    --mermaid-cscale2: var(--gray-6);   /* #B0B0B0 ≈ gray-6 */
-    --mermaid-cscale3: var(--gray-8);   /* #787878 → gray-8 */
-    --mermaid-cscale4: var(--gray-6);   /* #9E9E9E ≈ gray-6 */
-    --mermaid-cscale5: var(--gray-7);   /* #949698 ≈ gray-7 */
-    --mermaid-cscale6: var(--gray-8);   /* #6E6E6E → gray-8 */
-    --mermaid-cscale7: var(--gray-6);   /* #A0A0A0 ≈ gray-6 */
-    --mermaid-cscale8: var(--gray-7);   /* #848688 ≈ gray-7 */
-    --mermaid-cscale9: var(--gray-6);   /* #AAAAAA ≈ gray-6 */
-    --mermaid-cscale10: var(--gray-8);  /* #7A7A7C ≈ gray-8 */
-    --mermaid-cscale11: var(--gray-7);  /* #929294 ≈ gray-7 */
+  --font-size-mermaid: 12px;
+
+  --line-height-body: 1.5;
+  --line-height-heading: 1.35;
+  --line-height-code: 1.5;
+
+  /* ═══════════════════════════════════════════════════════════
+     1.4 圆角 & 间距 — 学术论文：直角优先
+     ═══════════════════════════════════════════════════════════ */
+
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --content-width: 210mm;
+
+  --page-margin-top: 25mm;
+  --page-margin-bottom: 25mm;
+  --page-margin-left: 30mm;
+  --page-margin-right: 25mm;
+
+  /* ═══════════════════════════════════════════════════════════
+     1.5 灰度色板 — 10 级亮度感知
+     ═══════════════════════════════════════════════════════════ */
+
+  --gray-0:   #ffffff;
+  --gray-1:   #fafafa;
+  --gray-2:   #f5f5f5;
+  --gray-3:   #eeeeee;
+  --gray-4:   #e0e0e0;
+  --gray-5:   #cccccc;
+  --gray-6:   #999999;
+  --gray-7:   #666666;
+  --gray-8:   #333333;
+  --gray-9:   #111111;
 }
 
-pre { --select-text-bg-color: rgba(0, 0, 0, 0.12); --select-text-font-color: var(--gray-9); }
+/* ═══════════════════════════════════════════════════════════
+   SECTION 2 — 语义映射 (Semantic Mapping)
+   ═══════════════════════════════════════════════════════════ */
+
+body.theme-custom {
+
+  /* ── 2.1 编辑区表面色 ── */
+  --bg-color:           var(--seed-surface);
+  --surface-color:      var(--seed-panel);
+  --surface-alt:        var(--seed-panel-alt);
+
+  /* ── 2.2 编辑区文字色 ── */
+  --text-color:         var(--seed-ink);
+  --heading-color:      var(--seed-ink);
+  --text-muted:         var(--seed-ink-muted);
+  --text-dim:           var(--seed-ink-dim);
+
+  /* ── 2.3 链接 & 强调 ── */
+  --link-color:         var(--seed-ink);
+  --accent-color:       var(--seed-ink);
+  --accent-dark:        var(--seed-ink);
+  --accent-light:       var(--gray-4);
+  --selection-bg:       rgba(0, 0, 0, 0.12);
+
+  /* ── 2.4 边框 & 分割线 ── */
+  --border-color:       var(--seed-border);
+  --blockquote-border:  var(--seed-ink);
+  --hr-color:           var(--seed-ink);
+
+  /* ── 2.5 内联代码 ── */
+  --code-bg:            var(--gray-3);
+  --code-color:         var(--seed-ink);
+
+  /* ── 2.6 代码块 ── */
+  --code-block-bg:      var(--seed-panel);
+  --code-block-text:    var(--seed-ink);
+  --code-block-color:   var(--seed-ink);
+
+  /* ── 2.7 引用块 ── */
+  --blockquote-bg:      var(--seed-panel-alt);
+
+  /* ── 2.8 表格 — 三线表规范 ── */
+  --table-header-bg:    transparent;
+  --table-border:       var(--seed-ink);
+
+  /* ── 2.9 表格 — 表头文字 ── */
+  --table-header-text:  var(--seed-ink);
+
+  /* ── 2.10 滚动条 ── */
+  --scrollbar-thumb:    var(--gray-5);
+  --scrollbar-thumb-hover: var(--gray-6);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 3 — Mermaid 图表变量
+   学术论文图表：白底黑框灰度，印刷友好
+   ═══════════════════════════════════════════════════════════ */
+
+body.theme-custom {
+
+  /* ── 3.1 容器 ── */
+  --mermaid-background:   var(--seed-surface);
+  --mermaid-border-color: var(--gray-5);
+  --mermaid-border-radius: var(--radius-md);
+  --mermaid-padding:     20px;
+
+  /* ── 3.2 字体 ── */
+  --mermaid-font-family:  var(--font-mermaid);
+  --mermaid-font-size:    var(--font-size-mermaid);
+
+  /* ── 3.3 节点 ── */
+  --mermaid-node-fill:        var(--gray-3);
+  --mermaid-node-bkg:         var(--gray-2);
+  --mermaid-node-stroke:      var(--gray-8);
+  --mermaid-node-stroke-width: 1px;
+  --mermaid-node-text:        var(--seed-ink);
+
+  /* ── 3.4 连线 ── */
+  --mermaid-edge-stroke:       var(--gray-8);
+  --mermaid-edge-stroke-width: 1px;
+
+  /* ── 3.5 聚类 ── */
+  --mermaid-cluster-fill:      var(--gray-1);
+  --mermaid-cluster-stroke:    var(--gray-7);
+
+  /* ── 3.6 标签 ── */
+  --mermaid-label-text:      var(--seed-ink);
+  --mermaid-edge-label-text: var(--seed-ink);
+  --mermaid-edge-label-bg:   var(--seed-surface);
+
+  /* ── 3.7 标题 & 坐标轴 ── */
+  --mermaid-title-text:      var(--seed-ink);
+  --mermaid-axis-text:       var(--gray-7);
+  --mermaid-highlight:       var(--gray-8);
+
+  /* ── 3.8 人物节点 ── */
+  --mermaid-person-stroke:   var(--gray-8);
+  --mermaid-person-bkg:      var(--gray-2);
+
+  /* ── 3.9 偏移 ── */
+  --mermaid-label-offset-y: 0px;
+
+  /* ── 3.10 灰度色板（多系列区分） ── */
+  --mermaid-cscale0: var(--gray-6);
+  --mermaid-cscale1: var(--gray-7);
+  --mermaid-cscale2: var(--gray-6);
+  --mermaid-cscale3: var(--gray-8);
+  --mermaid-cscale4: var(--gray-6);
+  --mermaid-cscale5: var(--gray-7);
+  --mermaid-cscale6: var(--gray-8);
+  --mermaid-cscale7: var(--gray-6);
+  --mermaid-cscale8: var(--gray-7);
+  --mermaid-cscale9: var(--gray-6);
+  --mermaid-cscale10: var(--gray-8);
+  --mermaid-cscale11: var(--gray-7);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 4 — 排版微调变量
+   ═══════════════════════════════════════════════════════════ */
+
+body.theme-custom {
+  --line-height-base: var(--line-height-body);
+}
+
+pre {
+  --select-text-bg-color: rgba(0, 0, 0, 0.12);
+  --select-text-font-color: var(--seed-ink);
+}
 
 /* ── 2. 全局 ── */
 html { font-size: 16px; -webkit-font-smoothing: antialiased; }
@@ -1277,18 +1290,47 @@ body.theme-custom [class*="reference"] li {
         margin: 0 !important;
     }
 
-    /* ── 标题保持黑体，强制指定字号 ── */
+    /* ── 标题保持黑体，覆盖 base.css 的高权重选择器 ── */
     h1, h2, h3, h4, h5, h6 {
         font-family: "SimHei", "Heiti SC", "Source Han Sans SC", "Noto Sans SC", "Microsoft YaHei", sans-serif !important;
         color: var(--gray-9) !important;
+        font-weight: 700 !important;
+        line-height: 1.35 !important;
+        text-indent: 0 !important;
+        border-bottom: none !important;
+        padding-bottom: 0 !important;
     }
-    /* 标题字号：与屏幕 CSS 一致（px 为绝对单位，打印时 1px = 1/96 inch） */
-    h1 { font-size: 22px !important; }   /* 三号：22px = 16.5pt */
-    h2 { font-size: 18px !important; }   /* 四号：18px = 13.5pt */
-    h3 { font-size: 16px !important; }   /* 小四号：16px = 12pt */
-    h4 { font-size: 16px !important; }   /* 小四号：同上 */
-    h5 { font-size: 14px !important; }   /* 五号：14px = 10.5pt */
-    h6 { font-size: 14px !important; }   /* 五号：同上 */
+    h1 {
+        font-size: 32px !important;
+        text-align: center !important;
+        margin-top: 32px !important;
+        margin-bottom: 24px !important;
+    }
+    h2 {
+        font-size: 18px !important;
+        margin-top: 26px !important;
+        margin-bottom: 14px !important;
+    }
+    h3 {
+        font-size: 16px !important;
+        margin-top: 18px !important;
+        margin-bottom: 10px !important;
+    }
+    h4 {
+        font-size: 16px !important;
+        margin-top: 18px !important;
+        margin-bottom: 8px !important;
+    }
+    h5 {
+        font-size: 14px !important;
+        margin-top: 16px !important;
+        margin-bottom: 6px !important;
+    }
+    h6 {
+        font-size: 14px !important;
+        margin-top: 14px !important;
+        margin-bottom: 6px !important;
+    }
 
     /* ── 正文保留宋体首行缩进，强制字号 ── */
     p {
@@ -1300,6 +1342,9 @@ body.theme-custom [class*="reference"] li {
         text-align: justify !important;
         margin: 0 !important;
     }
+
+    /* ── 内联元素 ── */
+    strong { color: red !important; font-weight: 700 !important; }
 
     /* ── 链接 ── */
     a {
@@ -1313,20 +1358,70 @@ body.theme-custom [class*="reference"] li {
         background: var(--gray-1) !important;
         border-left: 3px solid var(--gray-9) !important;
         color: var(--gray-9) !important;
-        font-size: 14px !important;  /* 五号：与屏幕一致，14px = 10.5pt */
+        font-family: "SimSun", "Songti SC", "Source Han Serif SC", "Noto Serif SC", Georgia, "Times New Roman", serif !important;
+        font-size: 14px !important;
+        margin: 10px 0 !important;
+        padding: 10px 16px 10px 20px !important;
+    }
+    blockquote p { margin: 4px 0 !important; text-indent: 0 !important; }
+
+    /* ── 分割线 ── */
+    hr { border: none !important; border-top: 1px solid var(--gray-9) !important; margin: 32px 0 !important; }
+
+    /* ── 列表：同步屏幕计数器/符号体系（GB/T 7713） ── */
+    /* 容器 */
+    ul, ol {
+        margin: 6px 0 6px 2em !important;
+        padding-left: 1.5em !important;
+        list-style: none !important;
+    }
+    ul ul, ul ol, ol ul, ol ol {
+        margin: 0 !important;
+        padding-left: 1.5em !important;
+        list-style: none !important;
     }
 
-    /* ── 列表：保留字体和粗体标记，自定义编号符号 ── */
+    /* 列表项 */
     li {
         font-family: "SimSun", "Songti SC", "Source Han Serif SC", "Noto Serif SC", serif !important;
-        font-size: 16px !important;  /* 小四号：与屏幕一致，16px = 12pt */
+        font-size: 16px !important;
         line-height: 1.6 !important;
         color: var(--gray-9) !important;
+        text-indent: 0 !important;
+        list-style: none !important;
+        padding: 2px 0 !important;
     }
-    li strong {
-        font-family: inherit !important;
-        font-weight: 700 !important;
+    li > p {
+        display: inline !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        text-indent: 0 !important;
     }
+    li strong { font-family: inherit !important; font-weight: 700 !important; }
+    li::before { display: inline !important; margin-right: 0.35em !important; }
+
+    /* 有序列表编号：1. 2. → (1) (2) → ① ② */
+    ol { counter-reset: ol-lv1 !important; }
+    ol > li { counter-increment: ol-lv1 !important; }
+    ol > li::before { content: counter(ol-lv1) "." !important; }
+    ol > li > ol { counter-reset: ol-lv2 !important; }
+    ol > li > ol > li { counter-increment: ol-lv2 !important; }
+    ol > li > ol > li::before { content: "(" counter(ol-lv2) ")" !important; }
+    ol > li > ol > li > ol { counter-reset: ol-lv3 !important; }
+    ol > li > ol > li > ol > li { counter-increment: ol-lv3 !important; }
+    ol > li > ol > li > ol > li::before { content: counter(ol-lv3, cjk-ideographic) "" !important; }
+
+    /* 无序列表符号：■ → ● → ○ → ◆ */
+    ul { counter-reset: ul-lv1 !important; }
+    ul > li { counter-increment: ul-lv1 !important; }
+    ul > li::before { content: "\25A0\00A0" !important; }
+    ul > li > ul { counter-reset: ul-lv2 !important; }
+    ul > li > ul > li { counter-increment: ul-lv2 !important; }
+    ul > li > ul > li::before { content: "\25CF\00A0" !important; }
+    ul > li > ul > li > ul { counter-reset: ul-lv3 !important; }
+    ul > li > ul > li > ul > li { counter-increment: ul-lv3 !important; }
+    ul > li > ul > li > ul > li::before { content: "\25CB\00A0" !important; }
+    ul ul ul ul > li::before { content: "\25C6\00A0" !important; }
 
     /* ── 内联代码（无边框，浅灰底） ── */
     code {
@@ -1339,34 +1434,42 @@ body.theme-custom [class*="reference"] li {
         font-size: 14px !important;  /* 五号：与屏幕一致，14px = 10.5pt */
     }
 
-    /* ── 代码块（浅灰底，直角，无边框） ── */
+    /* ── 代码块（浅灰底，直角，黑边框 — 与屏幕一致） ── */
     pre {
         background: var(--gray-2) !important;
         color: var(--gray-9) !important;
-        border: none !important;
+        border: 1px solid var(--gray-9) !important;
         border-radius: 0 !important;
-        font-size: 14px !important;  /* 五号：与屏幕一致，14px = 10.5pt */
+        font-size: 14px !important;
         line-height: 1.5 !important;
         font-family: "Courier New", "Consolas", monospace !important;
+        padding: 14px 18px !important;
+        margin: 16px 0 !important;
     }
     pre code {
         background: transparent !important;
+        color: inherit !important;
         border: none !important;
         padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
     }
 
     /* ── 表格：三线表（顶线 + 表头底线 + 底线），无竖线 ── */
     table {
+        width: 100% !important;
         border-collapse: collapse !important;
-        border-top: 2px solid var(--gray-9) !important;
-        border-bottom: 2px solid var(--gray-9) !important;
+        border-top: 2px solid red !important;
+        border-bottom: 2px solid red !important;
         border-left: none !important;
         border-right: none !important;
-        font-size: 14px !important;  /* 五号：与屏幕一致，14px = 10.5pt */
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+        margin: 18px auto !important;
     }
     table th {
         border: none !important;
-        border-bottom: 2px solid var(--gray-9) !important;
+        border-bottom: 2px solid red !important;
         background: transparent !important;  /* 三线表标准：表头透明 */
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
