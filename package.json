@@ -8,7 +8,7 @@
     "colamd-themes": "./dist/cli.js"
   },
   "scripts": {
-    "build": "tsc && cp -r src/templates dist/",
+    "build": "tsc && node --input-type=commonjs -e \"require('fs').cpSync('src/templates','dist/templates',{recursive:true})\"",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js"
   },
