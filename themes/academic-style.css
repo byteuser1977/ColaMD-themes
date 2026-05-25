@@ -1666,10 +1666,11 @@ body.theme-custom [class*="reference"] li {
         color: var(--gray-9) !important;
     }
 
-    /* ── 正文保留宋体首行缩进 ── */
+    /* ── 正文保留宋体 + 首行缩进 ── */
     p {
         font-family: "SimSun", "Songti SC", "Source Han Serif SC", "Noto Serif SC", serif !important;
         color: var(--gray-9) !important;
+        text-indent: 2em !important;
     }
 
     /* ── 链接 ── */
@@ -1713,29 +1714,42 @@ body.theme-custom [class*="reference"] li {
         padding: 0 !important;
     }
 
-    /* ── 表格：三线表（顶线 + 表头底线 + 底线），无竖线 ── */
+    /* ── 表格：四边 1px 实线 ── */
     table {
         border-collapse: collapse !important;
-        border-top: 1.5pt solid var(--gray-9) !important;
-        border-bottom: 1.5pt solid var(--gray-9) !important;
-        border-left: none !important;
-        border-right: none !important;
+        border-top: 1px solid var(--gray-9) !important;
+        border-bottom: 1px solid var(--gray-9) !important;
+        border-left: 1px solid var(--gray-9) !important;
+        border-right: 1px solid var(--gray-9) !important;
         font-size: 10.5pt !important;
     }
     table th {
         border: none !important;
         border-bottom: 0.75pt solid var(--gray-9) !important;
-        background: transparent !important;  /* 三线表标准：表头透明 */
+        background: transparent !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         font-family: "SimHei", "Heiti SC", "Source Han Sans SC", "Noto Sans SC", "Microsoft YaHei", sans-serif !important;
         font-weight: 700 !important;
+        font-size: 16px !important;
         color: var(--gray-9) !important;
     }
     table td {
         border: none !important;
         font-family: "SimSun", "Songti SC", "Source Han Serif SC", "Noto Serif SC", serif !important;
         color: var(--gray-9) !important;
+    }
+
+    /* ── 列表：强调文字采用黑体加粗16px ── */
+    ul, ol {
+        font-family: "SimSun", "Songti SC", "Source Han Serif SC", "Noto Serif SC", serif !important;
+    }
+    ul strong, ol strong,
+    li strong, li b,
+    strong, b {
+        font-family: "SimHei", "Heiti SC", "Source Han Sans SC", "Noto Sans SC", "Microsoft YaHei", sans-serif !important;
+        font-weight: 700 !important;
+        font-size: 16px !important;
     }
 
     /* ── 数学公式 ── */
