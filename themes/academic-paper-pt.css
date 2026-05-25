@@ -33,18 +33,26 @@ body.theme-custom {
      ═══════════════════════════════════════════════════════════════ */
 
   /* 表面色：纯白体系 — 学术论文以留白为核心 */
-  --seed-surface:       #ffffff;   /* L0 页面背景（纯白）      */
-  --seed-panel:         #f5f5f5;   /* L1 代码/区块背景（浅灰）  */
-  --seed-panel-alt:     #fafafa;   /* L2 次要表面（极浅灰）     */
+  --seed-surface: #ffffff;
+  /* L0 页面背景（纯白）      */
+  --seed-panel: #f5f5f5;
+  /* L1 代码/区块背景（浅灰）  */
+  --seed-panel-alt: #fafafa;
+  /* L2 次要表面（极浅灰）     */
 
   /* 文字色：黑白灰三阶 — 高对比度，符合 WCAG AAA */
-  --seed-ink:           #000000;   /* T0 正文/标题（纯黑）      */
-  --seed-ink-muted:     #333333;   /* T1 次要文字              */
-  --seed-ink-dim:       #666666;   /* T2 弱化/禁用文字          */
+  --seed-ink: #000000;
+  /* T0 正文/标题（纯黑）      */
+  --seed-ink-muted: #333333;
+  /* T1 次要文字              */
+  --seed-ink-dim: #666666;
+  /* T2 弱化/禁用文字          */
 
   /* 边框色：学术论文三线表规范 */
-  --seed-border:        #000000;   /* 强调边框 = 纯黑          */
-  --seed-border-light:  #cccccc;   /* 浅边框/分割线            */
+  --seed-border: #000000;
+  /* 强调边框 = 纯黑          */
+  --seed-border-light: #cccccc;
+  /* 浅边框/分割线            */
 
   /* ═══════════════════════════════════════════════════════════════
      1.2 字体系统 — GB/T 7713 学术论文规范
@@ -52,11 +60,11 @@ body.theme-custom {
 
   /* 正文字体栈：宋体 → 宋体 SC → 思源宋体 */
   --font-body: "SimSun", "Songti SC", "Source Han Serif SC", "Noto Serif SC",
-               Georgia, "Times New Roman", serif;
+    Georgia, "Times New Roman", serif;
 
   /* 标题字体栈：黑体 → 黑体 SC → 思源黑体 */
   --font-heading: "SimHei", "Heiti SC", "Source Han Sans SC", "Noto Sans SC",
-                  "Microsoft YaHei", "Arial", sans-serif;
+    "Microsoft YaHei", "Arial", sans-serif;
 
   /* 等宽字体栈 */
   --font-code: "Courier New", "Consolas", "Source Code Pro", monospace;
@@ -71,12 +79,18 @@ body.theme-custom {
   --font-size-root: 16px;
 
   /* 标题倍率 — GB/T 7713 中文字号标准 */
-  --font-scale-h1: 1.375;    /* 22px — 三号（论文题目）  */
-  --font-scale-h2: 1.125;    /* 18px — 四号（一级节）    */
-  --font-scale-h3: 1.0;      /* 16px — 小四号（二级节）  */
-  --font-scale-h4: 1.0;      /* 16px — 小四号（三级节）  */
-  --font-scale-h5: 0.875;    /* 14px — 五号              */
-  --font-scale-h6: 0.875;    /* 14px — 五号              */
+  --font-scale-h1: 1.375;
+  /* 22px — 三号（论文题目）  */
+  --font-scale-h2: 1.125;
+  /* 18px — 四号（一级节）    */
+  --font-scale-h3: 1.0;
+  /* 16px — 小四号（二级节）  */
+  --font-scale-h4: 1.0;
+  /* 16px — 小四号（三级节）  */
+  --font-scale-h5: 0.875;
+  /* 14px — 五号              */
+  --font-scale-h6: 0.875;
+  /* 14px — 五号              */
 
   /* Mermaid 独立字号：小五号 12px */
   --font-size-mermaid: 12px;
@@ -105,16 +119,26 @@ body.theme-custom {
      1.5 灰度色板 — 10 级亮度感知
      ═══════════════════════════════════════════════════════════════ */
 
-  --gray-0:   #ffffff;   /* 纯白 - 页面背景 */
-  --gray-1:   #fafafa;   /* 极浅灰 - 次要表面 */
-  --gray-2:   #f5f5f5;   /* 浅灰 - 代码/区块背景 */
-  --gray-3:   #eeeeee;   /* 中浅灰 - 表头底色 */
-  --gray-4:   #e0e0e0;   /* 浅中灰 - 高亮标记 */
-  --gray-5:   #cccccc;   /* 中灰 - 边框/分割线 */
-  --gray-6:   #999999;   /* 中深灰 - 次要文字 */
-  --gray-7:   #666666;   /* 深灰 - 弱化文字 */
-  --gray-8:   #333333;   /* 近黑 - 强调边框 */
-  --gray-9:   #000000;   /* 纯黑 - 正文/标题 */
+  --gray-0: #ffffff;
+  /* 纯白 - 页面背景 */
+  --gray-1: #fafafa;
+  /* 极浅灰 - 次要表面 */
+  --gray-2: #f5f5f5;
+  /* 浅灰 - 代码/区块背景 */
+  --gray-3: #eeeeee;
+  /* 中浅灰 - 表头底色 */
+  --gray-4: #e0e0e0;
+  /* 浅中灰 - 高亮标记 */
+  --gray-5: #cccccc;
+  /* 中灰 - 边框/分割线 */
+  --gray-6: #999999;
+  /* 中深灰 - 次要文字 */
+  --gray-7: #666666;
+  /* 深灰 - 弱化文字 */
+  --gray-8: #333333;
+  /* 近黑 - 强调边框 */
+  --gray-9: #000000;
+  /* 纯黑 - 正文/标题 */
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -124,49 +148,49 @@ body.theme-custom {
 body.theme-custom {
 
   /* ── 2.1 编辑区表面色 ── */
-  --bg-color:           var(--seed-surface);
-  --surface-color:      var(--seed-panel);
-  --surface-alt:        var(--seed-panel-alt);
+  --bg-color: var(--seed-surface);
+  --surface-color: var(--seed-panel);
+  --surface-alt: var(--seed-panel-alt);
 
   /* ── 2.2 编辑区文字色 ── */
-  --text-color:         var(--seed-ink);
-  --heading-color:      var(--seed-ink);
-  --text-muted:         var(--seed-ink-muted);
-  --text-dim:           var(--seed-ink-dim);
+  --text-color: var(--seed-ink);
+  --heading-color: var(--seed-ink);
+  --text-muted: var(--seed-ink-muted);
+  --text-dim: var(--seed-ink-dim);
 
   /* ── 2.3 链接 & 强调 ── */
-  --link-color:         var(--seed-ink);
-  --accent-color:       var(--seed-ink);
-  --accent-dark:        var(--seed-ink);
-  --accent-light:       var(--gray-4);
-  --selection-bg:       rgba(0, 0, 0, 0.12);
+  --link-color: var(--seed-ink);
+  --accent-color: var(--seed-ink);
+  --accent-dark: var(--seed-ink);
+  --accent-light: var(--gray-4);
+  --selection-bg: rgba(0, 0, 0, 0.12);
 
   /* ── 2.4 边框 & 分割线 ── */
-  --border-color:       var(--seed-border);
-  --blockquote-border:  var(--seed-ink);
-  --hr-color:           var(--seed-ink);
+  --border-color: var(--seed-border);
+  --blockquote-border: var(--seed-ink);
+  --hr-color: var(--seed-ink);
 
   /* ── 2.5 内联代码 ── */
-  --code-bg:            var(--gray-3);
-  --code-color:         var(--seed-ink);
+  --code-bg: var(--gray-3);
+  --code-color: var(--seed-ink);
 
   /* ── 2.6 代码块 ── */
-  --code-block-bg:      var(--seed-panel);
-  --code-block-text:    var(--seed-ink);
-  --code-block-color:   var(--seed-ink);
+  --code-block-bg: var(--seed-panel);
+  --code-block-text: var(--seed-ink);
+  --code-block-color: var(--seed-ink);
 
   /* ── 2.7 引用块 ── */
-  --blockquote-bg:      var(--seed-panel-alt);
+  --blockquote-bg: var(--seed-panel-alt);
 
   /* ── 2.8 表格 — 三线表规范 ── */
-  --table-header-bg:    transparent;
-  --table-border:       var(--seed-ink);
+  --table-header-bg: transparent;
+  --table-border: var(--seed-ink);
 
   /* ── 2.9 表格 — 表头文字 ── */
-  --table-header-text:  var(--seed-ink);
+  --table-header-text: var(--seed-ink);
 
   /* ── 2.10 滚动条 ── */
-  --scrollbar-thumb:    var(--gray-5);
+  --scrollbar-thumb: var(--gray-5);
   --scrollbar-thumb-hover: var(--gray-6);
 }
 
@@ -178,43 +202,43 @@ body.theme-custom {
 body.theme-custom {
 
   /* ── 3.1 容器 ── */
-  --mermaid-background:   var(--seed-surface);
+  --mermaid-background: var(--seed-surface);
   --mermaid-border-color: var(--gray-5);
   --mermaid-border-radius: var(--radius-md);
-  --mermaid-padding:     20px;
+  --mermaid-padding: 20px;
 
   /* ── 3.2 字体 ── */
-  --mermaid-font-family:  var(--font-mermaid);
-  --mermaid-font-size:    var(--font-size-mermaid);
+  --mermaid-font-family: var(--font-mermaid);
+  --mermaid-font-size: var(--font-size-mermaid);
 
   /* ── 3.3 节点 — 浅灰填色 + 深灰边框 ── */
-  --mermaid-node-fill:        var(--gray-3);
-  --mermaid-node-bkg:         var(--gray-2);
-  --mermaid-node-stroke:      var(--gray-8);
+  --mermaid-node-fill: var(--gray-3);
+  --mermaid-node-bkg: var(--gray-2);
+  --mermaid-node-stroke: var(--gray-8);
   --mermaid-node-stroke-width: 1px;
-  --mermaid-node-text:        var(--seed-ink);
+  --mermaid-node-text: var(--seed-ink);
 
   /* ── 3.4 连线 ── */
-  --mermaid-edge-stroke:       var(--gray-8);
+  --mermaid-edge-stroke: var(--gray-8);
   --mermaid-edge-stroke-width: 1px;
 
   /* ── 3.5 聚类 ── */
-  --mermaid-cluster-fill:      var(--gray-1);
-  --mermaid-cluster-stroke:    var(--gray-7);
+  --mermaid-cluster-fill: var(--gray-1);
+  --mermaid-cluster-stroke: var(--gray-7);
 
   /* ── 3.6 标签 ── */
-  --mermaid-label-text:      var(--seed-ink);
+  --mermaid-label-text: var(--seed-ink);
   --mermaid-edge-label-text: var(--seed-ink);
-  --mermaid-edge-label-bg:   var(--seed-surface);
+  --mermaid-edge-label-bg: var(--seed-surface);
 
   /* ── 3.7 标题 & 坐标轴 ── */
-  --mermaid-title-text:      var(--seed-ink);
-  --mermaid-axis-text:       var(--gray-7);
-  --mermaid-highlight:       var(--gray-8);
+  --mermaid-title-text: var(--seed-ink);
+  --mermaid-axis-text: var(--gray-7);
+  --mermaid-highlight: var(--gray-8);
 
   /* ── 3.8 人物节点 ── */
-  --mermaid-person-stroke:   var(--gray-8);
-  --mermaid-person-bkg:      var(--gray-2);
+  --mermaid-person-stroke: var(--gray-8);
+  --mermaid-person-bkg: var(--gray-2);
 
   /* ── 3.9 偏移 ── */
   --mermaid-label-offset-y: 0px;
@@ -247,9 +271,14 @@ body.theme-custom {
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── 5.1 全局：纯白底 + 宋体 + 两端对齐 ── */
-html { font-size: var(--font-size-root); -webkit-font-smoothing: antialiased; }
+html {
+  font-size: var(--font-size-root);
+  -webkit-font-smoothing: antialiased;
+}
 
-body.theme-custom, html, body {
+body.theme-custom,
+html,
+body {
   background-color: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font-body);
@@ -257,7 +286,9 @@ body.theme-custom, html, body {
   text-align: justify;
 }
 
-body.theme-custom { -webkit-font-smoothing: antialiased; }
+body.theme-custom {
+  -webkit-font-smoothing: antialiased;
+}
 
 /* ── 5.2 编辑区 — A4 页面尺寸 ── */
 body.theme-custom #editor {
@@ -272,11 +303,18 @@ body.theme-custom #editor {
   padding: 0;
 }
 
-#write > ul:first-child, #write > ol:first-child { margin-top: 30px; }
+#write>ul:first-child,
+#write>ol:first-child {
+  margin-top: 30px;
+}
 
 /* ── 5.3 标题：黑体，GB/T 7713 字号规范 ── */
-body.theme-custom h1, body.theme-custom h2, body.theme-custom h3,
-body.theme-custom h4, body.theme-custom h5, body.theme-custom h6 {
+body.theme-custom h1,
+body.theme-custom h2,
+body.theme-custom h3,
+body.theme-custom h4,
+body.theme-custom h5,
+body.theme-custom h6 {
   font-family: var(--font-heading);
   color: var(--heading-color);
   font-weight: 700;
@@ -326,11 +364,18 @@ body.theme-custom h6 {
   margin-bottom: 6px;
 }
 
-h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor,
-h4:hover a.anchor, h5:hover a.anchor, h6:hover a.anchor { text-decoration: none; }
+h1:hover a.anchor,
+h2:hover a.anchor,
+h3:hover a.anchor,
+h4:hover a.anchor,
+h5:hover a.anchor,
+h6:hover a.anchor {
+  text-decoration: none;
+}
 
 /* ── 5.4 正文：宋体，首行缩进 2em ── */
-body.theme-custom p, body.theme-custom #write > p {
+body.theme-custom p,
+body.theme-custom #write>p {
   margin: 0;
   line-height: var(--line-height-body);
   text-align: justify;
@@ -338,12 +383,29 @@ body.theme-custom p, body.theme-custom #write > p {
   font-size: var(--font-size-root);
 }
 
-body.theme-custom p + p { margin-top: 0; }
+body.theme-custom p+p {
+  margin-top: 0;
+}
 
 /* ── 5.5 内联强调 ── */
-body.theme-custom strong { color: var(--seed-ink); font-weight: 700; }
-body.theme-custom em { font-style: italic; color: var(--seed-ink); }
-body.theme-custom em strong, body.theme-custom strong em { color: var(--seed-ink); font-weight: 700; }
+body.theme-custom strong {
+  color: var(--seed-accent-dark) !important;
+  font-weight: 700 !important;
+   font-style: block !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+body.theme-custom em {
+  font-style: italic;
+  color: var(--seed-ink);
+}
+
+body.theme-custom em strong,
+body.theme-custom strong em {
+  color: var(--seed-ink);
+  font-weight: 700;
+}
 
 /* ── 5.6 链接：黑 + 底部横线 ── */
 body.theme-custom a {
@@ -351,7 +413,10 @@ body.theme-custom a {
   text-decoration: none;
   border-bottom: 1px solid var(--link-color);
 }
-body.theme-custom a:hover { text-decoration: none; }
+
+body.theme-custom a:hover {
+  text-decoration: none;
+}
 
 /* ── 5.7 其他内联元素 ── */
 body.theme-custom u {
@@ -367,7 +432,10 @@ body.theme-custom mark {
   border-radius: 0;
 }
 
-body.theme-custom del, body.theme-custom s { color: var(--gray-7); }
+body.theme-custom del,
+body.theme-custom s {
+  color: var(--gray-7);
+}
 
 /* ── 5.8 引用块 — 黑线左侧 ── */
 body.theme-custom blockquote {
@@ -380,7 +448,10 @@ body.theme-custom blockquote {
   font-size: 14px;
 }
 
-body.theme-custom blockquote p { margin: 4px 0; text-indent: 0; }
+body.theme-custom blockquote p {
+  margin: 4px 0;
+  text-indent: 0;
+}
 
 /* ── 5.9 分割线 ── */
 body.theme-custom hr {
@@ -393,21 +464,28 @@ body.theme-custom hr {
 /* ── 5.10 列表 — GB/T 7713 学术论文规范 ── */
 
 /* 列表重置 */
-body.theme-custom ul, body.theme-custom ol, body.theme-custom li { margin: 0; padding: 0; }
+body.theme-custom ul,
+body.theme-custom ol,
+body.theme-custom li {
+  margin: 0;
+  padding: 0;
+}
 
 /* 列表容器 */
-body.theme-custom #editor .ProseMirror > ul,
-body.theme-custom #editor .ProseMirror > ol,
-body.theme-custom #write > ul:first-of-type,
-body.theme-custom #write > ol:first-of-type {
+body.theme-custom #editor .ProseMirror>ul,
+body.theme-custom #editor .ProseMirror>ol,
+body.theme-custom #write>ul:first-of-type,
+body.theme-custom #write>ol:first-of-type {
   margin: 6px 0 6px 2em;
   padding-left: 1.5em;
   list-style: none;
   counter-reset: ol-lv1 ul-lv1;
 }
 
-body.theme-custom ul ul, body.theme-custom ul ol,
-body.theme-custom ol ul, body.theme-custom ol ol {
+body.theme-custom ul ul,
+body.theme-custom ul ol,
+body.theme-custom ol ul,
+body.theme-custom ol ol {
   margin: 0;
   padding-left: 1.5em;
   list-style: none;
@@ -431,7 +509,7 @@ body.theme-custom li::before {
 }
 
 /* ProseMirror li > p 内联化 */
-body.theme-custom #editor .ProseMirror li > p {
+body.theme-custom #editor .ProseMirror li>p {
   display: inline;
   margin: 0;
   padding: 0;
@@ -441,49 +519,123 @@ body.theme-custom #editor .ProseMirror li > p {
   font-family: inherit;
 }
 
-body.theme-custom li strong { font-family: inherit; font-weight: 700; }
+body.theme-custom li strong {
+  font-family: inherit;
+  font-weight: 700;
+}
 
 /* 有序列表编号体系 */
-body.theme-custom ol > li { counter-increment: ol-lv1; }
-body.theme-custom ol > li::before { content: counter(ol-lv1) "."; font-family: var(--font-body); }
+body.theme-custom ol>li {
+  counter-increment: ol-lv1;
+}
 
-body.theme-custom ol > li > ol { counter-reset: ol-lv2; }
-body.theme-custom ol > li > ol > li { counter-increment: ol-lv2; }
-body.theme-custom ol > li > ol > li::before { content: "(" counter(ol-lv2) ")"; font-family: var(--font-body); }
+body.theme-custom ol>li::before {
+  content: counter(ol-lv1) ".";
+  font-family: var(--font-body);
+}
 
-body.theme-custom ol > li > ol > li > ol { counter-reset: ol-lv3; }
-body.theme-custom ol > li > ol > li > ol > li { counter-increment: ol-lv3; }
-body.theme-custom ol > li > ol > li > ol > li::before { content: counter(ol-lv3, cjk-ideographic) ""; font-family: var(--font-body); }
+body.theme-custom ol>li>ol {
+  counter-reset: ol-lv2;
+}
 
-body.theme-custom ol ol ol ol > li::before { content: counter(list-item, lower-roman) "."; font-family: var(--font-body); }
+body.theme-custom ol>li>ol>li {
+  counter-increment: ol-lv2;
+}
+
+body.theme-custom ol>li>ol>li::before {
+  content: "(" counter(ol-lv2) ")";
+  font-family: var(--font-body);
+}
+
+body.theme-custom ol>li>ol>li>ol {
+  counter-reset: ol-lv3;
+}
+
+body.theme-custom ol>li>ol>li>ol>li {
+  counter-increment: ol-lv3;
+}
+
+body.theme-custom ol>li>ol>li>ol>li::before {
+  content: counter(ol-lv3, cjk-ideographic) "";
+  font-family: var(--font-body);
+}
+
+body.theme-custom ol ol ol ol>li::before {
+  content: counter(list-item, lower-roman) ".";
+  font-family: var(--font-body);
+}
 
 /* 无序列表符号体系 */
-body.theme-custom ul > li { counter-increment: ul-lv1; }
-body.theme-custom ul > li::before { content: "\25A0\00A0"; }
+body.theme-custom ul>li {
+  counter-increment: ul-lv1;
+}
 
-body.theme-custom ul > li > ul { counter-reset: ul-lv2; }
-body.theme-custom ul > li > ul > li { counter-increment: ul-lv2; }
-body.theme-custom ul > li > ul > li::before { content: "\25CF\00A0"; }
+body.theme-custom ul>li::before {
+  content: "\25A0\00A0";
+}
 
-body.theme-custom ul > li > ul > li > ul { counter-reset: ul-lv3; }
-body.theme-custom ul > li > ul > li > ul > li { counter-increment: ul-lv3; }
-body.theme-custom ul > li > ul > li > ul > li::before { content: "\25CB\00A0"; }
+body.theme-custom ul>li>ul {
+  counter-reset: ul-lv2;
+}
 
-body.theme-custom ul ul ul ul > li::before { content: "\25C6\00A0"; }
+body.theme-custom ul>li>ul>li {
+  counter-increment: ul-lv2;
+}
+
+body.theme-custom ul>li>ul>li::before {
+  content: "\25CF\00A0";
+}
+
+body.theme-custom ul>li>ul>li>ul {
+  counter-reset: ul-lv3;
+}
+
+body.theme-custom ul>li>ul>li>ul>li {
+  counter-increment: ul-lv3;
+}
+
+body.theme-custom ul>li>ul>li>ul>li::before {
+  content: "\25CB\00A0";
+}
+
+body.theme-custom ul ul ul ul>li::before {
+  content: "\25C6\00A0";
+}
 
 /* 混合嵌套 */
-body.theme-custom ul > li > ol { counter-reset: ol-mix2; }
-body.theme-custom ul > li > ol > li { counter-increment: ol-mix2; }
-body.theme-custom ul > li > ol > li::before { content: "(" counter(ol-mix2) ")"; font-family: var(--font-body); }
+body.theme-custom ul>li>ol {
+  counter-reset: ol-mix2;
+}
 
-body.theme-custom ol > li > ul { counter-reset: ul-mix2; }
-body.theme-custom ol > li > ul > li { counter-increment: ul-mix2; }
-body.theme-custom ol > li > ul > li::before { content: "\25CF\00A0"; }
+body.theme-custom ul>li>ol>li {
+  counter-increment: ol-mix2;
+}
 
-.md-task-list-item > input { margin-left: -1.3em; margin-top: 0.3em; }
+body.theme-custom ul>li>ol>li::before {
+  content: "(" counter(ol-mix2) ")";
+  font-family: var(--font-body);
+}
+
+body.theme-custom ol>li>ul {
+  counter-reset: ul-mix2;
+}
+
+body.theme-custom ol>li>ul>li {
+  counter-increment: ul-mix2;
+}
+
+body.theme-custom ol>li>ul>li::before {
+  content: "\25CF\00A0";
+}
+
+.md-task-list-item>input {
+  margin-left: -1.3em;
+  margin-top: 0.3em;
+}
 
 /* ── 5.11 内联代码 ── */
-body.theme-custom code, body.theme-custom tt {
+body.theme-custom code,
+body.theme-custom tt {
   font-family: var(--font-code);
   font-size: 0.88em;
   padding: 1px 6px;
@@ -540,41 +692,98 @@ body.theme-custom #editor .ProseMirror pre code {
 }
 
 /* ── 5.13 代码语法高亮 — 黑白打印友好 ── */
-.cm-s-inner { font-family: var(--font-code); font-size: 14px; line-height: var(--line-height-code); }
+.cm-s-inner {
+  font-family: var(--font-code);
+  font-size: 14px;
+  line-height: var(--line-height-code);
+}
 
-body.theme-custom .token.comment, body.theme-custom .token.prolog,
-body.theme-custom .token.doctype, body.theme-custom .token.cdata,
-.cm-s-inner .cm-comment, .cm-s-inner .cm-quote, .cm-s-inner .cm-hr { color: var(--gray-7); font-style: italic; }
+body.theme-custom .token.comment,
+body.theme-custom .token.prolog,
+body.theme-custom .token.doctype,
+body.theme-custom .token.cdata,
+.cm-s-inner .cm-comment,
+.cm-s-inner .cm-quote,
+.cm-s-inner .cm-hr {
+  color: var(--gray-7);
+  font-style: italic;
+}
 
-body.theme-custom .token.punctuation, .cm-s-inner .cm-meta { color: var(--gray-8); }
+body.theme-custom .token.punctuation,
+.cm-s-inner .cm-meta {
+  color: var(--gray-8);
+}
 
-body.theme-custom .token.keyword, body.theme-custom .token.important,
-.cm-s-inner .cm-keyword { color: var(--seed-ink); font-weight: 700; }
+body.theme-custom .token.keyword,
+body.theme-custom .token.important,
+.cm-s-inner .cm-keyword {
+  color: var(--seed-ink);
+  font-weight: 700;
+}
 
-body.theme-custom .token.boolean, body.theme-custom .token.builtin,
-body.theme-custom .token.tag, body.theme-custom .token.selector,
-body.theme-custom .token.constant, body.theme-custom .token.deleted,
-.cm-s-inner .cm-atom, .cm-s-inner .cm-builtin,
-.cm-s-inner .cm-tag, .cm-s-inner .cm-error { color: var(--seed-ink); font-weight: 600; }
+body.theme-custom .token.boolean,
+body.theme-custom .token.builtin,
+body.theme-custom .token.tag,
+body.theme-custom .token.selector,
+body.theme-custom .token.constant,
+body.theme-custom .token.deleted,
+.cm-s-inner .cm-atom,
+.cm-s-inner .cm-builtin,
+.cm-s-inner .cm-tag,
+.cm-s-inner .cm-error {
+  color: var(--seed-ink);
+  font-weight: 600;
+}
 
-body.theme-custom .token.string, body.theme-custom .token.attr-value,
-body.theme-custom .token.symbol, body.theme-custom .token.inserted,
-.cm-s-inner .cm-string { color: var(--gray-8); }
+body.theme-custom .token.string,
+body.theme-custom .token.attr-value,
+body.theme-custom .token.symbol,
+body.theme-custom .token.inserted,
+.cm-s-inner .cm-string {
+  color: var(--gray-8);
+}
 
-body.theme-custom .token.number, .cm-s-inner .cm-number { color: var(--seed-ink); }
+body.theme-custom .token.number,
+.cm-s-inner .cm-number {
+  color: var(--seed-ink);
+}
 
-body.theme-custom .token.function, body.theme-custom .token.class-name,
-body.theme-custom .token.variable, body.theme-custom .token.attr-name,
-body.theme-custom .token.property, body.theme-custom .token.entity,
-.cm-s-inner .cm-def, .cm-s-inner .cm-variable-2,
-.cm-s-inner .cm-attribute, .cm-s-inner .cm-property,
-.cm-s-inner .cm-header { color: var(--seed-ink); }
+body.theme-custom .token.function,
+body.theme-custom .token.class-name,
+body.theme-custom .token.variable,
+body.theme-custom .token.attr-name,
+body.theme-custom .token.property,
+body.theme-custom .token.entity,
+.cm-s-inner .cm-def,
+.cm-s-inner .cm-variable-2,
+.cm-s-inner .cm-attribute,
+.cm-s-inner .cm-property,
+.cm-s-inner .cm-header {
+  color: var(--seed-ink);
+}
 
-.cm-s-inner .cm-header { font-weight: 700; }
-body.theme-custom .token.url, .cm-s-inner .cm-link { color: var(--seed-ink); text-decoration: underline; }
-body.theme-custom .token.operator, .cm-s-inner .cm-operator { color: var(--gray-8); }
-body.theme-custom .token.regex { color: var(--gray-8); }
-.cm-s-inner .cm-variable { color: var(--seed-ink); }
+.cm-s-inner .cm-header {
+  font-weight: 700;
+}
+
+body.theme-custom .token.url,
+.cm-s-inner .cm-link {
+  color: var(--seed-ink);
+  text-decoration: underline;
+}
+
+body.theme-custom .token.operator,
+.cm-s-inner .cm-operator {
+  color: var(--gray-8);
+}
+
+body.theme-custom .token.regex {
+  color: var(--gray-8);
+}
+
+.cm-s-inner .cm-variable {
+  color: var(--seed-ink);
+}
 
 /* ── 5.14 表格 — GB/T 7713 三线表规范 ── */
 
@@ -609,7 +818,8 @@ body.theme-custom table td {
 }
 
 /* 表格内段落 */
-body.theme-custom table p, body.theme-custom table td p {
+body.theme-custom table p,
+body.theme-custom table td p {
   margin: 0;
   padding: 0;
   text-indent: 0;
@@ -619,7 +829,8 @@ body.theme-custom table p, body.theme-custom table td p {
 }
 
 /* 表格内列表 */
-body.theme-custom table ul, body.theme-custom table ol {
+body.theme-custom table ul,
+body.theme-custom table ol {
   margin: 2px 0;
   padding-left: 1.5em;
 }
@@ -630,10 +841,15 @@ body.theme-custom table li {
   font-size: inherit;
 }
 
-body.theme-custom table li::before { display: inline; margin-right: 0.35em; }
+body.theme-custom table li::before {
+  display: inline;
+  margin-right: 0.35em;
+}
 
 /* 去掉 hover 效果 */
-body.theme-custom table tr:hover td { background: transparent; }
+body.theme-custom table tr:hover td {
+  background: transparent;
+}
 
 /* 三线表样式：顶线 + 表头底线 + 底线，无竖线 */
 body.theme-custom table {
@@ -655,13 +871,25 @@ body.theme-custom table td {
 }
 
 /* ── 5.15 图片 — 无圆角，图题居中 ── */
-body.theme-custom img { max-width: 100%; border-radius: 0; }
+body.theme-custom img {
+  max-width: 100%;
+  border-radius: 0;
+}
 
-body.theme-custom p > img:only-child { display: block; margin: 16px auto; }
+body.theme-custom p>img:only-child {
+  display: block;
+  margin: 16px auto;
+}
 
-body.theme-custom figure { margin: 16px 0; text-align: center; }
+body.theme-custom figure {
+  margin: 16px 0;
+  text-align: center;
+}
 
-body.theme-custom .md-image-src { margin: 16px auto; display: block; }
+body.theme-custom .md-image-src {
+  margin: 16px auto;
+  display: block;
+}
 
 body.theme-custom figcaption {
   font-family: var(--font-body);
@@ -683,15 +911,22 @@ body.theme-custom .math-block {
   overflow-x: auto;
 }
 
-body.theme-custom .math-block .katex, body.theme-custom .math-block .katex *,
-body.theme-custom .math-block .MathJax, body.theme-custom .math-block .MathJax *,
-body.theme-custom .math-inline, body.theme-custom .math-inline .katex,
-body.theme-custom .math-inline .katex *, .md-inline-math script, .md-inline-math .MathJax {
+body.theme-custom .math-block .katex,
+body.theme-custom .math-block .katex *,
+body.theme-custom .math-block .MathJax,
+body.theme-custom .math-block .MathJax *,
+body.theme-custom .math-inline,
+body.theme-custom .math-inline .katex,
+body.theme-custom .math-inline .katex *,
+.md-inline-math script,
+.md-inline-math .MathJax {
   color: var(--seed-ink) !important;
 }
 
 /* ── 5.17 Mermaid 图表容器 ── */
-.md-diagram-panel { margin: 1.5em 0; }
+.md-diagram-panel {
+  margin: 1.5em 0;
+}
 
 /* 图表备注（图题） */
 body.theme-custom .md-filename {
@@ -711,7 +946,12 @@ body.theme-custom .mermaid-block {
   overflow-x: auto;
 }
 
-body.theme-custom .mermaid-preview { background: transparent; border: none; padding: 0; margin: 0; }
+body.theme-custom .mermaid-preview {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
 
 .md-diagram-panel.md-mermaid {
   background: var(--mermaid-background);
@@ -722,10 +962,15 @@ body.theme-custom .mermaid-preview { background: transparent; border: none; padd
   overflow-x: auto;
 }
 
-.md-diagram-panel.md-mermaid svg, body.theme-custom .mermaid-preview svg { max-width: 100%; height: auto; }
+.md-diagram-panel.md-mermaid svg,
+body.theme-custom .mermaid-preview svg {
+  max-width: 100%;
+  height: auto;
+}
 
 /* Mermaid 全局字体 */
-body.theme-custom .mermaid-preview svg text, body.theme-custom .mermaid-preview svg tspan {
+body.theme-custom .mermaid-preview svg text,
+body.theme-custom .mermaid-preview svg tspan {
   font-family: var(--font-mermaid) !important;
   font-size: var(--font-size-mermaid) !important;
   fill: var(--mermaid-node-text) !important;
@@ -741,7 +986,8 @@ body.theme-custom .mermaid-preview svg .edgeLabel span {
   color: var(--mermaid-node-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .titleText, body.theme-custom .mermaid-preview svg .pieTitleText {
+body.theme-custom .mermaid-preview svg .titleText,
+body.theme-custom .mermaid-preview svg .pieTitleText {
   font-size: var(--font-size-mermaid) !important;
   fill: var(--mermaid-title-text) !important;
 }
@@ -768,10 +1014,13 @@ body.theme-custom .mermaid-preview svg defs marker path {
   stroke: var(--mermaid-edge-stroke) !important;
 }
 
-body.theme-custom .mermaid-preview svg .relation { stroke: var(--mermaid-edge-stroke) !important; }
+body.theme-custom .mermaid-preview svg .relation {
+  stroke: var(--mermaid-edge-stroke) !important;
+}
 
 /* Mermaid 聚类 */
-body.theme-custom .mermaid-preview svg .cluster rect, body.theme-custom .mermaid-preview svg .cluster path {
+body.theme-custom .mermaid-preview svg .cluster rect,
+body.theme-custom .mermaid-preview svg .cluster path {
   fill: var(--mermaid-cluster-fill) !important;
   stroke: var(--mermaid-cluster-stroke) !important;
   stroke-width: 1px !important;
@@ -784,7 +1033,8 @@ body.theme-custom .mermaid-preview svg .nodeLabel text {
   fill: var(--mermaid-node-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .nodeLabel span, body.theme-custom .mermaid-preview svg .edgeLabel span {
+body.theme-custom .mermaid-preview svg .nodeLabel span,
+body.theme-custom .mermaid-preview svg .edgeLabel span {
   color: var(--mermaid-node-text) !important;
 }
 
@@ -794,36 +1044,53 @@ body.theme-custom .mermaid-preview svg .edgeLabel rect {
 }
 
 /* Mermaid 各类图表（简化版，完整版见原文件） */
-body.theme-custom .mermaid-preview svg .actor rect, body.theme-custom .mermaid-preview svg .actor path {
+body.theme-custom .mermaid-preview svg .actor rect,
+body.theme-custom .mermaid-preview svg .actor path {
   fill: var(--mermaid-person-bkg) !important;
   stroke: var(--mermaid-node-stroke) !important;
 }
 
-body.theme-custom .mermaid-preview svg text.actor { fill: var(--mermaid-node-text) !important; }
-body.theme-custom .mermaid-preview svg .actor-line { stroke: var(--mermaid-line-color) !important; }
+body.theme-custom .mermaid-preview svg text.actor {
+  fill: var(--mermaid-node-text) !important;
+}
 
-body.theme-custom .mermaid-preview svg .messageLine0, body.theme-custom .mermaid-preview svg .messageLine1 {
+body.theme-custom .mermaid-preview svg .actor-line {
+  stroke: var(--mermaid-line-color) !important;
+}
+
+body.theme-custom .mermaid-preview svg .messageLine0,
+body.theme-custom .mermaid-preview svg .messageLine1 {
   stroke: var(--mermaid-node-stroke) !important;
   stroke-width: 1px !important;
 }
 
-body.theme-custom .mermaid-preview svg .messageText { fill: var(--mermaid-node-text) !important; }
+body.theme-custom .mermaid-preview svg .messageText {
+  fill: var(--mermaid-node-text) !important;
+}
 
-body.theme-custom .mermaid-preview svg .loopText, body.theme-custom .mermaid-preview svg .altText,
-body.theme-custom .mermaid-preview svg .optText, body.theme-custom .mermaid-preview svg .loopText tspan,
-body.theme-custom .mermaid-preview svg .altText tspan, body.theme-custom .mermaid-preview svg .optText tspan {
+body.theme-custom .mermaid-preview svg .loopText,
+body.theme-custom .mermaid-preview svg .altText,
+body.theme-custom .mermaid-preview svg .optText,
+body.theme-custom .mermaid-preview svg .loopText tspan,
+body.theme-custom .mermaid-preview svg .altText tspan,
+body.theme-custom .mermaid-preview svg .optText tspan {
   fill: var(--mermaid-axis-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .loopLine, body.theme-custom .mermaid-preview svg .altLine,
-body.theme-custom .mermaid-preview svg .optLine { stroke: var(--mermaid-node-stroke) !important; }
+body.theme-custom .mermaid-preview svg .loopLine,
+body.theme-custom .mermaid-preview svg .altLine,
+body.theme-custom .mermaid-preview svg .optLine {
+  stroke: var(--mermaid-node-stroke) !important;
+}
 
 body.theme-custom .mermaid-preview svg .labelBox {
   stroke: var(--mermaid-node-stroke) !important;
   fill: var(--mermaid-label-background) !important;
 }
 
-body.theme-custom .mermaid-preview svg .labelText { fill: var(--mermaid-node-text) !important; }
+body.theme-custom .mermaid-preview svg .labelText {
+  fill: var(--mermaid-node-text) !important;
+}
 
 body.theme-custom .mermaid-preview svg .note {
   fill: var(--surface-color) !important;
@@ -831,22 +1098,28 @@ body.theme-custom .mermaid-preview svg .note {
 }
 
 /* 类图 */
-body.theme-custom .mermaid-preview svg .classGroup rect, body.theme-custom .mermaid-preview svg .classBox rect,
+body.theme-custom .mermaid-preview svg .classGroup rect,
+body.theme-custom .mermaid-preview svg .classBox rect,
 body.theme-custom .mermaid-preview svg .classBox path {
   stroke: var(--mermaid-node-stroke) !important;
   fill: var(--mermaid-node-bkg) !important;
 }
 
-body.theme-custom .mermaid-preview svg .classTitle text, body.theme-custom .mermaid-preview svg .classTitle span,
-body.theme-custom .mermaid-preview svg .classText text, body.theme-custom .mermaid-preview svg .classText span {
+body.theme-custom .mermaid-preview svg .classTitle text,
+body.theme-custom .mermaid-preview svg .classTitle span,
+body.theme-custom .mermaid-preview svg .classText text,
+body.theme-custom .mermaid-preview svg .classText span {
   fill: var(--mermaid-node-text) !important;
   color: var(--mermaid-node-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .divider { stroke: var(--mermaid-node-stroke) !important; }
+body.theme-custom .mermaid-preview svg .divider {
+  stroke: var(--mermaid-node-stroke) !important;
+}
 
 /* 状态图 */
-body.theme-custom .mermaid-preview svg .statediagram-state rect, body.theme-custom .mermaid-preview svg .statediagram-state circle {
+body.theme-custom .mermaid-preview svg .statediagram-state rect,
+body.theme-custom .mermaid-preview svg .statediagram-state circle {
   fill: var(--mermaid-node-bkg) !important;
   stroke: var(--mermaid-node-stroke) !important;
   stroke-width: 1px !important;
@@ -864,8 +1137,13 @@ body.theme-custom .mermaid-preview svg .statediagram-cluster .outer-title text {
   color: var(--mermaid-node-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .transition { stroke: var(--mermaid-node-stroke) !important; }
-body.theme-custom .mermaid-preview svg .edgeLabel .label text { fill: var(--mermaid-node-text) !important; }
+body.theme-custom .mermaid-preview svg .transition {
+  stroke: var(--mermaid-node-stroke) !important;
+}
+
+body.theme-custom .mermaid-preview svg .edgeLabel .label text {
+  fill: var(--mermaid-node-text) !important;
+}
 
 /* 甘特图 */
 body.theme-custom .mermaid-preview svg .task {
@@ -874,56 +1152,76 @@ body.theme-custom .mermaid-preview svg .task {
   stroke-width: 1px !important;
 }
 
-body.theme-custom .mermaid-preview svg .taskText, body.theme-custom .mermaid-preview svg .taskTextOutsideRight,
-body.theme-custom .mermaid-preview svg .taskTextOutsideLeft { fill: var(--mermaid-node-text) !important; }
+body.theme-custom .mermaid-preview svg .taskText,
+body.theme-custom .mermaid-preview svg .taskTextOutsideRight,
+body.theme-custom .mermaid-preview svg .taskTextOutsideLeft {
+  fill: var(--mermaid-node-text) !important;
+}
 
 body.theme-custom .mermaid-preview svg .section rect {
   fill: var(--mermaid-tertiary-color) !important;
   stroke: var(--mermaid-node-stroke) !important;
 }
 
-body.theme-custom .mermaid-preview svg .sectionText, body.theme-custom .mermaid-preview svg .sectionTitle {
+body.theme-custom .mermaid-preview svg .sectionText,
+body.theme-custom .mermaid-preview svg .sectionTitle {
   fill: var(--mermaid-node-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .today { stroke: var(--mermaid-node-stroke) !important; stroke-width: 2px !important; }
+body.theme-custom .mermaid-preview svg .today {
+  stroke: var(--mermaid-node-stroke) !important;
+  stroke-width: 2px !important;
+}
 
-body.theme-custom .mermaid-preview svg .grid .tick line, body.theme-custom .mermaid-preview svg .grid .domain {
+body.theme-custom .mermaid-preview svg .grid .tick line,
+body.theme-custom .mermaid-preview svg .grid .domain {
   stroke: var(--mermaid-line-color) !important;
 }
 
-body.theme-custom .mermaid-preview svg .tick text { fill: var(--mermaid-axis-text) !important; }
+body.theme-custom .mermaid-preview svg .tick text {
+  fill: var(--mermaid-axis-text) !important;
+}
 
 /* 饼图 */
-body.theme-custom .mermaid-preview svg .pieCircle, body.theme-custom .mermaid-preview svg .slice {
+body.theme-custom .mermaid-preview svg .pieCircle,
+body.theme-custom .mermaid-preview svg .slice {
   stroke: var(--mermaid-node-stroke) !important;
 }
 
-body.theme-custom .mermaid-preview svg .legend text { fill: var(--mermaid-node-text) !important; }
+body.theme-custom .mermaid-preview svg .legend text {
+  fill: var(--mermaid-node-text) !important;
+}
 
 /* ER 图 */
-body.theme-custom .mermaid-preview svg .er .entityBox rect, body.theme-custom .mermaid-preview svg .er .entityBox path {
+body.theme-custom .mermaid-preview svg .er .entityBox rect,
+body.theme-custom .mermaid-preview svg .er .entityBox path {
   fill: var(--mermaid-node-bkg) !important;
   stroke: var(--mermaid-node-stroke) !important;
 }
 
-body.theme-custom .mermaid-preview svg .er text, body.theme-custom .mermaid-preview svg .er .relationshipLabel {
+body.theme-custom .mermaid-preview svg .er text,
+body.theme-custom .mermaid-preview svg .er .relationshipLabel {
   fill: var(--mermaid-node-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .er .relationshipLine { stroke: var(--mermaid-node-stroke) !important; }
+body.theme-custom .mermaid-preview svg .er .relationshipLine {
+  stroke: var(--mermaid-node-stroke) !important;
+}
 
 /* Git 图 */
-body.theme-custom .mermaid-preview svg .git .commit rect, body.theme-custom .mermaid-preview svg .git .commit circle {
+body.theme-custom .mermaid-preview svg .git .commit rect,
+body.theme-custom .mermaid-preview svg .git .commit circle {
   fill: var(--mermaid-cscale9) !important;
   stroke: var(--mermaid-node-stroke) !important;
 }
 
-body.theme-custom .mermaid-preview svg .git text, body.theme-custom .mermaid-preview svg .git .branchLabel text {
+body.theme-custom .mermaid-preview svg .git text,
+body.theme-custom .mermaid-preview svg .git .branchLabel text {
   fill: var(--mermaid-node-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .git .tag rect, body.theme-custom .mermaid-preview svg .git .tag circle {
+body.theme-custom .mermaid-preview svg .git .tag rect,
+body.theme-custom .mermaid-preview svg .git .tag circle {
   fill: var(--mermaid-secondary-color) !important;
   stroke: var(--mermaid-node-stroke) !important;
 }
@@ -933,7 +1231,8 @@ body.theme-custom .mermaid-preview svg .git .branch rect {
   stroke: var(--mermaid-line-color) !important;
 }
 
-body.theme-custom .mermaid-preview svg .git .commit-line, body.theme-custom .mermaid-preview svg .git .branch-line {
+body.theme-custom .mermaid-preview svg .git .commit-line,
+body.theme-custom .mermaid-preview svg .git .branch-line {
   stroke: var(--mermaid-node-stroke) !important;
 }
 
@@ -943,7 +1242,9 @@ body.theme-custom .mermaid-preview svg .journey .task rect {
   stroke: var(--mermaid-node-stroke) !important;
 }
 
-body.theme-custom .mermaid-preview svg .journey text { fill: var(--mermaid-node-text) !important; }
+body.theme-custom .mermaid-preview svg .journey text {
+  fill: var(--mermaid-node-text) !important;
+}
 
 /* 时间线 */
 body.theme-custom .mermaid-preview svg .timeline rect {
@@ -951,7 +1252,9 @@ body.theme-custom .mermaid-preview svg .timeline rect {
   stroke: var(--mermaid-node-stroke) !important;
 }
 
-body.theme-custom .mermaid-preview svg .timeline text { fill: var(--mermaid-node-text) !important; }
+body.theme-custom .mermaid-preview svg .timeline text {
+  fill: var(--mermaid-node-text) !important;
+}
 
 body.theme-custom .mermaid-preview svg .timeline .period rect {
   fill: var(--mermaid-cluster-fill) !important;
@@ -975,52 +1278,77 @@ body.theme-custom .mermaid-preview svg .mindmap-node .nodeLabel span {
   color: var(--mermaid-node-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .mindmap-edge { stroke: var(--mermaid-node-stroke) !important; }
-
-/* C4 架构图 */
-body.theme-custom .mermaid-preview svg .c4 .person rect, body.theme-custom .mermaid-preview svg .c4 .person path,
-body.theme-custom .mermaid-preview svg .c4 .system rect, body.theme-custom .mermaid-preview svg .c4 .system path,
-body.theme-custom .mermaid-preview svg .c4 .container rect, body.theme-custom .mermaid-preview svg .c4 .container path,
-body.theme-custom .mermaid-preview svg .c4 .boundary rect, body.theme-custom .mermaid-preview svg .c4 .boundary path {
+body.theme-custom .mermaid-preview svg .mindmap-edge {
   stroke: var(--mermaid-node-stroke) !important;
 }
 
-body.theme-custom .mermaid-preview svg .c4 text, body.theme-custom .mermaid-preview svg .c4 span {
+/* C4 架构图 */
+body.theme-custom .mermaid-preview svg .c4 .person rect,
+body.theme-custom .mermaid-preview svg .c4 .person path,
+body.theme-custom .mermaid-preview svg .c4 .system rect,
+body.theme-custom .mermaid-preview svg .c4 .system path,
+body.theme-custom .mermaid-preview svg .c4 .container rect,
+body.theme-custom .mermaid-preview svg .c4 .container path,
+body.theme-custom .mermaid-preview svg .c4 .boundary rect,
+body.theme-custom .mermaid-preview svg .c4 .boundary path {
+  stroke: var(--mermaid-node-stroke) !important;
+}
+
+body.theme-custom .mermaid-preview svg .c4 text,
+body.theme-custom .mermaid-preview svg .c4 span {
   fill: var(--mermaid-node-text) !important;
   color: var(--mermaid-node-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .person rect, body.theme-custom .mermaid-preview svg .person path {
+body.theme-custom .mermaid-preview svg .person rect,
+body.theme-custom .mermaid-preview svg .person path {
   fill: var(--mermaid-person-bkg) !important;
   stroke: var(--mermaid-node-stroke) !important;
 }
 
-body.theme-custom .mermaid-preview svg .person-man text { fill: var(--mermaid-node-text) !important; }
-body.theme-custom .mermaid-preview svg .person-man span { color: var(--mermaid-node-text) !important; }
-
-/* XY Chart */
-body.theme-custom .mermaid-preview svg .xychart .axis text { fill: var(--mermaid-axis-text) !important; }
-
-body.theme-custom .mermaid-preview svg .xychart .axis line, body.theme-custom .mermaid-preview svg .xychart .axis path {
-  stroke: var(--mermaid-node-stroke) !important;
-}
-
-body.theme-custom .mermaid-preview svg .xychart .plot rect, body.theme-custom .mermaid-preview svg .xychart .plot line {
-  stroke: var(--mermaid-node-stroke) !important;
-}
-
-body.theme-custom .mermaid-preview svg .xychart .titleText { fill: var(--mermaid-node-text) !important; }
-
-/* 四象限图 */
-body.theme-custom .mermaid-preview svg .quadrant rect { stroke: var(--mermaid-node-stroke) !important; }
-
-body.theme-custom .mermaid-preview svg .quadrant text, body.theme-custom .mermaid-preview svg .quadrant .titleText {
+body.theme-custom .mermaid-preview svg .person-man text {
   fill: var(--mermaid-node-text) !important;
 }
 
-body.theme-custom .mermaid-preview svg .quadrant .axis text { fill: var(--mermaid-axis-text) !important; }
+body.theme-custom .mermaid-preview svg .person-man span {
+  color: var(--mermaid-node-text) !important;
+}
 
-body.theme-custom .mermaid-preview svg .quadrant .axis line, body.theme-custom .mermaid-preview svg .quadrant .axis path {
+/* XY Chart */
+body.theme-custom .mermaid-preview svg .xychart .axis text {
+  fill: var(--mermaid-axis-text) !important;
+}
+
+body.theme-custom .mermaid-preview svg .xychart .axis line,
+body.theme-custom .mermaid-preview svg .xychart .axis path {
+  stroke: var(--mermaid-node-stroke) !important;
+}
+
+body.theme-custom .mermaid-preview svg .xychart .plot rect,
+body.theme-custom .mermaid-preview svg .xychart .plot line {
+  stroke: var(--mermaid-node-stroke) !important;
+}
+
+body.theme-custom .mermaid-preview svg .xychart .titleText {
+  fill: var(--mermaid-node-text) !important;
+}
+
+/* 四象限图 */
+body.theme-custom .mermaid-preview svg .quadrant rect {
+  stroke: var(--mermaid-node-stroke) !important;
+}
+
+body.theme-custom .mermaid-preview svg .quadrant text,
+body.theme-custom .mermaid-preview svg .quadrant .titleText {
+  fill: var(--mermaid-node-text) !important;
+}
+
+body.theme-custom .mermaid-preview svg .quadrant .axis text {
+  fill: var(--mermaid-axis-text) !important;
+}
+
+body.theme-custom .mermaid-preview svg .quadrant .axis line,
+body.theme-custom .mermaid-preview svg .quadrant .axis path {
   stroke: var(--mermaid-node-stroke) !important;
 }
 
@@ -1030,12 +1358,20 @@ body.theme-custom .mermaid-preview svg .quadrant .point {
 }
 
 /* Sankey 图 */
-body.theme-custom .mermaid-preview svg .sankey .link { stroke: var(--mermaid-node-stroke) !important; }
-body.theme-custom .mermaid-preview svg .sankey text { fill: var(--mermaid-node-text) !important; }
+body.theme-custom .mermaid-preview svg .sankey .link {
+  stroke: var(--mermaid-node-stroke) !important;
+}
+
+body.theme-custom .mermaid-preview svg .sankey text {
+  fill: var(--mermaid-node-text) !important;
+}
 
 /* 图表标题加粗 */
-body.theme-custom .mermaid-preview svg .pieTitleText, body.theme-custom .mermaid-preview svg .xychart .titleText,
-body.theme-custom .mermaid-preview svg .quadrant .titleText { font-weight: 700 !important; }
+body.theme-custom .mermaid-preview svg .pieTitleText,
+body.theme-custom .mermaid-preview svg .xychart .titleText,
+body.theme-custom .mermaid-preview svg .quadrant .titleText {
+  font-weight: 700 !important;
+}
 
 /* Mermaid 源码编辑器 */
 body.theme-custom .mermaid-source {
@@ -1054,7 +1390,9 @@ body.theme-custom .mermaid-source {
   white-space: pre-wrap;
 }
 
-body.theme-custom .mermaid-source:focus { border-color: var(--mermaid-node-text); }
+body.theme-custom .mermaid-source:focus {
+  border-color: var(--mermaid-node-text);
+}
 
 /* ── 5.18 脚注（小五号 12px） ── */
 body.theme-custom .footnotes {
@@ -1067,39 +1405,71 @@ body.theme-custom .footnotes {
 }
 
 /* 段落内加粗标签 */
-body.theme-custom #write > p strong { font-weight: 700; }
+body.theme-custom #write>p strong {
+  font-weight: 700;
+}
 
 /* 关键词 / 参考文献 */
-body.theme-custom .references, body.theme-custom [class*="reference"] {
+body.theme-custom .references,
+body.theme-custom [class*="reference"] {
   font-family: var(--font-body);
   font-size: 12px;
   line-height: 1.5;
 }
 
-body.theme-custom .references li, body.theme-custom [class*="reference"] li {
+body.theme-custom .references li,
+body.theme-custom [class*="reference"] li {
   text-indent: -2em;
   padding-left: 2em;
   margin-bottom: 6px;
 }
 
 /* ── 5.19 响应式 ── */
-@media only screen and (min-width: 1400px) { #write { max-width: var(--content-width); } }
+@media only screen and (min-width: 1400px) {
+  #write {
+    max-width: var(--content-width);
+  }
+}
 
 @media only screen and (max-width: 768px) {
-  #write { padding: 15mm 12mm 15mm 12mm; }
+  #write {
+    padding: 15mm 12mm 15mm 12mm;
+  }
 
-  body.theme-custom .mermaid-block, body.theme-custom .mermaid-preview,
-  .md-diagram-panel.md-mermaid { padding: 12px; margin: 1em 0; }
+  body.theme-custom .mermaid-block,
+  body.theme-custom .mermaid-preview,
+  .md-diagram-panel.md-mermaid {
+    padding: 12px;
+    margin: 1em 0;
+  }
 
-  body.theme-custom .mermaid-preview svg { max-width: 100% !important; height: auto !important; }
-  body.theme-custom .mermaid-preview svg text { font-size: 12px !important; }
-  .md-diagram-panel.md-mermaid svg text { font-size: 12px !important; }
-  body.theme-custom .mermaid-preview svg .titleText { font-size: 14px !important; }
-  .md-diagram-panel.md-mermaid svg .titleText { font-size: 14px !important; }
+  body.theme-custom .mermaid-preview svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  body.theme-custom .mermaid-preview svg text {
+    font-size: 12px !important;
+  }
+
+  .md-diagram-panel.md-mermaid svg text {
+    font-size: 12px !important;
+  }
+
+  body.theme-custom .mermaid-preview svg .titleText {
+    font-size: 14px !important;
+  }
+
+  .md-diagram-panel.md-mermaid svg .titleText {
+    font-size: 14px !important;
+  }
 }
 
 /* ── 5.20 滚动条 ── */
-body.theme-custom { scrollbar-width: auto; scrollbar-color: var(--gray-8); }
+body.theme-custom {
+  scrollbar-width: auto;
+  scrollbar-color: var(--gray-8);
+}
 
 /* ── 5.21 源码编辑模式 ── */
 body.theme-custom #source-editor {
@@ -1131,21 +1501,21 @@ body.theme-custom #source-editor {
 
   /* ── 6.0 变量重声明 ── */
   body.theme-custom {
-    --seed-surface:      #ffffff;
-    --seed-ink:          #000000;
-    --seed-ink-muted:    #333333;
-    --seed-panel:        #f5f5f5;
-    --seed-panel-alt:    #fafafa;
-    --seed-border:       #000000;
-    --font-size-root:    16px;
-    --line-height-body:  1.5;
+    --seed-surface: #ffffff;
+    --seed-ink: #000000;
+    --seed-ink-muted: #333333;
+    --seed-panel: #f5f5f5;
+    --seed-panel-alt: #fafafa;
+    --seed-border: #000000;
+    --font-size-root: 16px;
+    --line-height-body: 1.5;
     --line-height-heading: 1.35;
-    --font-scale-h1:     1.375;
-    --font-scale-h2:     1.125;
-    --font-scale-h3:     1.0;
-    --font-scale-h4:     1.0;
-    --font-scale-h5:     0.875;
-    --font-scale-h6:     0.875;
+    --font-scale-h1: 2.25;
+    --font-scale-h2: 1.625;
+    --font-scale-h3: 1.25;
+    --font-scale-h4: 1.25;
+    --font-scale-h5: 1;
+    --font-scale-h6: 1;
     --font-size-mermaid: 12px;
     --font-body: "SimSun", "Songti SC", "Source Han Serif SC", "Noto Serif SC", Georgia, serif;
     --font-heading: "SimHei", "Heiti SC", "Source Han Sans SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
@@ -1153,9 +1523,13 @@ body.theme-custom #source-editor {
   }
 
   /* ── 6.1 根元素：字号 + 宋体 + 两端对齐 + 底色 ── */
-  html { font-size: var(--font-size-root) !important; }
+  html {
+    font-size: var(--font-size-root) !important;
+  }
 
-  html, body, body.theme-custom {
+  html,
+  body,
+  body.theme-custom {
     background: var(--seed-surface) !important;
     color: var(--seed-ink) !important;
     font-family: var(--font-body) !important;
@@ -1166,7 +1540,11 @@ body.theme-custom #source-editor {
   }
 
   /* ── 6.2 编辑区：A4 页面尺寸 ── */
-  #titlebar, #slides-btn, #agent-dot { display: none !important; }
+  #titlebar,
+  #slides-btn,
+  #agent-dot {
+    display: none !important;
+  }
 
   #editor {
     height: auto !important;
@@ -1181,8 +1559,12 @@ body.theme-custom #source-editor {
   }
 
   /* ── 6.3 标题：黑体，pt 精确字号 ── */
-  body.theme-custom h1, body.theme-custom h2, body.theme-custom h3,
-  body.theme-custom h4, body.theme-custom h5, body.theme-custom h6 {
+  body.theme-custom h1,
+  body.theme-custom h2,
+  body.theme-custom h3,
+  body.theme-custom h4,
+  body.theme-custom h5,
+  body.theme-custom h6 {
     font-family: var(--font-heading) !important;
     font-weight: 700 !important;
     line-height: var(--line-height-heading) !important;
@@ -1192,12 +1574,36 @@ body.theme-custom #source-editor {
   }
 
   /* 标题字号：pt 精确映射 */
-  body.theme-custom h1 { font-size: 16pt !important; }     /* 三号：22px → 16pt */
-  body.theme-custom h2 { font-size: 14pt !important; }     /* 四号：18px → 14pt */
-  body.theme-custom h3 { font-size: 12pt !important; }     /* 小四号：16px → 12pt */
-  body.theme-custom h4 { font-size: 12pt !important; }     /* 小四号 */
-  body.theme-custom h5 { font-size: 10.5pt !important; }   /* 五号：14px → 10.5pt */
-  body.theme-custom h6 { font-size: 10.5pt !important; }   /* 五号 */
+  body.theme-custom h1 {
+    font-size: 24pt !important;
+  }
+
+  /* 三号：22px → 16pt */
+  body.theme-custom h2 {
+    font-size: 16pt !important;
+  }
+
+  /* 四号：18px → 14pt */
+  body.theme-custom h3 {
+    font-size: 12pt !important;
+  }
+
+  /* 小四号：16px → 12pt */
+  body.theme-custom h4 {
+    font-size: 12pt !important;
+  }
+
+  /* 小四号 */
+  body.theme-custom h5 {
+    font-size: 10.5pt !important;
+  }
+
+  /* 五号：14px → 10.5pt */
+  body.theme-custom h6 {
+    font-size: 10.5pt !important;
+  }
+
+  /* 五号 */
 
   /* ── 6.4 正文：宋体，首行缩进 ── */
   body.theme-custom p {
@@ -1212,11 +1618,13 @@ body.theme-custom #source-editor {
 
   /* ── 6.5 内联强调 ── */
   body.theme-custom strong {
-    color: var(--seed-ink) !important;
+    font-family: var(--font-heading) !important;
     font-weight: 700 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    font-style: italic !important;
   }
+
   body.theme-custom em {
     font-style: italic !important;
     color: var(--seed-ink) !important;
@@ -1247,7 +1655,11 @@ body.theme-custom #source-editor {
     color: var(--seed-ink) !important;
   }
 
-  body.theme-custom li strong { font-family: inherit !important; font-weight: 700 !important; }
+  body.theme-custom li strong {
+    font-family: var(--font-heading) !important;
+    font-style: italic !important;
+    font-weight: 700 !important;
+  }
 
   /* ── 6.9 内联代码 ── */
   body.theme-custom code {
@@ -1284,23 +1696,21 @@ body.theme-custom #source-editor {
   /* ── 6.11 表格：三线表 ── */
   body.theme-custom table {
     border-collapse: collapse !important;
-    border-top: 2px solid var(--seed-ink) !important;
-    border-bottom: 2px solid var(--seed-ink) !important;
-    border-left: none !important;
-    border-right: none !important;
+    border-top: 1px solid var(--seed-ink) !important;
+    border-bottom: 1px solid var(--seed-ink) !important;
+    border-left: 1px solid var(--seed-ink) !important;
+    border-right: 1px solid var(--seed-ink) !important;
     font-size: 10.5pt !important;
   }
 
   body.theme-custom table th {
-    border: none !important;
-    border-bottom: 2px solid var(--seed-ink) !important;
-    background: transparent !important;
+    background: var(--seed-ink) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     font-family: var(--font-heading) !important;
     font-size: 10.5pt !important;
     font-weight: 700 !important;
-    color: var(--seed-ink) !important;
+    color: var(--table-header-text) !important;
     padding: 8px 10px !important;
     text-align: center !important;
     text-indent: 0 !important;
@@ -1308,37 +1718,30 @@ body.theme-custom #source-editor {
   }
 
   body.theme-custom table td {
-    border: none !important;
-    font-family: var(--font-body) !important;
+    border: 1px solid var(--seed-border) !important;
     font-size: 10.5pt !important;
-    color: var(--seed-ink) !important;
     padding: 8px 10px !important;
     text-align: left !important;
     text-indent: 0 !important;
     vertical-align: top !important;
   }
 
-  body.theme-custom table p, body.theme-custom table td p {
-    font-family: var(--font-body) !important;
-    font-size: 10.5pt !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    text-align: left !important;
-    text-indent: 0 !important;
-    line-height: 1.4 !important;
+  body.theme-custom table strong {
+    font-weight: 700 !important;
+    font-family: inherit !important;
   }
 
-  body.theme-custom table strong { font-weight: 700 !important; font-family: inherit !important; }
-
   /* ── 6.12 数学公式 ── */
-  body.theme-custom .math-inline, body.theme-custom .math-block {
+  body.theme-custom .math-inline,
+  body.theme-custom .math-block {
     color: var(--seed-ink) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
   /* ── 6.13 Mermaid 图表容器 ── */
-  body.theme-custom .mermaid-block, body.theme-custom .mermaid-preview,
+  body.theme-custom .mermaid-block,
+  body.theme-custom .mermaid-preview,
   .md-diagram-panel.md-mermaid {
     background: var(--seed-surface) !important;
     border: 1px solid var(--gray-5) !important;
@@ -1347,12 +1750,13 @@ body.theme-custom #source-editor {
     print-color-adjust: exact !important;
   }
 
-  body.theme-custom .mermaid-preview svg, body.theme-custom .mermaid-preview svg * {
+  body.theme-custom .mermaid-preview svg,
+  body.theme-custom .mermaid-preview svg * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  body.theme-custom .mermaid-block + p {
+  body.theme-custom .mermaid-block+p {
     font-family: var(--font-body) !important;
     font-size: 10.5pt !important;
     text-align: center !important;
@@ -1366,15 +1770,34 @@ body.theme-custom #source-editor {
   }
 
   /* ── 6.15 分页控制 ── */
-  body.theme-custom h1 { page-break-before: avoid; }
-  body.theme-custom h2, body.theme-custom h3, body.theme-custom h4,
-  body.theme-custom h5, body.theme-custom h6 { page-break-after: avoid; }
-  body.theme-custom table, body.theme-custom figure, body.theme-custom img { page-break-inside: avoid; }
-  body.theme-custom p { orphans: 3; widows: 3; }
+  body.theme-custom h1 {
+    page-break-before: avoid;
+  }
+
+  body.theme-custom h2,
+  body.theme-custom h3,
+  body.theme-custom h4,
+  body.theme-custom h5,
+  body.theme-custom h6 {
+    page-break-after: avoid;
+  }
+
+  body.theme-custom table,
+  body.theme-custom figure,
+  body.theme-custom img {
+    page-break-inside: avoid;
+  }
+
+  body.theme-custom p {
+    orphans: 3;
+    widows: 3;
+  }
 
   /* ── 6.16 防止内容溢出 ── */
-  body.theme-custom pre, body.theme-custom .md-fences,
-  body.theme-custom .mermaid-block, body.theme-custom .md-diagram-panel {
+  body.theme-custom pre,
+  body.theme-custom .md-fences,
+  body.theme-custom .mermaid-block,
+  body.theme-custom .md-diagram-panel {
     overflow: visible !important;
     white-space: pre-wrap !important;
     word-wrap: break-word !important;
