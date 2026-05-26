@@ -142,7 +142,7 @@ program
   .description("List all generated themes")
   .option("-d, --themes-dir <dir>", "Themes directory", "themes")
   .action((options: Record<string, string>) => {
-    const dirPath = join(process.cwd(), options.themesDir);
+    const dirPath = isAbsolute(options.themesDir) ? options.themesDir : join(process.cwd(), options.themesDir);
     if (!existsSync(dirPath)) { console.log(chalk.yellow(`No themes directory: ${dirPath}`)); return; }
     const files = readdirSync(dirPath).filter((f) => f.endsWith(".css"));
     if (files.length === 0) { console.log(chalk.yellow("No themes found.")); return; }
