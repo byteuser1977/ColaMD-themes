@@ -1,6 +1,6 @@
 {
   "name": "colamd-themes",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Theme development tool for ColaMD - extract formatting from URLs, DOCX, PDF and convert to CSS theme files",
   "type": "module",
   "main": "dist/index.js",

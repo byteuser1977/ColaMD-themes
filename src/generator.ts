@@ -2,7 +2,7 @@
 
 import Handlebars from "handlebars";
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ThemeStyle } from "./models.js";
 import { paletteToSeed } from "./models.js";
@@ -73,9 +73,9 @@ export function writeThemeFile(
 
   let filePath: string;
   if (target.endsWith(".css")) {
-    filePath = join(process.cwd(), target);
+    filePath = isAbsolute(target) ? target : join(process.cwd(), target);
   } else {
-    const dirPath = join(process.cwd(), target);
+    const dirPath = isAbsolute(target) ? target : join(process.cwd(), target);
     if (!existsSync(dirPath)) mkdirSync(dirPath, { recursive: true });
     filePath = join(dirPath, `${safeName}.css`);
   }
