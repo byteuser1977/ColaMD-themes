@@ -50,8 +50,8 @@ body.theme-custom {
      ═══════════════════════════════════════════════════════════ */
 
   /* 正文字体栈：Helvetica → Inter → 通用无衬线 */
-  --font-body: "AlimamaFangYuanTiVF", "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont,
-             "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-body: "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont,
+               "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 
   /* 标题字体栈：与正文同体系，粗体 + 紧凑字距体现 Swiss 风格 */
   --font-heading: "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont,
@@ -475,7 +475,7 @@ body.theme-custom .mermaid-block + p {
     --table-header-text: #ffffff;
     --border-color:      var(--seed-border);
     --hr-color:          var(--seed-border);
-    --font-body: "AlimamaFangYuanTiVF", "Plus Jakarta Sans", "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont,
+    --font-body: "Plus Jakarta Sans", "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont,
              "PingFang SC", "Noto Sans SC", sans-serif;
 
   --font-heading: "Plus Jakarta Sans", "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont,

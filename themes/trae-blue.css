@@ -1,0 +1,737 @@
+/*
+ * ColaMD 主题：Trae Blue（Trae IDE 文档风格）
+ * 版本：v1.0
+ *
+ * 风格来源：docs.trae.cn — Trae IDE 官方文档站
+ * 风格特征：
+ *   - 白底 + Slate 灰阶文字，高可读性技术文档风格
+ *   - 系统原生无衬线字体，中英文混排自然
+ *   - 右侧大纲菜单（TOC side menu），层级清晰
+ *   - 蓝色点缀（#3b82f6），克制且高效
+ *
+ * 导入：Theme > Import Theme
+ */
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 1 — 设计令牌 (Design Tokens)
+   ═══════════════════════════════════════════════════════════ */
+
+body.theme-custom {
+
+  /* ═══════════════════════════════════════════════════════════
+     1.1 种子色板 — Trae 亮底蓝点缀
+     白底 + 深 slate 文字 + 亮蓝点缀
+     ═══════════════════════════════════════════════════════════ */
+
+  --seed-accent:        #3b82f6;   /* Trae Blue 主色            */
+  --seed-accent-light:  #eff6ff;   /* 极浅蓝背景                */
+  --seed-accent-dark:   #2563eb;   /* 深蓝 hover               */
+
+  /* 表面色：Slate 亮色层级（Tailwind slate-50/100 体系） */
+  --seed-surface:       #ffffff;   /* L0 页面背景（纯白）        */
+  --seed-panel:         #f8fafc;   /* L1 卡片/侧栏背景（极浅灰蓝）*/
+  --seed-panel-alt:     #f1f5f9;   /* L2 代码区/引用块背景       */
+
+  /* 文字色：Slate 灰阶 — 高可读性，蓝灰调 */
+  --seed-ink:           #0f172a;   /* T0 正文/标题（slate-900） */
+  --seed-ink-muted:     #475569;   /* T1 次要文字（slate-600）  */
+  --seed-ink-dim:       #94a3b8;   /* T2 弱化文字（slate-400）  */
+
+  /* 边框色：极淡，仅以微差区分层级 */
+  --seed-border:        #e2e8f0;   /* 淡边框（slate-200）       */
+  --seed-border-strong: #3b82f6;   /* 强调边框 = Trae Blue      */
+
+  /* ═══════════════════════════════════════════════════════════
+     1.2 字体系统 — 思源宋体正文字 + 思源黑体标题
+     ═══════════════════════════════════════════════════════════ */
+
+  --font-body: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun",
+               Georgia, "Times New Roman", serif;
+
+  --font-heading: "Noto Sans SC", "Source Han Sans SC", "YouHei",
+                  "Heiti SC", "Microsoft YaHei", sans-serif;
+
+  --font-code: "Cascadia Code", "JetBrains Mono", "Fira Code", "SF Mono", Menlo, Consolas, monospace;
+
+  --font-mermaid: var(--font-heading);
+
+  /* ═══════════════════════════════════════════════════════════
+     1.3 字号 & 间距
+     ═══════════════════════════════════════════════════════════ */
+
+  --font-size-root: 15px;
+
+  --font-scale-h1: 2.0;     /* 30px */
+  --font-scale-h2: 1.8;   /* 22px */
+  --font-scale-h3: 1.5;     /* 18px */
+  --font-scale-h4: 1.2;   /* 16px */
+  --font-scale-h5: 1.0;     /* 15px */
+  --font-scale-h6: 0.867;   /* 13px */
+
+  --font-size-mermaid: 12px;
+
+  --line-height-body: 1.75;
+  --line-height-heading: 1.35;
+  --line-height-code: 1.6;
+
+  /* ═══════════════════════════════════════════════════════════
+     1.4 圆角 & 间距
+     ═══════════════════════════════════════════════════════════ */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --content-width: 780px;
+
+  /* ═══════════════════════════════════════════════════════════
+     SECTION 2 — 语义映射 (Semantic Mapping)
+     ═══════════════════════════════════════════════════════════ */
+
+  --bg-color:           var(--seed-surface);
+  --surface-color:      var(--seed-panel);
+  --surface-alt:        var(--seed-panel-alt);
+
+  --text-color:         var(--seed-ink);
+  --heading-color:      var(--seed-ink);
+  --text-muted:         var(--seed-ink-muted);
+  --text-dim:           var(--seed-ink-dim);
+
+  --link-color:         var(--seed-accent);
+  --accent-color:       var(--seed-accent);
+  --accent-dark:        var(--seed-accent-dark);
+  --accent-light:       var(--seed-accent-light);
+  --selection-bg:       rgba(59, 130, 246, 0.12);
+
+  --border-color:       var(--seed-border);
+  --blockquote-border:  var(--seed-accent);
+  --hr-color:           var(--seed-border);
+
+  --code-bg:            #f1f5f9;
+  --code-color:         var(--seed-accent);
+
+  --code-block-bg:      #f8fafc;
+  --code-block-text:    var(--seed-ink);
+  --code-block-color:   var(--seed-ink);
+
+  --blockquote-bg:      var(--seed-panel);
+
+  --table-header-bg:    var(--seed-accent-light);
+  --table-border:       var(--seed-border);
+  --table-header-text:  var(--seed-ink);
+
+  --scrollbar-thumb:    var(--seed-border);
+  --scrollbar-thumb-hover: var(--seed-ink-muted);
+
+  /* ═══════════════════════════════════════════════════════════
+     SECTION 3 — Mermaid 图表变量
+     ═══════════════════════════════════════════════════════════ */
+
+  --mermaid-background:   var(--seed-surface);
+  --mermaid-border-color: var(--seed-border);
+  --mermaid-border-radius: var(--radius-md);
+  --mermaid-padding:     24px;
+
+  --mermaid-font-family:  var(--font-mermaid);
+  --mermaid-font-size:    var(--font-size-mermaid);
+
+  --mermaid-node-fill:        var(--seed-panel);
+  --mermaid-node-stroke:      var(--seed-ink-muted);
+  --mermaid-node-stroke-width: 1px;
+  --mermaid-node-text:        var(--seed-ink);
+
+  --mermaid-edge-stroke:       var(--seed-ink-muted);
+  --mermaid-edge-stroke-width: 1px;
+
+  --mermaid-cluster-fill:      var(--seed-panel-alt);
+  --mermaid-cluster-stroke:    var(--seed-border);
+
+  --mermaid-label-text:      var(--seed-ink);
+  --mermaid-edge-label-text: var(--seed-ink-muted);
+  --mermaid-edge-label-bg:   var(--seed-surface);
+
+  --mermaid-title-text:      var(--seed-ink);
+  --mermaid-axis-text:       var(--seed-ink-muted);
+  --mermaid-highlight:       var(--seed-accent);
+
+  --mermaid-person-stroke:   var(--seed-ink-muted);
+  --mermaid-person-fill:     var(--seed-panel);
+
+  --mermaid-label-offset-y: 0px;
+
+  /* ═══════════════════════════════════════════════════════════
+     SECTION 4 — 排版微调
+     ═══════════════════════════════════════════════════════════ */
+  --line-height-base: var(--line-height-body);
+}
+
+/* ═════════════════════════════════════════════════════════════
+   SECTION 5 — 选择器级微调 (Selector Fine-Tuning)
+   ═════════════════════════════════════════════════════════════ */
+
+/* ── 5.0 全局：白底 + Slate 灰阶文字 ── */
+html { font-size: var(--font-size-root); }
+body.theme-custom, html, body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: var(--line-height-body);
+  text-align: left;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── 5.1 编辑区：居中留白 ── */
+#write {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 48px 64px 120px;
+}
+
+/* ── 5.1.1 正文段落：首行缩进 ── */
+body.theme-custom p, body.theme-custom #write > p {
+  margin: 0;
+  line-height: var(--line-height-body);
+  text-align: left;
+  text-indent: 2em;
+  font-size: var(--font-size-root);
+}
+body.theme-custom p + p { margin-top: 0; }
+
+/* 重置：列表、表格、引用块、图表中的段落不缩进 */
+body.theme-custom li p,
+body.theme-custom li,
+body.theme-custom td p,
+body.theme-custom th p,
+body.theme-custom blockquote p,
+body.theme-custom .mermaid-block p,
+body.theme-custom figure p,
+body.theme-custom pre p {
+  text-indent: 0;
+}
+
+/* 列表整体缩进与正文首行对齐 — 直接参考 academic-paper.css §5.7 */
+body.theme-custom ul,
+body.theme-custom ol,
+body.theme-custom li {
+  margin: 0;
+  padding: 0;
+}
+
+body.theme-custom #editor .ProseMirror > ul,
+body.theme-custom #editor .ProseMirror > ol,
+body.theme-custom #write > ul,
+body.theme-custom #write > ol {
+  margin: 6px 0 6px 2em;
+  padding-left: 1.5em;
+  list-style-position: outside;
+}
+
+body.theme-custom ul ul,
+body.theme-custom ul ol,
+body.theme-custom ol ul,
+body.theme-custom ol ol {
+  margin: 0;
+  padding-left: 1.5em;
+}
+
+body.theme-custom li {
+  line-height: var(--line-height-body);
+  font-family: var(--font-body);
+  font-size: var(--font-size-root);
+  font-weight: normal;
+  text-indent: 0;
+  padding: 2px 0;
+}
+
+body.theme-custom li::before {
+  content: none;
+}
+
+body.theme-custom #editor .ProseMirror li > p {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  text-indent: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+}
+
+/* ── 5.1.2 列表层级颜色：逐级降灰，重点突出 ── */
+
+/* 一级列表：正文黑，确保重点可读 */
+body.theme-custom #write > ul > li,
+body.theme-custom #write > ol > li,
+body.theme-custom #editor .ProseMirror > ul > li,
+body.theme-custom #editor .ProseMirror > ol > li {
+  color: var(--seed-ink);
+}
+
+/* 一级列表内 strong：加深为纯黑，强化重点 */
+body.theme-custom #write > ul > li strong,
+body.theme-custom #write > ol > li strong,
+body.theme-custom #editor .ProseMirror > ul > li strong,
+body.theme-custom #editor .ProseMirror > ol > li strong {
+  color: #020617;
+  font-weight: 700;
+}
+
+/* 一级列表内 a：保持蓝色 */
+body.theme-custom #write > ul > li a,
+body.theme-custom #write > ol > li a {
+  color: var(--link-color);
+}
+
+/* 二级列表：中灰 slate-600，视觉收缩 */
+body.theme-custom #write > ul > li > ul > li,
+body.theme-custom #write > ul > li > ol > li,
+body.theme-custom #write > ol > li > ul > li,
+body.theme-custom #write > ol > li > ol > li {
+  color: var(--seed-ink-muted);
+}
+
+/* 三级列表：浅灰 slate-400，辅助收敛 */
+body.theme-custom #write > ul > li > ul > li > ul > li,
+body.theme-custom #write > ul > li > ul > li > ol > li,
+body.theme-custom #write > ul > li > ol > li > ul > li,
+body.theme-custom #write > ul > li > ol > li > ol > li,
+body.theme-custom #write > ol > li > ul > li > ul > li,
+body.theme-custom #write > ol > li > ul > li > ol > li,
+body.theme-custom #write > ol > li > ol > li > ul > li,
+body.theme-custom #write > ol > li > ol > li > ol > li {
+  color: var(--seed-ink-dim);
+  font-size: calc(var(--font-size-root) * 0.933);
+}
+
+/* 四级及更深：保持三级色 */
+body.theme-custom #write ul ul ul ul li,
+body.theme-custom #write ol ol ol ol li {
+  color: var(--seed-ink-dim);
+  font-size: calc(var(--font-size-root) * 0.9);
+}
+
+/* ── 5.2 标题：Trae 文档风 — 蓝底序号 + 紧凑层级 ── */
+body.theme-custom h1, body.theme-custom h2, body.theme-custom h3,
+body.theme-custom h4, body.theme-custom h5, body.theme-custom h6 {
+  font-family: var(--font-heading);
+  color: var(--heading-color);
+  font-weight: 600;
+  line-height: var(--line-height-heading);
+  text-align: left;
+  letter-spacing: -0.015em;
+}
+
+body.theme-custom h1 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h1));
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--seed-border);
+}
+
+body.theme-custom h2 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h2));
+  margin-top: 1.75em;
+  margin-bottom: 0.5em;
+  padding-left: 0.75em;
+  border-left: 3px solid var(--seed-accent);
+}
+
+body.theme-custom h3 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h3));
+  margin-top: 1.5em;
+  margin-bottom: 0.4em;
+}
+
+body.theme-custom h4 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h4));
+  color: var(--seed-accent);
+  margin-top: 1.25em;
+  margin-bottom: 0.8em;
+  padding-left: 1em;
+}
+
+body.theme-custom h5 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h5));
+  color: var(--seed-ink-muted);
+}
+
+body.theme-custom h6 {
+  font-size: calc(var(--font-size-root) * var(--font-scale-h6));
+  color: var(--seed-ink-dim);
+}
+
+/* ── 5.3 内联强调 ── */
+body.theme-custom strong { color: var(--seed-ink); font-weight: 600; }
+body.theme-custom em { font-style: italic; color: var(--seed-ink-muted); }
+
+/* ── 5.4 链接：Trae Blue + 底部横线 ── */
+body.theme-custom a {
+  color: var(--link-color);
+  text-decoration: none;
+  border-bottom: 1px solid var(--link-color);
+}
+body.theme-custom a:hover {
+  color: var(--accent-dark);
+  border-bottom: 2px solid var(--accent-dark);
+}
+
+/* ── 5.5 内联代码 ── */
+body.theme-custom code {
+  font-family: var(--font-code);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  color: var(--code-color);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+}
+
+/* ── 5.6 代码块 ── */
+body.theme-custom pre {
+  background: var(--code-block-bg);
+  font-family: var(--font-code);
+  font-size: 13px;
+  line-height: var(--line-height-code);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--seed-border);
+  padding: 16px 20px;
+}
+body.theme-custom pre code {
+  color: var(--code-block-text);
+  background: transparent;
+}
+
+/* ── 5.7 引用块 ── */
+body.theme-custom blockquote {
+  background: var(--blockquote-bg);
+  border-left: 3px solid var(--blockquote-border);
+  padding: 12px 20px 12px 24px;
+  border-radius: var(--radius-md);
+  color: var(--seed-ink-muted);
+}
+
+/* ── 5.8 表格 ── */
+body.theme-custom table {
+  border-collapse: collapse;
+}
+body.theme-custom table th {
+  background: var(--table-header-bg);
+  color: var(--table-header-text);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.875em;
+  padding: 10px 14px;
+  border: 1px solid var(--seed-border);
+}
+body.theme-custom table td {
+  padding: 8px 14px;
+  border: 1px solid var(--seed-border);
+  color: var(--seed-ink-muted);
+}
+
+/* ── 5.9 分割线 ── */
+body.theme-custom hr {
+  border: none;
+  border-top: 1px solid var(--hr-color);
+  margin: 2.5em 0;
+}
+
+/* ── 5.10 图片 ── */
+body.theme-custom img { max-width: 100%; border-radius: var(--radius-md); }
+
+/* ── 5.11 图表标题 ── */
+body.theme-custom .mermaid-block + p {
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 0.875em;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ═════════════════════════════════════════════════════════════
+   ── 5.11 右侧菜单：大纲 / TOC 侧栏 — Trae 文档站风格
+   目标：渲染成 Trae docs 右侧导航菜单的效果
+   ═════════════════════════════════════════════════════════════ */
+
+/* ── 5.11.0 侧栏全局容器 ── */
+body.theme-custom #sidebar,
+body.theme-custom .sidebar-content {
+  background: var(--seed-panel);
+  border-left: 1px solid var(--seed-border);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--seed-ink-muted);
+}
+
+/* ── 5.11.1 大纲面板：Trae 右侧导航菜单 ── */
+body.theme-custom .outline-content {
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 12px 0;
+}
+
+body.theme-custom .outline-item {
+  padding: 4px 16px 4px 20px;
+  border-left: 2px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  color: var(--seed-ink-muted);
+}
+
+body.theme-custom .outline-item:hover {
+  color: var(--seed-ink);
+  background: var(--seed-panel-alt);
+  border-left-color: var(--seed-ink-muted);
+}
+
+body.theme-custom .outline-item.outline-active {
+  color: var(--seed-accent);
+  background: var(--seed-accent-light);
+  border-left-color: var(--seed-accent);
+  font-weight: 500;
+}
+
+/* 大纲层级缩进 */
+body.theme-custom .outline-h1 { padding-left: 20px; font-weight: 600; }
+body.theme-custom .outline-h2 { padding-left: 32px; }
+body.theme-custom .outline-h3 { padding-left: 44px; font-size: 12px; }
+body.theme-custom .outline-h4 { padding-left: 56px; font-size: 12px; color: var(--seed-ink-dim); }
+
+/* ── 5.11.2 内联 TOC（文档内目录） ── */
+body.theme-custom .md-toc {
+  font-size: 0.9em;
+  background: var(--seed-panel);
+  border: 1px solid var(--seed-border);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+
+body.theme-custom .md-toc-content {
+  margin-left: 0;
+}
+
+body.theme-custom .md-toc-item {
+  padding: 3px 0;
+  color: var(--seed-ink-muted);
+}
+
+body.theme-custom .md-toc-item a {
+  color: var(--seed-ink-muted);
+  border-bottom: none;
+}
+body.theme-custom .md-toc-item a:hover {
+  color: var(--seed-accent);
+  border-bottom: none;
+}
+
+body.theme-custom .md-toc-h1 .md-toc-inner { font-weight: 600; }
+body.theme-custom .md-toc-h2 .md-toc-inner { padding-left: 12px; }
+body.theme-custom .md-toc-h3 .md-toc-inner { padding-left: 24px; }
+
+/* ── 5.11.3 搜索高亮 ── */
+body.theme-custom #write .md-search-hit {
+  background: rgba(59, 130, 246, 0.18);
+  border-radius: 2px;
+  color: var(--seed-ink);
+}
+
+/* ── 5.12 响应式 ── */
+@media only screen and (max-width: 768px) {
+  #write { padding: 20px; }
+  body.theme-custom h1 { font-size: calc(var(--font-size-root) * 1.5); }
+}
+
+/* ═════════════════════════════════════════════════════════════
+   SECTION 6 — 打印 / 导出
+   屏幕已为亮色方案，打印保持一致。隐藏侧栏菜单。
+   ═════════════════════════════════════════════════════════════ */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm 10mm 10mm 10mm;
+    }
+
+  body.theme-custom {
+    --seed-accent:       #3b82f6;
+    --seed-accent-light: #eff6ff;
+    --seed-accent-dark:  #2563eb;
+    --seed-surface:      #ffffff;
+    --seed-panel:        #f8fafc;
+    --seed-panel-alt:    #f1f5f9;
+    --seed-ink:          #0f172a;
+    --seed-ink-muted:    #475569;
+    --seed-ink-dim:      #94a3b8;
+    --seed-border:       #e2e8f0;
+    --font-size-root:    15px;
+    --line-height-body:  1.75;
+    --line-height-heading: 1.35;
+    --line-height-code:  1.6;
+    --font-scale-h1:     2.0;
+    --font-scale-h2:     1.467;
+    --font-scale-h3:     1.2;
+    --font-scale-h4:     1.2;
+    --font-scale-h5:     1.0;
+    --font-scale-h6:     0.867;
+    --content-width:     780px;
+    --font-size-mermaid: 12px;
+    --accent-color:      var(--seed-accent);
+    --accent-dark:       var(--seed-accent-dark);
+    --code-bg:           #f1f5f9;
+    --code-color:        var(--seed-accent);
+    --code-block-bg:     #f8fafc;
+    --code-block-text:   var(--seed-ink);
+    --blockquote-bg:     var(--seed-panel);
+    --table-header-bg:   var(--seed-accent-light);
+    --table-header-text: var(--seed-ink);
+    --border-color:      var(--seed-border);
+    --hr-color:          var(--seed-border);
+    --font-body: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun",
+                 Georgia, "Times New Roman", serif;
+    --font-heading: "Noto Sans SC", "Source Han Sans SC", "YouHei",
+                    "Heiti SC", "Microsoft YaHei", sans-serif;
+    --font-code: "Cascadia Code", "JetBrains Mono", "Fira Code", "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  html {
+    font-size: var(--font-size-root) !important;
+  }
+  html, body, body.theme-custom {
+    background: var(--seed-surface) !important;
+    color: var(--seed-ink) !important;
+    font-family: var(--font-body) !important;
+    font-weight: 380 !important;
+    line-height: var(--line-height-body) !important;
+    text-align: left !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #write {
+    max-width: var(--content-width) !important;
+    margin: 0 auto !important;
+    padding: 40px 28px 100px !important;
+  }
+
+  body.theme-custom p, body.theme-custom #write > p {
+    margin: 0 !important;
+    line-height: var(--line-height-body) !important;
+    text-align: left !important;
+    text-indent: 2em !important;
+    font-size: var(--font-size-root) !important;
+  }
+  body.theme-custom p + p { margin-top: 0 !important; }
+
+  body.theme-custom li p,
+  body.theme-custom li,
+  body.theme-custom td p,
+  body.theme-custom th p,
+  body.theme-custom blockquote p,
+  body.theme-custom .mermaid-block p,
+  body.theme-custom figure p,
+  body.theme-custom pre p {
+    text-indent: 0 !important;
+  }
+
+  body.theme-custom ul, body.theme-custom ol, body.theme-custom li {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.theme-custom #editor .ProseMirror > ul,
+  body.theme-custom #editor .ProseMirror > ol,
+  body.theme-custom #write > ul,
+  body.theme-custom #write > ol {
+    margin: 6px 0 6px 2em !important;
+    padding-left: 1.5em !important;
+    list-style-position: outside !important;
+  }
+
+  body.theme-custom ul ul, body.theme-custom ul ol,
+  body.theme-custom ol ul, body.theme-custom ol ol {
+    margin: 0 !important;
+    padding-left: 1.5em !important;
+  }
+
+  body.theme-custom li {
+    line-height: var(--line-height-body) !important;
+    font-family: var(--font-body) !important;
+    font-size: var(--font-size-root) !important;
+    font-weight: normal !important;
+    text-indent: 0 !important;
+    padding: 2px 0 !important;
+  }
+
+  body.theme-custom li::before {
+    content: none !important;
+  }
+
+  body.theme-custom #editor .ProseMirror li > p {
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-indent: 0 !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    font-family: inherit !important;
+  }
+
+  body.theme-custom h1, body.theme-custom h2, body.theme-custom h3,
+  body.theme-custom h4, body.theme-custom h5, body.theme-custom h6 {
+    font-family: var(--font-heading) !important;
+    font-weight: 600 !important;
+    line-height: var(--line-height-heading) !important;
+    text-align: left !important;
+    letter-spacing: -0.015em !important;
+    color: var(--seed-ink) !important;
+  }
+
+  body.theme-custom h1 {
+    font-size: calc(var(--font-size-root) * var(--font-scale-h1)) !important;
+    margin-top: 2em !important;
+    margin-bottom: 0.5em !important;
+    padding-bottom: 0.35em !important;
+    border-bottom: 1px solid var(--seed-border) !important;
+  }
+
+  body.theme-custom h2 {
+    font-size: calc(var(--font-size-root) * var(--font-scale-h2)) !important;
+    margin-top: 1.75em !important;
+    margin-bottom: 0.5em !important;
+    padding-left: 0.75em !important;
+    border-left: 3px solid var(--seed-accent) !important;
+  }
+
+  body.theme-custom h3 {
+    font-size: calc(var(--font-size-root) * var(--font-scale-h3)) !important;
+  }
+
+  body.theme-custom h4 {
+    font-size: calc(var(--font-size-root) * var(--font-scale-h4)) !important;
+    color: var(--seed-accent) !important;
+    margin-top: 1.25em !important;
+    margin-bottom: 0.8em !important;
+    padding-left: 1em !important;
+  }
+
+  body.theme-custom table th {
+    background: var(--table-header-bg) !important;
+    color: var(--table-header-text) !important;
+  }
+
+  body.theme-custom code, body.theme-custom pre code {
+    color: var(--seed-accent) !important;
+  }
+
+  body.theme-custom a {
+    color: var(--link-color) !important;
+    border-bottom: 1px solid var(--link-color) !important;
+  }
+
+  /* 打印时隐藏侧栏 TOC 菜单 */
+  body.theme-custom #sidebar,
+  body.theme-custom .sidebar-content,
+  body.theme-custom .outline-content {
+    display: none !important;
+  }
+}
