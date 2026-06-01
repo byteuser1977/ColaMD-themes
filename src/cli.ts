@@ -14,6 +14,7 @@ import { COLOR_SYSTEMS, getColorSystem } from "./color-systems.js";
 import { MERMAID_PRESETS } from "./mermaid-presets.js";
 import { validateSeedPalette, summarizeIssues } from "./validators.js";
 import type { ThemeStyle } from "./models.js";
+import { registerExportCommands } from "./export-cli.js";
 
 const program = new Command();
 
@@ -179,6 +180,9 @@ program
     console.log(summarizeIssues(issues));
     if (issues.filter((i) => i.level === "MUST" || i.level === "MUST_NOT").length > 0) process.exit(1);
   });
+
+// ── Export commands (set-theme, export-html, export-pdf, export) ──
+registerExportCommands(program);
 
 // ── Summary ──
 

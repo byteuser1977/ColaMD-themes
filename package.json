@@ -1,7 +1,7 @@
 {
   "name": "colamd-themes",
-  "version": "0.2.0",
-  "description": "Theme development tool for ColaMD - extract formatting from URLs, DOCX, PDF and convert to CSS theme files",
+  "version": "0.3.0",
+  "description": "Theme development & export tool for ColaMD — extract formatting, generate themes, and export Markdown to HTML/PDF",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -13,6 +13,7 @@
     "start": "node dist/cli.js"
   },
   "dependencies": {
+    "@bytechain.cn/colamd": "^1.5.2",
     "axios": "^1.7",
     "chalk": "^5.3",
     "cheerio": "^1.0",
@@ -21,7 +22,8 @@
     "handlebars": "^4.7",
     "mammoth": "^1.8",
     "ora": "^8.0",
-    "pdf-parse": "^1.1"
+    "pdf-parse": "^1.1",
+    "puppeteer": "^24.0"
   },
   "devDependencies": {
     "@types/css-tree": "^2.3",
