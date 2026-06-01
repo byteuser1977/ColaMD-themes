@@ -2,7 +2,8 @@
 
 import { Command } from "commander";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, isAbsolute } from "node:path";
+import { join, isAbsolute, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import chalk from "chalk";
 import ora from "ora";
 import { UrlExtractor } from "./extractors/url-extractor.js";
@@ -16,12 +17,28 @@ import { validateSeedPalette, summarizeIssues } from "./validators.js";
 import type { ThemeStyle } from "./models.js";
 import { registerExportCommands } from "./export-cli.js";
 
+/**
+ * Dynamically read version from package.json to avoid hardcoding.
+ * This ensures CLI --version always matches the published package version.
+ */
+function getPackageVersion(): string {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const pkgPath = join(__dirname, "../package.json");
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    return pkg.version ?? "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+}
+
 const program = new Command();
 
 program
   .name("colamd-themes")
   .description("ColaMD Theme Development Tool — extract formatting and generate v3.0 paradigm CSS themes")
-  .version("0.2.0");
+  .version(getPackageVersion());
 
 // ── Shared extract options builder ──
 
