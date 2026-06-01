@@ -6,4 +6,7 @@ dist/
 .DS_Store
 tmp/
 .themes/
+.claude/
+.opencode/
+.hermes/
 

@@ -220,8 +220,10 @@ export class ColamdRenderer {
     const pdfPage = await this.browser!.newPage();
     await pdfPage.setContent(html, { waitUntil: "load", timeout: 30000 });
 
-    // Emulate screen media to preserve theme colors
-    await pdfPage.emulateMediaType("screen");
+    // NOTE: Do NOT use emulateMediaType("screen") here.
+    // The CSS template includes comprehensive @media print rules (SECTION 6)
+    // with !important declarations and print-color-adjust: exact for proper styling.
+    // Using screen mode would prevent these print-specific styles from applying.
 
     const pdfBuffer = await pdfPage.pdf({
       format: options.format ?? "A4",
