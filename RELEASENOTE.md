@@ -2,6 +2,18 @@
 
 ## Version 0.3.0 (2026-06-01)
 
+### 📦 Package Name Change
+
+**Migrated to Scoped Package**
+- Package name changed from `colamd-themes` to **`@bytechain.cn/colamd-themes`**
+- Belongs to the `@bytechain.cn` organization ecosystem
+- Consistent with dependency `@bytechain.cn/colamd`
+
+**New Short CLI Command**
+- Added `cthemes` as a short alias for `colamd-themes`
+- Both commands are fully equivalent and interchangeable
+- Recommended for frequent use: shorter to type, same functionality
+
 ### 🎨 New Themes
 
 **Trae Blue Theme**
@@ -24,7 +36,7 @@
 **Better Developer Experience**
 - **Absolute Path Support**: Use full file paths in all CLI commands — no more relative path confusion
   ```bash
-  colamd-themes export-html /full/path/to/document.md -t elegant -o output.html
+  cthemes export-html /full/path/to/document.md -t elegant -o output.html
   ```
 - **Interactive Previews**: New HTML preview files for colly and salvator-blog themes
 - **Build Process**: Fixed template file copying to ensure reliable distributions
@@ -105,20 +117,20 @@
 **Developer-Friendly CLI**
 
 ```bash
-# Extract theme from any source
-colamd-themes extract source.docx --name my-theme
+# Extract theme from any source (use `colamd-themes` or short alias `cthemes`)
+cthemes extract source.docx --name my-theme
 
 # Export with beautiful styling
-colamd-themes export-html doc.md -t elegant -o output.html
-colamd-themes export-pdf doc.md -t dark --format A4 -o output.pdf
+cthemes export-html doc.md -t elegant -o output.html
+cthemes export-pdf doc.md -t dark --format A4 -o output.pdf
 
 # Batch process entire directories
-colamd-themes export docs/ --format pdf -t elegant -d output/
+cthemes export docs/ --format pdf -t elegant -d output/
 
 # Manage your themes
-colamd-themes list
-colamd-themes validate themes/my-theme.css
-colamd-themes set-theme my-brand --css custom.css --default
+cthemes list
+cthemes validate themes/my-theme.css
+cthemes set-theme my-brand --css custom.css --default
 ```
 
 ### Technology Stack
@@ -148,8 +160,8 @@ cd ColaMD-themes
 npm install
 npm run build
 
-# Try it out
-colamd-themes export-html README.md -t trae-blue -o preview.html
+# Try it out (use either command)
+cthemes export-html README.md -t trae-blue -o preview.html
 open preview.html
 ```
 

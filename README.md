@@ -44,9 +44,48 @@ Handlebars-powered template produces v3.0 paradigm CSS (≤300 lines):
 | 5 | Selector-Level Micro Adjustments — headings, code, pre, blockquote, table, hr, responsive |
 | 6 | `@media print` — screen-mirror with `!important` + `print-color-adjust: exact` |
 
-### AI Agent Skill
+### Multi-Agent Skill
 
-`.claude/skills/colamd-themes.skill.md` lets AI coding agents invoke the CLI directly.
+Universal skill definitions for 5 AI coding agents, auto-generated from a single source:
+
+| Agent | Skill Path | Frontmatter |
+|-------|-----------|-------------|
+| **Claude Code** | `.claude/skills/colamd-themes.skill.md` | `name`, `description` |
+| **OpenCode** | `.opencode/skills/colamd-themes/SKILL.md` | `name`, `version`, `user-invocable`, `allowed-tools`, `hooks` |
+| **OpenClaw** | `.openclaw/skills/colamd-themes/SKILL.md` | `id`, `name`, `version`, `icon`, `author`, `homepage`, `metadata.openclaw.os` |
+| **Hermes** | `.hermes/skills/tools/colamd-themes/SKILL.md` | `name`, `version`, `author`, `license`, `metadata.hermes.tags`, `prerequisites` |
+| **Trae** | `.trae/rules/colamd-themes.md` | Plain Markdown (no frontmatter) |
+
+**Architecture:**
+
+```
+skills/colamd-themes/SKILL.md       ← Canonical source (single source of truth)
+        │
+        ▼
+skills/build-skills.sh              ← Build script (bash)
+        │
+        ├──→ .claude/skills/colamd-themes.skill.md
+        ├──→ .opencode/skills/colamd-themes/SKILL.md
+        ├──→ .openclaw/skills/colamd-themes/SKILL.md
+        ├──→ .hermes/skills/tools/colamd-themes/SKILL.md
+        └──→ .trae/rules/colamd-themes.md
+```
+
+**Regenerate all agent skills:**
+
+```bash
+npm run build:skills            # generate all
+bash skills/build-skills.sh     # same thing
+
+# Or generate for a single agent:
+bash skills/build-skills.sh claude
+bash skills/build-skills.sh opencode
+bash skills/build-skills.sh openclaw
+bash skills/build-skills.sh hermes
+bash skills/build-skills.sh trae
+```
+
+To customize: edit `skills/colamd-themes/SKILL.md`, then run `npm run build:skills`.
 
 ## Installation
 
@@ -65,88 +104,95 @@ npx tsx src/cli.ts <command>
 
 ## Usage
 
+The package provides two equivalent CLI commands:
+
+- **`colamd-themes`** — full command name
+- **`cthemes`** — short alias (recommended for frequent use)
+
+Examples below use the short alias `cthemes`, but you can substitute `colamd-themes` interchangeably.
+
 ### Extract a theme from a URL
 
 ```bash
-colamd-themes from-url "https://example.com" --name my-theme
+cthemes from-url "https://example.com" --name my-theme
 ```
 
 ### Extract from a Word document
 
 ```bash
-colamd-themes from-docx report.docx --name corporate-theme
+cthemes from-docx report.docx --name corporate-theme
 ```
 
 ### Extract from a PDF
 
 ```bash
-colamd-themes from-pdf paper.pdf --name academic-theme
+cthemes from-pdf paper.pdf --name academic-theme
 ```
 
 ### Auto‑detect source type
 
 ```bash
-colamd-themes extract source.docx --name auto-theme
+cthemes extract source.docx --name auto-theme
 ```
 
 ### Validate a theme
 
 ```bash
-colamd-themes validate themes/my-theme.css
+cthemes validate themes/my-theme.css
 ```
 
 ### List themes and color systems
 
 ```bash
-colamd-themes list
-colamd-themes color-systems
-colamd-themes mermaid-presets
+cthemes list
+cthemes color-systems
+cthemes mermaid-presets
 ```
 
 ### Export to HTML
 
 ```bash
 # Single file with a built-in theme
-colamd-themes export-html document.md -t elegant -o output.html
+cthemes export-html document.md -t elegant -o output.html
 
 # With a custom theme
-colamd-themes export-html document.md -t my-brand -o output.html
+cthemes export-html document.md -t my-brand -o output.html
 ```
 
 ### Export to PDF
 
 ```bash
 # Single file
-colamd-themes export-pdf document.md -t dark -o output.pdf
+cthemes export-pdf document.md -t dark -o output.pdf
 
 # With page format
-colamd-themes export-pdf document.md -t elegant --format Letter -o output.pdf
+cthemes export-pdf document.md -t elegant --format Letter -o output.pdf
 ```
 
 ### Batch export
 
 ```bash
 # Multiple files to HTML
-colamd-themes export docs/*.md --format html -t light -d output/
+cthemes export docs/*.md --format html -t light -d output/
 
 # Directory of Markdown files to PDF
-colamd-themes export docs/ --format pdf -t elegant -d output/
+cthemes export docs/ --format pdf -t elegant -d output/
 ```
 
 ### Theme management
 
 ```bash
 # Set a built-in theme as default
-colamd-themes set-theme elegant --default
+cthemes set-theme elegant --default
 
 # Register a custom theme from a CSS file
-colamd-themes set-theme my-brand --css themes/swiss-design.css
+cthemes set-theme my-brand --css themes/swiss-design.css
 
 # Register and set as default
-colamd-themes set-theme my-brand --css themes/swiss-design.css --default
+cthemes set-theme my-brand --css themes/swiss-design.css --default
 
 # Unregister a custom theme
-colamd-themes set-theme my-brand --remove
+cthemes set-theme my-brand --remove
 ```
 
 ### All commands
@@ -269,7 +315,14 @@ Full specification: [`templates/theme-paradigm.md`](src/templates/theme-paradigm
 
 ```
 ColaMD-themes/
-├── .claude/skills/colamd-themes.skill.md   # AI agent skill
+├── skills/
+│   ├── colamd-themes/SKILL.md              # Canonical skill source
+│   └── build-skills.sh                     # Generate agent-specific files
+├── .claude/skills/colamd-themes.skill.md   # Claude Code skill
+├── .opencode/skills/colamd-themes/SKILL.md # OpenCode skill
+├── .openclaw/skills/colamd-themes/SKILL.md # OpenClaw skill
+├── .hermes/skills/tools/colamd-themes/     # Hermes skill
+├── .trae/rules/colamd-themes.md           # Trae rules
 ├── package.json
 ├── tsconfig.json
 ├── themes/                                  # Generated CSS themes

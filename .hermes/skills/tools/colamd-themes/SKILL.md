@@ -1,10 +1,14 @@
 ---
 name: colamd-themes
-description: >
-  Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes.
-  Extract formatting from URLs, DOCX, or PDF sources; export Markdown to
-  standalone HTML/PDF with themes applied; batch export; manage theme
-  configuration.
+description: "Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes."
+version: 1.0.0
+author: bytechain
+license: MIT
+metadata:
+  hermes:
+    tags: [colamd, themes, css, markdown, export, pdf, html]
+prerequisites:
+  commands: [node, npm]
 ---
 
 Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes. Extract formatting from URLs, DOCX, or PDF sources; export Markdown to standalone HTML/PDF with themes applied; batch export; manage theme configuration.

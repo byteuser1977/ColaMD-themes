@@ -1,11 +1,4 @@
----
-name: colamd-themes
-description: >
-  Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes.
-  Extract formatting from URLs, DOCX, or PDF sources; export Markdown to
-  standalone HTML/PDF with themes applied; batch export; manage theme
-  configuration.
----
+# ColaMD Themes — Universal AI Agent Skill
 
 Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes. Extract formatting from URLs, DOCX, or PDF sources; export Markdown to standalone HTML/PDF with themes applied; batch export; manage theme configuration.
 

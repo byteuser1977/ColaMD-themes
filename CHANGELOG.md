@@ -13,8 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for absolute path input in CLI commands
 - Two new theme preview HTML files (colly-preview, salvator-blog-preview)
 - CSS pitfall reference documentation
+- Short CLI alias `cthemes` as alternative to `colamd-themes`
 
 ### Changed
+- Package name migrated to scoped format: `@bytechain.cn/colamd-themes`
 - Optimized **Swiss Design** theme with improved typography and spacing
 - Fixed build script template file copy logic (`package.json` build command)
 
@@ -31,8 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Absolute Path Support**: CLI now accepts absolute file paths for all input commands
 - **Theme Previews**: Added interactive HTML previews for colly and salvator-blog themes
 - **CSS Reference**: Included common CSS pitfalls and best practices documentation
+- **Short CLI Alias**: `cthemes` command added as shorthand for `colamd-themes`
 
 ### Changed
+- **Package Name**: Migrated from `colamd-themes` to `@bytechain.cn/colamd-themes` (scoped package)
 - **Swiss Design Enhancement**: Refined Swiss Design theme with better contrast ratios and improved readability
 - **Build Process Fix**: Corrected template file copying logic in build script to ensure proper distribution
 

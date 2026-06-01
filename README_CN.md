@@ -44,9 +44,48 @@
 | 5 | 选择器级微调 — 标题、代码、引用块、表格、分割线、响应式 |
 | 6 | `@media print` — 屏幕样式镜像 + `!important` + `print-color-adjust: exact` |
 
-### AI Agent Skill
+### 多 Agent Skill 通用支持
 
-`.claude/skills/colamd-themes.skill.md` 可供 AI 编码代理直接调用 CLI。
+从单一源文件自动生成 5 个 AI 编码代理的 Skill 定义：
+
+| Agent | Skill 路径 | 前置元数据 |
+|-------|-----------|-----------|
+| **Claude Code** | `.claude/skills/colamd-themes.skill.md` | `name`, `description` |
+| **OpenCode** | `.opencode/skills/colamd-themes/SKILL.md` | `name`, `version`, `user-invocable`, `allowed-tools`, `hooks` |
+| **OpenClaw** | `.openclaw/skills/colamd-themes/SKILL.md` | `id`, `name`, `version`, `icon`, `author`, `homepage`, `metadata.openclaw.os` |
+| **Hermes** | `.hermes/skills/tools/colamd-themes/SKILL.md` | `name`, `version`, `author`, `license`, `metadata.hermes.tags`, `prerequisites` |
+| **Trae** | `.trae/rules/colamd-themes.md` | 纯 Markdown（无前置元数据） |
+
+**架构：**
+
+```
+skills/colamd-themes/SKILL.md       ← 规范源文件（单一事实来源）
+        │
+        ▼
+skills/build-skills.sh              ← 构建脚本（bash）
+        │
+        ├──→ .claude/skills/colamd-themes.skill.md
+        ├──→ .opencode/skills/colamd-themes/SKILL.md
+        ├──→ .openclaw/skills/colamd-themes/SKILL.md
+        ├──→ .hermes/skills/tools/colamd-themes/SKILL.md
+        └──→ .trae/rules/colamd-themes.md
+```
+
+**重新生成所有 Agent 的 Skill：**
+
+```bash
+npm run build:skills            # 生成全部
+bash skills/build-skills.sh     # 同上
+
+# 或只生成单个 Agent：
+bash skills/build-skills.sh claude
+bash skills/build-skills.sh opencode
+bash skills/build-skills.sh openclaw
+bash skills/build-skills.sh hermes
+bash skills/build-skills.sh trae
+```
+
+自定义 Skill 内容：编辑 `skills/colamd-themes/SKILL.md`，然后运行 `npm run build:skills`
 
 ## 安装
 
@@ -65,88 +104,95 @@ npx tsx src/cli.ts <command>
 
 ## 使用方法
 
+本包提供两个等效的 CLI 命令：
+
+- **`colamd-themes`** — 完整命令名
+- **`cthemes`** — 短命令别名（推荐频繁使用时使用）
+
+以下示例使用短命令 `cthemes`，你可以随时替换为 `colamd-themes`。
+
 ### 从网页提取主题
 
 ```bash
-colamd-themes from-url "https://example.com" --name 我的主题
+cthemes from-url "https://example.com" --name 我的主题
 ```
 
 ### 从 Word 文档提取
 
 ```bash
-colamd-themes from-docx 报告.docx --name 企业主题
+cthemes from-docx 报告.docx --name 企业主题
 ```
 
 ### 从 PDF 提取
 
 ```bash
-colamd-themes from-pdf 论文.pdf --name 学术主题
+cthemes from-pdf 论文.pdf --name 学术主题
 ```
 
 ### 自动检测来源类型
 
 ```bash
-colamd-themes extract 源文件.docx --name 自动主题
+cthemes extract 源文件.docx --name 自动主题
 ```
 
 ### 验证主题
 
 ```bash
-colamd-themes validate themes/我的主题.css
+cthemes validate themes/我的主题.css
 ```
 
 ### 列出主题和色彩系统
 
 ```bash
-colamd-themes list
-colamd-themes color-systems
-colamd-themes mermaid-presets
+cthemes list
+cthemes color-systems
+cthemes mermaid-presets
 ```
 
 ### 导出为 HTML
 
 ```bash
 # 单文件，使用内置主题
-colamd-themes export-html 文档.md -t elegant -o 输出.html
+cthemes export-html 文档.md -t elegant -o 输出.html
 
 # 使用自定义主题
-colamd-themes export-html 文档.md -t 我的品牌 -o 输出.html
+cthemes export-html 文档.md -t 我的品牌 -o 输出.html
 ```
 
 ### 导出为 PDF
 
 ```bash
 # 单文件
-colamd-themes export-pdf 文档.md -t dark -o 输出.pdf
+cthemes export-pdf 文档.md -t dark -o 输出.pdf
 
 # 指定页面格式
-colamd-themes export-pdf 文档.md -t elegant --format Letter -o 输出.pdf
+cthemes export-pdf 文档.md -t elegant --format Letter -o 输出.pdf
 ```
 
 ### 批量导出
 
 ```bash
 # 多文件导出为 HTML
-colamd-themes export docs/*.md --format html -t light -d 输出目录/
+cthemes export docs/*.md --format html -t light -d 输出目录/
 
 # 目录下所有 Markdown 导出为 PDF
-colamd-themes export docs/ --format pdf -t elegant -d 输出目录/
+cthemes export docs/ --format pdf -t elegant -d 输出目录/
 ```
 
 ### 主题管理
 
 ```bash
 # 设置内置主题为默认
-colamd-themes set-theme elegant --default
+cthemes set-theme elegant --default
 
 # 注册自定义主题
-colamd-themes set-theme 我的品牌 --css themes/swiss-design.css
+cthemes set-theme 我的品牌 --css themes/swiss-design.css
 
 # 注册并设为默认
-colamd-themes set-theme 我的品牌 --css themes/swiss-design.css --default
+cthemes set-theme 我的品牌 --css themes/swiss-design.css --default
 
 # 注销自定义主题
-colamd-themes set-theme 我的品牌 --remove
+cthemes set-theme 我的品牌 --remove
 ```
 
 ### 全部命令
@@ -269,7 +315,14 @@ Markdown 文件
 
 ```
 ColaMD-themes/
-├── .claude/skills/colamd-themes.skill.md   # AI Agent Skill
+├── skills/
+│   ├── colamd-themes/SKILL.md              # 规范 Skill 源文件
+│   └── build-skills.sh                     # 生成各 Agent 专用文件
+├── .claude/skills/colamd-themes.skill.md   # Claude Code Skill
+├── .opencode/skills/colamd-themes/SKILL.md # OpenCode Skill
+├── .openclaw/skills/colamd-themes/SKILL.md # OpenClaw Skill
+├── .hermes/skills/tools/colamd-themes/     # Hermes Skill
+├── .trae/rules/colamd-themes.md           # Trae 规则
 ├── package.json
 ├── tsconfig.json
 ├── themes/                                  # 生成的 CSS 主题

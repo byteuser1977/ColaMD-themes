@@ -1,11 +1,6 @@
----
-name: colamd-themes
-description: >
-  Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes.
-  Extract formatting from URLs, DOCX, or PDF sources; export Markdown to
-  standalone HTML/PDF with themes applied; batch export; manage theme
-  configuration.
----
+# ColaMD Themes Skill Instructions
+
+When the user asks to create, validate, export, or manage ColaMD themes, use the following CLI tool:
 
 Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes. Extract formatting from URLs, DOCX, or PDF sources; export Markdown to standalone HTML/PDF with themes applied; batch export; manage theme configuration.
 
