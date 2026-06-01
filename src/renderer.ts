@@ -235,17 +235,26 @@ export class ColamdRenderer {
     return Buffer.from(pdfBuffer);
   }
 
-  /** Shut down the browser and local server. */
+  /** Shut down the browser and local server with proper resource cleanup. */
   async close(): Promise<void> {
-    if (this.browser) {
-      await this.browser.close();
-      this.browser = null;
-      this.page = null;
+    try {
+      // Explicitly close page first to prevent zombie processes
+      if (this.page) {
+        await this.page.close().catch(() => {});
+        this.page = null;
+      }
+
+      if (this.browser) {
+        await this.browser.close();
+        this.browser = null;
+      }
+    } finally {
       this.ready = false;
-    }
-    if (this.server) {
-      await this.server.close();
-      this.server = null;
+
+      if (this.server) {
+        await this.server.close();
+        this.server = null;
+      }
     }
   }
 }

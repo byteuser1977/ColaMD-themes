@@ -31,6 +31,15 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 - **Color System Library** — 15 predefined seed palettes across 5 families (Morandi, Macaron, Nordic, Vintage, Mint)
 - **Mermaid Presets** — 3 presets (light/dark/elegant) with 20 core variables, auto-selected by luminance and accent warmth
 
+### Security & Performance (v0.3.1+)
+
+- **SSRF Protection** — URL extractor validates against protocol whitelist and blocks private network access to prevent Server-Side Request Forgery attacks
+- **Input Validation** — CSS files validated for extension, size limit (1MB max), and content validity to prevent OOM attacks
+- **Async I/O** — Non-blocking file operations for improved responsiveness during batch exports
+- **Template Caching** — LRU-style cache (max 10 templates) with TTL expiration (30min) and mtime-based auto-invalidation for stable memory usage
+- **Unified Error Handling** — Structured error codes (`CLIError` + `ErrorCode`) across all commands for consistent debugging experience
+- **Resource Cleanup** — Explicit Puppeteer page cleanup prevents zombie processes and resource leaks
+
 ### CSS Template Engine
 
 Handlebars-powered template produces v3.0 paradigm CSS (≤300 lines):
@@ -333,7 +342,9 @@ ColaMD-themes/
 │   ├── generator.ts                         # Handlebars → CSS pipeline
 │   ├── renderer.ts                          # Puppeteer HTML/PDF export engine
 │   ├── export-cli.ts                        # Export CLI commands
-│   ├── theme-store.ts                       # Theme config persistence
+│   ├── theme-store.ts                       # Theme config persistence (async API)
+│   ├── utils/
+│   │   └── cli-utils.ts                     # Shared utilities & error handling
 │   ├── color-utils.ts                       # Color manipulation utilities
 │   ├── contrast.ts                          # WCAG 2.1 luminance & contrast
 │   ├── validators.ts                        # Paradigm validation engine

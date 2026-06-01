@@ -56,11 +56,65 @@ export class UrlExtractor implements Extractor {
     return /^https?:\/\//i.test(source);
   }
 
+  /**
+   * Validate URL to prevent SSRF attacks and ensure security.
+   * - Only allows http/https protocols
+   * - Blocks private network addresses (localhost, 10.x, 172.16-31.x, 192.168.x, 169.254.x)
+   */
+  private validateUrl(url: string): void {
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      throw new Error(`Invalid URL format: ${url}`);
+    }
+
+    // Protocol whitelist
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      throw new Error(`Unsupported protocol "${parsed.protocol}". Only HTTP and HTTPS are allowed.`);
+    }
+
+    // Block private network ranges to prevent SSRF
+    const hostname = parsed.hostname.toLowerCase();
+    const isPrivate =
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "::1" ||
+      hostname === "[::1]" ||
+      hostname.startsWith("10.") ||
+      hostname.startsWith("172.16.") ||
+      hostname.startsWith("172.17.") ||
+      hostname.startsWith("172.18.") ||
+      hostname.startsWith("172.19.") ||
+      hostname.startsWith("172.20.") ||
+      hostname.startsWith("172.21.") ||
+      hostname.startsWith("172.22.") ||
+      hostname.startsWith("172.23.") ||
+      hostname.startsWith("172.24.") ||
+      hostname.startsWith("172.25.") ||
+      hostname.startsWith("172.26.") ||
+      hostname.startsWith("172.27.") ||
+      hostname.startsWith("172.28.") ||
+      hostname.startsWith("172.29.") ||
+      hostname.startsWith("172.30.") ||
+      hostname.startsWith("172.31.") ||
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("169.254.");
+
+    if (isPrivate) {
+      throw new Error(`Private network access denied: ${hostname}. Only public URLs are allowed for security reasons.`);
+    }
+  }
+
   async extract(source: string): Promise<ThemeStyle> {
+    this.validateUrl(source);
+
     const response = await axios.get(source, {
-      headers: { "User-Agent": "ColaMD-Themes/1.0 (Theme Extractor)" },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; ColaMD-Themes/1.0)" },
       timeout: 15000,
-      maxRedirects: 5,
+      maxRedirects: 3,
+      maxContentLength: 10 * 1024 * 1024,
+      responseType: "text",
     });
 
     const contentType = String(response.headers["content-type"] || "");

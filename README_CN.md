@@ -31,6 +31,15 @@
 - **色彩系统库** — 5 大色系 15 套预定义种子色板（莫兰迪、马卡龙、北欧、复古、薄荷绿）
 - **Mermaid 预设** — 3 套预设（light/dark/elegant），20 个核心变量，根据明度和色相自动选择
 
+### 安全与性能 (v0.3.1+)
+
+- **SSRF 防护** — URL 提取器通过协议白名单验证并阻止私有网络访问，防止服务器端请求伪造攻击
+- **输入验证** — CSS 文件经过扩展名、大小限制（最大 1MB）和内容有效性验证，防止 OOM 攻击
+- **异步 I/O** — 非阻塞文件操作，提升批量导出时的响应速度
+- **模板缓存** — LRU 式缓存（最多 10 个模板），支持 TTL 过期（30 分钟）和基于 mtime 的自动失效，确保内存使用稳定
+- **统一错误处理** — 所有命令采用结构化错误码（`CLIError` + `ErrorCode`），提供一致的调试体验
+- **资源清理** — 显式 Puppeteer 页面清理，防止僵尸进程和资源泄漏
+
 ### CSS 模板引擎
 
 基于 Handlebars 的模板引擎生成 v3.0 范式 CSS（≤300 行）：
@@ -333,7 +342,9 @@ ColaMD-themes/
 │   ├── generator.ts                         # Handlebars → CSS 管道
 │   ├── renderer.ts                          # Puppeteer HTML/PDF 导出引擎
 │   ├── export-cli.ts                        # 导出 CLI 命令
-│   ├── theme-store.ts                       # 主题配置持久化
+│   ├── theme-store.ts                       # 主题配置持久化（异步 API）
+│   ├── utils/
+│   │   └── cli-utils.ts                     # 公共工具函数与错误处理
 │   ├── color-utils.ts                       # 颜色操作工具
 │   ├── contrast.ts                          # WCAG 2.1 亮度与对比度
 │   ├── validators.ts                        # 范式验证引擎

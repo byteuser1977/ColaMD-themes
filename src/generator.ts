@@ -1,7 +1,7 @@
 /** CSS theme file generator — v3.0 seed palette pipeline. */
 
 import Handlebars from "handlebars";
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from "node:fs";
 import { join, dirname, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ThemeStyle } from "./models.js";
@@ -20,14 +20,95 @@ Handlebars.registerHelper("rgba", (hex: unknown, alpha: unknown) => {
   return toRgba(String(hex), Number(alpha));
 });
 
-let compiledTemplate: HandlebarsTemplateDelegate<ThemeStyle> | null = null;
+// ── Template Cache with Size Limits and Auto-Invalidation ──
 
-function getTemplate(): HandlebarsTemplateDelegate<ThemeStyle> {
-  if (!compiledTemplate) {
-    const source = readFileSync(templatePath, "utf-8");
-    compiledTemplate = Handlebars.compile(source, { noEscape: true });
+interface CachedTemplate {
+  compiled: HandlebarsTemplateDelegate<ThemeStyle>;
+  mtimeMs: number;
+  compiledAt: number;
+}
+
+const TEMPLATE_CACHE_MAX_SIZE = 10;
+const TEMPLATE_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const templateCache = new Map<string, CachedTemplate>();
+
+/**
+ * Get or compile a Handlebars template with caching.
+ *
+ * Features:
+ * - LRU-style cache (max 10 templates)
+ * - File modification time detection for auto-invalidation
+ * - TTL-based expiration (30 minutes)
+ * - Automatic cleanup of expired entries on access
+ */
+function getTemplate(path?: string): HandlebarsTemplateDelegate<ThemeStyle> {
+  const key = path || templatePath;
+
+  // Check cache hit
+  const cached = templateCache.get(key);
+  if (cached) {
+    // Check TTL expiration
+    if (Date.now() - cached.compiledAt > TEMPLATE_CACHE_TTL_MS) {
+      templateCache.delete(key);
+    }
+    // Check file modification time
+    else {
+      try {
+        const stats = statSync(key);
+        if (stats.mtimeMs > cached.mtimeMs) {
+          templateCache.delete(key);
+        } else {
+          return cached.compiled;
+        }
+      } catch {
+        return cached.compiled;
+      }
+    }
   }
-  return compiledTemplate;
+
+  // Enforce max cache size (evict oldest entry)
+  if (templateCache.size >= TEMPLATE_CACHE_MAX_SIZE) {
+    let oldestKey: string | null = null;
+    let oldestTime = Infinity;
+
+    for (const [k, v] of templateCache.entries()) {
+      if (v.compiledAt < oldestTime) {
+        oldestTime = v.compiledAt;
+        oldestKey = k;
+      }
+    }
+
+    if (oldestKey) {
+      templateCache.delete(oldestKey);
+    }
+  }
+
+  // Compile new template
+  const source = readFileSync(key, "utf-8");
+  const compiled = Handlebars.compile(source, { noEscape: true });
+
+  // Get modification time for invalidation
+  let mtimeMs = 0;
+  try {
+    mtimeMs = statSync(key).mtimeMs;
+  } catch {
+    mtimeMs = Date.now();
+  }
+
+  templateCache.set(key, {
+    compiled,
+    mtimeMs,
+    compiledAt: Date.now(),
+  });
+
+  return compiled;
+}
+
+/**
+ * Clear all cached templates to free memory.
+ */
+export function clearTemplateCache(): void {
+  templateCache.clear();
 }
 
 // ── Pipeline ──
