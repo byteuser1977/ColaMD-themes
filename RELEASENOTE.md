@@ -19,7 +19,7 @@
 
 ### 🔧 Changes
 
-- Cosolidated all unreleased changes from v0.3.1 into this patch release
+- Consolidated all unreleased changes from v0.3.1 into this patch release
 - Updated CHANGELOG and version links for the 0.3.2 release
 
 ---

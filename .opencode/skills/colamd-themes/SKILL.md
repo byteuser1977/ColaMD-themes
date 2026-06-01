@@ -14,6 +14,8 @@ allowed-tools:
   - Grep
 ---
 
+## CSS Pitfall Quick Reference
+
 > When adjusting themes, follow these rules strictly. For each step, reference the corresponding pattern in `academic-paper.css`.
 
 ### 1. Screen & Print Must Stay in Sync
