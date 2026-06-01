@@ -15,7 +15,7 @@
 import puppeteer, { type Browser, type Page } from "puppeteer";
 import { createServer, type Server } from "node:http";
 import { readFileSync, existsSync, createReadStream } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { resolve, dirname, join } from "node:path";
 
 // ── Types ──
 
@@ -69,6 +69,7 @@ function findRendererPath(): string {
 const SHELL_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
+<link rel="stylesheet" href="/colamd.css">
 <style>body{margin:0;padding:0}#editor{width:100%;min-height:100vh}</style>
 </head><body><div id="editor"></div></body></html>`;
 
@@ -78,6 +79,7 @@ interface LocalServer {
 }
 
 function startLocalServer(rendererPath: string): Promise<LocalServer> {
+  const cssPath = join(dirname(rendererPath), "colamd.css");
   return new Promise((resolveStart, reject) => {
     const server: Server = createServer((req, res) => {
       if (req.url === "/" || req.url === "/index.html") {
@@ -86,6 +88,9 @@ function startLocalServer(rendererPath: string): Promise<LocalServer> {
       } else if (req.url === "/colamd-renderer.js") {
         res.writeHead(200, { "Content-Type": "application/javascript; charset=utf-8" });
         createReadStream(rendererPath).pipe(res);
+      } else if (req.url === "/colamd.css") {
+        res.writeHead(200, { "Content-Type": "text/css; charset=utf-8" });
+        createReadStream(cssPath).pipe(res);
       } else {
         res.writeHead(404);
         res.end();
