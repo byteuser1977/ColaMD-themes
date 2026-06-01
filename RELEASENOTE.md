@@ -1,5 +1,29 @@
 # Release Notes
 
+## Version 0.3.2 (2026-05-29) — Theme Authoring Guide 📝
+
+> **AI agent skill enhancement**: Added comprehensive CSS pitfall quick reference for reliable theme generation.
+
+### 📝 AI Agent Skill Update
+
+**CSS Pitfall Quick Reference**
+- Added 6-topic theme authoring guide to all AI agent skill definitions:
+  1. **Screen & Print Sync** — every SECTION 5 rule must mirror in SECTION 6 `@media print`
+  2. **Body Text First-Line Indent** — correct selector chain: `body.theme-custom p, body.theme-custom #write > p`
+  3. **Indent Exclusion** — prevent indent pollution in lists, tables, mermaid blocks, blockquotes, and figures
+  4. **List Indentation** — use `margin-left: 2em` instead of `padding-left`; include `#editor .ProseMirror` selectors
+  5. **Mermaid CJK Text Overflow** — ≤ 2 lines per node, `fontSize: 14px`, simplified text
+  6. **Mermaid classDef Inheritance** — must explicitly declare `fill / color / stroke`
+- References `academic-paper.css` and `swiss-design.css` as canonical examples
+- Skill files affected: `.claude/skills/`, `.opencode/skills/`, `.openclaw/skills/`, `.hermes/skills/`, `.trae/rules/`
+
+### 🔧 Changes
+
+- Cosolidated all unreleased changes from v0.3.1 into this patch release
+- Updated CHANGELOG and version links for the 0.3.2 release
+
+---
+
 ## Version 0.3.1 (2026-06-01) — Security & Stability Patch 🔒
 
 > **Important**: This release contains critical security fixes and important stability improvements.

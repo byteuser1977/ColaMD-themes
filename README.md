@@ -31,7 +31,7 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 - **Color System Library** — 15 predefined seed palettes across 5 families (Morandi, Macaron, Nordic, Vintage, Mint)
 - **Mermaid Presets** — 3 presets (light/dark/elegant) with 20 core variables, auto-selected by luminance and accent warmth
 
-### Security & Performance (v0.3.1+)
+### Security & Performance (v0.3.2+)
 
 - **SSRF Protection** — URL extractor validates against protocol whitelist and blocks private network access to prevent Server-Side Request Forgery attacks
 - **Input Validation** — CSS files validated for extension, size limit (1MB max), and content validity to prevent OOM attacks

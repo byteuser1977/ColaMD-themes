@@ -2,8 +2,9 @@
 
 import { Command } from "commander";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, isAbsolute, dirname } from "node:path";
+import { join, isAbsolute, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execSync } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import { UrlExtractor } from "./extractors/url-extractor.js";
@@ -16,6 +17,7 @@ import { MERMAID_PRESETS } from "./mermaid-presets.js";
 import { validateSeedPalette, summarizeIssues } from "./validators.js";
 import type { ThemeStyle } from "./models.js";
 import { registerExportCommands } from "./export-cli.js";
+import { BUILTIN_THEMES } from "./theme-store.js";
 
 /**
  * Dynamically read version from package.json to avoid hardcoding.
@@ -30,6 +32,186 @@ function getPackageVersion(): string {
     return pkg.version ?? "0.0.0";
   } catch {
     return "0.0.0";
+  }
+}
+
+/** Font stacks for each built-in theme — parsed dynamically from colamd.css. */
+const THEME_FONTS: Record<string, string[]> = getBuiltinFontStacks();
+
+/** Find the path to @bytechain.cn/colamd/dist/lib/colamd.css */
+function findColamdCssPath(): string {
+  const candidates = [
+    resolve(dirname(new URL(import.meta.url).pathname), "../node_modules/@bytechain.cn/colamd/dist/lib/colamd.css"),
+    resolve(process.cwd(), "node_modules/@bytechain.cn/colamd/dist/lib/colamd.css"),
+  ];
+  for (const p of candidates) {
+    if (existsSync(p)) return p;
+  }
+  return "";
+}
+
+/**
+ * Parse font-family values for each built-in theme from colamd.css.
+ * Dynamic approach: reads `body.theme-{name} #editor .ProseMirror { font-family: ... }`
+ * instead of hardcoding font stacks.
+ */
+function getBuiltinFontStacks(): Record<string, string[]> {
+  const cssPath = findColamdCssPath();
+  if (!cssPath) {
+    // Fallback hardcoded defaults if colamd.css not found
+    return {
+      light: ["Noto Sans SC", "sans-serif"],
+      dark: ["Noto Sans SC", "sans-serif"],
+      elegant: ["LXGW WenKai", "Noto Serif SC", "serif"],
+      newsprint: ["Noto Serif SC", "serif"],
+    };
+  }
+
+  const css = readFileSync(cssPath, "utf-8");
+  const result: Record<string, string[]> = {};
+  const names = ["light", "dark", "elegant", "newsprint"];
+
+  for (const theme of names) {
+    // Match: body.theme-elegant #editor .ProseMirror { ... font-family: 'LXGW WenKai', ...; }
+    const re = new RegExp(
+      `body\\.theme-${theme}\\s+#editor\\s+\\.ProseMirror\\s*\\{[^}]*font-family:\\s*([^;]+)`,
+      "i"
+    );
+    const m = css.match(re);
+    if (m) {
+      const fonts = m[1].split(",").map((s) => s.trim().replace(/^['"]|['"]$/g, "").trim());
+      result[theme] = fonts;
+    }
+  }
+
+  // Fill any missing themes with fallback
+  for (const theme of names) {
+    if (!result[theme]) {
+      result[theme] = ["sans-serif"];
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Check if a single font name is available on the system.
+ * Multi-platform: fc-match (Linux/macOS/WSL), PowerShell registry (Windows),
+ * system_profiler (macOS), universal directory scan fallback.
+ */
+function checkFont(fontName: string): string | null {
+  // ── try fc-match first (Linux, WSL, macOS with fontconfig) ──
+  try {
+    const out = execSync(`fc-match "${fontName}" 2>/dev/null`, {
+      encoding: "utf8",
+      maxBuffer: 1024,
+      shell: "/bin/sh",
+    }).trim();
+    if (out && !out.startsWith("fontconfig error")) {
+      const parts = out.split(":").slice(1).join(":").trim();
+      if (parts) return parts;
+    }
+  } catch {}
+
+  // ── Windows: PowerShell registry query ──
+  if (process.platform === "win32") {
+    try {
+      const safe = fontName.replace(/'/g, "''");
+      const ps = `$n='${safe}';$p=Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts' 2>$null;foreach($v in $p.PSObject.Properties){if($v.Value -like"*$n*"){Write-Output $v.Value;exit 0}}`;
+      const out = execSync(
+        `powershell -NoProfile -Command "${ps.replace(/"/g, '\\"')}"`,
+        { encoding: "utf8", timeout: 5000 }
+      ).trim();
+      if (out && out !== "NOT_FOUND") return out;
+    } catch {}
+  }
+
+  // ── macOS: system_profiler (slow but reliable) ──
+  if (process.platform === "darwin") {
+    try {
+      const kw = fontName.toLowerCase();
+      const out = execSync(
+        `system_profiler SPFontsDataType 2>/dev/null | grep -i "${kw}"`,
+        { encoding: "utf8", maxBuffer: 1024 * 1024, timeout: 10000 }
+      ).trim();
+      if (out) return out.split("\n")[0].trim();
+    } catch {}
+  }
+
+  // ── Universal: scan known font directories ──
+  const fontDirs: string[] = [];
+  if (process.platform === "win32") {
+    const sysRoot = process.env.SystemRoot || "C:\\Windows";
+    fontDirs.push(join(sysRoot, "Fonts"));
+  } else if (process.platform === "darwin") {
+    const home = process.env.HOME || "";
+    fontDirs.push("/Library/Fonts", "/System/Library/Fonts");
+    if (home) fontDirs.push(join(home, "Library", "Fonts"));
+  } else {
+    // Linux / WSL
+    fontDirs.push(
+      "/usr/share/fonts",
+      "/usr/local/share/fonts",
+    );
+    const home = process.env.HOME || "";
+    if (home) fontDirs.push(join(home, ".local", "share", "fonts"));
+  }
+
+  const kw = fontName.replace(/[()\[\]]/g, "").split(/\s+/).filter(Boolean);
+  if (kw.length === 0) return null;
+
+  for (const dir of fontDirs) {
+    if (!existsSync(dir)) continue;
+    try {
+      const files = readdirSync(dir, { recursive: true });
+      const found = files.find((f) => {
+        const lower = typeof f === "string" ? f.toLowerCase() : "";
+        return /\.(ttf|ttc|otf|woff2?)$/i.test(lower) && kw.every((k) => lower.includes(k.toLowerCase()));
+      });
+      if (found) return typeof found === "string" ? found : String(found);
+    } catch {}
+  }
+
+  return null;
+}
+
+/**
+ * Parse unique font-family names from a CSS string.
+ * Extracts font names from all `font-family: ...` declarations,
+ * filters out CSS variable references (var(--...)).
+ */
+function parseFontsFromCSS(css: string): string[] {
+  const names = new Set<string>();
+  const isKeyword = /^(inherit|initial|unset|revert)$/i;
+  // Match all font-family declarations
+  const re = /font-family:\s*([^;{}]+)/gi;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(css)) !== null) {
+    const value = match[1];
+    // Split by comma, trim quotes, skip var() references
+    for (const part of value.split(",")) {
+      let name = part.trim().replace(/^['"]|['"]$/g, "").trim();
+      // Strip !important, trailing semicolons
+      name = name.replace(/\s*!important\s*$/i, "").trim();
+      if (name && !name.startsWith("var(") && !isKeyword.test(name)) {
+        names.add(name);
+      }
+    }
+  }
+  return Array.from(names);
+}
+
+let configCache: { themes: Record<string, string> } | null = null;
+
+async function loadCustomThemes(): Promise<Record<string, string>> {
+  if (configCache) return configCache.themes;
+  try {
+    const { getConfig } = await import("./theme-store.js");
+    const config = await getConfig();
+    configCache = config;
+    return config.themes;
+  } catch {
+    return {};
   }
 }
 
@@ -196,6 +378,94 @@ program
     console.log(chalk.bold(`\nParadigm validation (${issues.length} issues):`));
     console.log(summarizeIssues(issues));
     if (issues.filter((i) => i.level === "MUST" || i.level === "MUST_NOT").length > 0) process.exit(1);
+  });
+
+// ── check-fonts ──
+program
+  .command("check-fonts")
+  .description("Check whether built-in/custom theme fonts are installed on this system")
+  .argument("[theme]", "Theme name (built-in, registered custom, or .css file path); omit to check all")
+  .action(async (theme?: string) => {
+    const customThemes = await loadCustomThemes();
+    let fontSources: { name: string; fonts: string[] }[] = [];
+
+    if (theme) {
+      // 1. Check if it's a built-in theme
+      if (BUILTIN_THEMES.includes(theme as any)) {
+        fontSources.push({ name: theme, fonts: THEME_FONTS[theme] });
+      }
+      // 2. Check if it's a registered custom theme
+      else if (customThemes[theme]) {
+        const css = readFileSync(customThemes[theme], "utf-8");
+        const fonts = parseFontsFromCSS(css);
+        if (fonts.length === 0) {
+          console.log(chalk.yellow(`  主题 "${theme}" 中未找到 font-family 声明`));
+        }
+        fontSources.push({ name: `${theme} (custom)`, fonts });
+      }
+      // 3. Treat as direct CSS file path
+      else if (existsSync(theme) && theme.endsWith(".css")) {
+        const css = readFileSync(theme, "utf-8");
+        const fonts = parseFontsFromCSS(css);
+        if (fonts.length === 0) {
+          console.log(chalk.yellow(`  文件 ${theme} 中未找到 font-family 声明`));
+        }
+        fontSources.push({ name: theme, fonts });
+      }
+      // 4. Unknown
+      else {
+        console.error(chalk.red(`Unknown theme: "${theme}".\n  Built-in: ${BUILTIN_THEMES.join(", ")}\n  Registered: ${Object.keys(customThemes).join(", ") || "(none)"}`));
+        process.exit(1);
+      }
+    } else {
+      // No argument: built-in themes + all registered custom themes
+      for (const t of Object.keys(THEME_FONTS)) {
+        fontSources.push({ name: t, fonts: THEME_FONTS[t] });
+      }
+      for (const [name, cssPath] of Object.entries(customThemes)) {
+        const css = readFileSync(cssPath, "utf-8");
+        const fonts = parseFontsFromCSS(css);
+        if (fonts.length > 0) {
+          fontSources.push({ name: `${name} (custom)`, fonts });
+        }
+      }
+    }
+
+    console.log(chalk.bold("══ 主题字体检查 ══"));
+    let total = 0;
+    let missing = 0;
+
+    for (const { name, fonts } of fontSources) {
+      if (fonts.length === 0) continue;
+      console.log(`\n  主题：${chalk.cyan(name)}`);
+      for (const f of fonts) {
+        total++;
+        const result = checkFont(f);
+        if (result) {
+          console.log(`  ${chalk.green("✔")}  ${f} -> ${result}`);
+        } else {
+          console.log(`  ${chalk.red("✘")}  ${f} -> 未找到`);
+          missing++;
+        }
+      }
+    }
+
+    console.log("");
+    if (missing > 0) {
+      console.log(`${chalk.yellow(`⚠ ${missing}/${total}`)} 个字体缺失，导出时可能回退到系统默认字体`);
+      console.log("  建议安装：");
+      if (process.platform === "win32") {
+        console.log("    Windows: 从 https://github.com/lxgw/LxgwWenKai/releases 下载字体双击安装");
+      } else if (process.platform === "darwin") {
+        console.log("    brew install --cask font-lxgw-wenkai");
+        console.log("    brew install --cask font-noto-serif-cjk-sc");
+      } else {
+        console.log("    sudo apt-get install -y fonts-noto-cjk-extra  # Linux/WSL");
+      }
+      process.exit(1);
+    } else {
+      console.log(chalk.green("✔ 所有主题字体检查通过"));
+    }
   });
 
 // ── Export commands (set-theme, export-html, export-pdf, export) ──

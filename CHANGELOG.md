@@ -5,14 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.2] - 2026-05-29
 
 ### Added
+- **CSS Pitfall Quick Reference**: Comprehensive 6-topic guide for theme authoring in AI agent skills, covering screen/print sync, body text indent, indent exclusion, list indentation, Mermaid CJK text overflow, and Mermaid classDef inheritance rules
 - New theme: **Trae Blue** — modern blue-themed design for technical documentation
 - New theme: **Forest Ink** — nature-inspired dark green palette with ink aesthetics
 - Support for absolute path input in CLI commands
 - Two new theme preview HTML files (colly-preview, salvator-blog-preview)
-- CSS pitfall reference documentation
 - Short CLI alias `cthemes` as alternative to `colamd-themes`
 - Unified error handling system with structured error codes (`CLIError` + `ErrorCode`)
 - Shared utility functions for consistent file path resolution (`cli-utils.ts`)
@@ -233,7 +233,8 @@ User Input → Validation Layer → Processing Layer
 
 ---
 
-[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.1.0...v0.2.0
