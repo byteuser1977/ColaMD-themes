@@ -1,0 +1,407 @@
+/* LXGW WenKai 字体 — @font-face（可放任意位置） */
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/lxgwwenkaitc/v10/w8gDH20td8wNsI3f40DmtXZb48uK.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/lxgwwenkaitc/v10/w8gAH20td8wNsI3f40DmtXZb4_M2Avkp.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'LXGW WenKai Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/lxgwwenkaimonotc/v10/pxiYyos4iPVgyWx9WtufHnsIf5nkaB0Him4.ttf') format('truetype');
+}
+
+/*
+ * ColaMD Theme: hermes-security
+ * Theme extracted from Hermes Agent Documentation
+ * URL: https://hermes-doc.aigc.green/user-guide/security
+ *
+ * ═══════════════════════════════════════════════════════════
+ *   SECTION 1 — Design Tokens
+ *   Modify the 5 seed colors + 3 font stacks to change the theme
+ * ═══════════════════════════════════════════════════════════ */
+
+body.theme-custom {
+
+  /* ── 1.1 Seed Palette (Dark Theme) ── */
+  --seed-accent:        #ffe14d;  /* Hermes 黄色强调 */
+  --seed-accent-light:  rgba(255, 225, 77, 0.12);  /* 淡黄透明 */
+  --seed-accent-dark:   #e6c900;  /* 深黄 */
+  --seed-surface:       #1b1b1d;  /* 根页面背景 - 深灰 */
+  --seed-panel:         #222224;  /* 面板/卡片 - 略深 */
+  --seed-panel-alt:     #282830;  /* 代码块背景 - 蓝灰 */
+  --seed-ink:           #e8e4dc;  /* 正文文字 - 暖白 */
+  --seed-ink-muted:     #b0aca4;  /* 次要文字 - 中灰 */
+  --seed-ink-dim:       #787162;  /* 辅助文字 - 暖深灰 */
+  --seed-border:        #3a3a3c;  /* 边框 - 暗灰 */
+  --seed-border-strong: #4a4a4c;  /* 强调边框 */
+
+  /* ── 1.2 Typography ── */
+  --font-body:    "LXGW WenKai", STKaiti, KaiTi, Georgia, serif;
+  --font-heading: "LXGW WenKai", STKaiti, KaiTi, Georgia, serif;
+  --font-code:    "LXGW WenKai Mono", "SFMono-Regular", "Fira Code", Menlo, Consolas, monospace;
+  --font-mermaid: "LXGW WenKai", STKaiti, KaiTi, sans-serif;
+
+  /* ── 1.3 Font Sizing ── */
+  --font-size-root:     16px;
+  --font-scale-h1:      3;       /* 48px */
+  --font-scale-h2:      2;       /* 32px */
+  --font-scale-h3:      1.5;     /* 24px */
+  --font-scale-h4:      1.125;   /* 18px */
+  --font-scale-h5:      1;       /* 16px */
+  --font-scale-h6:      0.95;    /* 15.2px */
+  --font-size-mermaid:  14px;
+  --line-height-body:   1.65;    /* 26.4px/16px = 1.65 */
+  --line-height-heading: 1.25;
+  --line-height-code:   1.45;
+
+  /* ── 1.4 Radii & Spacing ── */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --content-width: 820px;
+
+  /* ═══════════════════════════════════════════════════════════
+     SECTION 2 — Semantic Mapping
+     Auto-maps seed tokens → ColaMD built-in variables
+     ═══════════════════════════════════════════════════════════ */
+
+  /* ── 2.1 Surface ── */
+  --bg-color:      var(--seed-surface);
+  --surface-color: var(--seed-panel);
+  --surface-alt:   var(--seed-panel-alt);
+
+  /* ── 2.2 Text ── */
+  --text-color:    var(--seed-ink);
+  --heading-color: var(--seed-ink);
+  --text-muted:    var(--seed-ink-muted);
+  --text-dim:      var(--seed-ink-dim);
+
+  /* ── 2.3 Links & Accent ── */
+  --link-color:   var(--seed-accent);
+  --accent-color: var(--seed-accent);
+  --accent-dark:  var(--seed-accent-dark);
+  --accent-light: var(--seed-accent-light);
+  --selection-bg: rgba(255, 225, 77, 0.2);
+
+  /* ── 2.4 Borders ── */
+  --border-color:      var(--seed-border);
+  --blockquote-border: var(--seed-accent);
+  --hr-color:          var(--seed-border);
+
+  /* ── 2.5 Inline Code ── */
+  --code-bg:    rgba(255, 255, 255, 0.1);  /* 行内代码背景 */
+  --code-color: var(--seed-ink);           /* 行内代码文字 */
+
+  /* ── 2.6 Code Blocks ── */
+  --code-block-bg:    var(--seed-panel-alt);
+  --code-block-text:  var(--seed-ink);  /* #e8e4dc */
+  --code-block-color: var(--seed-ink);
+
+  /* ── 2.7 Blockquote ── */
+  --blockquote-bg: var(--seed-panel);
+
+  /* ── 2.8 Tables ── */
+  --table-header-bg: rgba(255, 215, 0, 0.06);  /* 微金色表头 */
+  --table-border:    var(--seed-border);
+
+  /* ── 2.9 Scrollbar ── */
+  --scrollbar-thumb:       var(--seed-border-strong);
+  --scrollbar-thumb-hover: var(--seed-ink-muted);
+
+  /* ═══════════════════════════════════════════════════════════
+     SECTION 3 — Mermaid 20 Core Variables
+     Auto-consumed by built-in variables.css for 22 diagram types
+     ═══════════════════════════════════════════════════════════ */
+
+  /* ── 3.1 Container ── */
+  --mermaid-preset:        dark;  /* 深色预设 */
+  --mermaid-background:    var(--seed-panel);
+  --mermaid-border-color:  var(--seed-border);
+  --mermaid-border-radius: var(--radius-md);
+  --mermaid-padding:       20px;
+
+  /* ── 3.2 Font ── */
+  --mermaid-font-family: var(--font-mermaid);
+  --mermaid-font-size:   var(--font-size-mermaid);
+
+  /* ── 3.3 Nodes ── */
+  --mermaid-node-fill:         var(--seed-surface);
+  --mermaid-node-stroke:       var(--seed-accent);
+  --mermaid-node-stroke-width: 1.5px;
+  --mermaid-node-text:         var(--seed-ink);
+
+  /* ── 3.4 Edges ── */
+  --mermaid-edge-stroke:       var(--seed-ink);
+  --mermaid-edge-stroke-width: 1.5px;
+
+  /* ── 3.5 Clusters ── */
+  --mermaid-cluster-fill:   rgba(255, 225, 77, 0.06);
+  --mermaid-cluster-stroke: var(--seed-accent);
+
+  /* ── 3.6 Labels ── */
+  --mermaid-label-text:      var(--seed-ink);
+  --mermaid-edge-label-text: var(--seed-ink);
+  --mermaid-edge-label-bg:   var(--seed-surface);
+
+  /* ── 3.7 Titles & Axes ── */
+  --mermaid-title-text: var(--seed-ink);
+  --mermaid-axis-text:  var(--seed-ink-muted);
+  --mermaid-highlight:  var(--seed-accent);
+
+  /* ── 3.8 Person Nodes ── */
+  --mermaid-person-stroke: var(--seed-ink);
+  --mermaid-person-fill:   var(--seed-surface);
+
+  /* ── 3.9 Label Offset ── */
+  --mermaid-label-offset-y: 0px;
+
+  /* ── 4. Fine Tuning ── */
+  --line-height-base: var(--line-height-body);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 5 — Selector-Level Micro Adjustments
+   Only where base.css doesn't cover. All values via var(--*).
+   ═══════════════════════════════════════════════════════════ */
+
+html { font-size: var(--font-size-root); }
+body.theme-custom, html, body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-body);
+  line-height: var(--line-height-body);
+}
+
+#write {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 30px 60px 100px;
+}
+
+body.theme-custom h1, body.theme-custom h2, body.theme-custom h3,
+body.theme-custom h4, body.theme-custom h5, body.theme-custom h6 {
+  font-family: var(--font-heading);
+  color: var(--heading-color);
+  font-weight: 600;  /* 从 700 改为 600 */
+  line-height: var(--line-height-heading);
+}
+
+body.theme-custom h1 { font-size: calc(var(--font-size-root) * var(--font-scale-h1)); }
+body.theme-custom h2 { font-size: calc(var(--font-size-root) * var(--font-scale-h2)); }
+body.theme-custom h3 { font-size: calc(var(--font-size-root) * var(--font-scale-h3)); }
+body.theme-custom h4 { font-size: calc(var(--font-size-root) * var(--font-scale-h4)); }
+body.theme-custom h5 { font-size: calc(var(--font-size-root) * var(--font-scale-h5)); }
+body.theme-custom h6 { font-size: calc(var(--font-size-root) * var(--font-scale-h6)); }
+
+body.theme-custom strong { color: var(--accent-color); }
+body.theme-custom code {
+  font-family: var(--font-code);
+  background: var(--code-bg);
+  color: var(--code-color);
+  border-radius: 3px;
+  padding: 2px 5px;
+}
+
+body.theme-custom pre {
+  background: var(--code-block-bg);
+  font-family: var(--font-code);
+  line-height: var(--line-height-code);
+  border-radius: 6px;
+  padding: 16px;
+}
+body.theme-custom pre code { color: var(--code-block-text); background: transparent; padding: 0; }
+
+body.theme-custom blockquote {
+  background: var(--blockquote-bg);
+  border-left: 4px solid var(--blockquote-border);
+  border-radius: 4px;
+  padding: 12px 16px;
+}
+
+body.theme-custom table th {
+  background: var(--table-header-bg);
+  font-weight: 700;
+  border-bottom: 2px solid var(--seed-border);
+  padding: 10px 14px;
+}
+
+body.theme-custom table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--seed-border);
+}
+
+body.theme-custom hr {
+  border: none;
+  border-top: 1px solid var(--hr-color);
+  margin: 32px 0;
+}
+
+body.theme-custom img { max-width: 100%; border-radius: 4px; }
+
+/* ── 5.11 Mermaid caption ── */
+body.theme-custom .mermaid-block + p {
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: calc(var(--font-size-mermaid) + 2px);
+  color: var(--text-muted);
+}
+
+/* ── 5.12 Responsive ── */
+@media only screen and (max-width: 768px) {
+  #write { padding: 20px; }
+  body.theme-custom .mermaid-block { padding: 12px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 6 — Print / Export
+   Screen mirror: every screen property restated with !important.
+   ═══════════════════════════════════════════════════════════ */
+@media print {
+  @page { margin: 20mm; }
+
+  /* ── 6.0 Variable re-declaration (Chromium strips CSS variables in print) ── */
+  body.theme-custom {
+    --seed-accent: #ffe14d;
+    --seed-accent-dark: #e6c900;
+    --seed-surface: #1b1b1d;
+    --seed-ink: #e8e4dc;
+    --seed-ink-muted: #b0aca4;
+    --seed-panel: #222224;
+    --seed-panel-alt: #282830;
+    --seed-border: #3a3a3c;
+    --font-size-root: 16px;
+    --line-height-body: 1.65;
+    --line-height-heading: 1.25;
+    --line-height-code: 1.45;
+    --font-scale-h1: 3;
+    --font-scale-h2: 2;
+    --font-scale-h3: 1.5;
+    --font-scale-h4: 1.125;
+    --font-scale-h5: 1;
+    --font-scale-h6: 0.95;
+    --content-width: 820px;
+    --font-size-mermaid: 14px;
+    --accent-color: var(--seed-accent);
+    --accent-dark: var(--seed-accent-dark);
+    --code-bg: rgba(255, 255, 255, 0.1);
+    --code-color: var(--seed-ink);
+    --code-block-bg: var(--seed-panel-alt);
+    --code-block-text: var(--seed-ink);
+    --blockquote-bg: var(--seed-panel);
+    --table-header-bg: rgba(255, 215, 0, 0.06);
+    --border-color: var(--seed-border);
+    --hr-color: var(--seed-border);
+  }
+
+  html, body, body.theme-custom {
+    background: var(--seed-surface) !important;
+    color: var(--seed-ink) !important;
+    font-family: var(--font-body) !important;
+    line-height: var(--line-height-body) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #write {
+    max-width: var(--content-width) !important;
+    margin: 0 auto !important;
+    padding: 30px 60px 100px !important;
+  }
+
+  body.theme-custom h1, body.theme-custom h2, body.theme-custom h3,
+  body.theme-custom h4, body.theme-custom h5, body.theme-custom h6 {
+    font-family: var(--font-heading) !important;
+    color: var(--seed-ink) !important;
+    font-weight: 600 !important;
+    line-height: var(--line-height-heading) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body.theme-custom h1 { font-size: calc(var(--font-size-root) * var(--font-scale-h1)) !important; }
+  body.theme-custom h2 { font-size: calc(var(--font-size-root) * var(--font-scale-h2)) !important; }
+  body.theme-custom h3 { font-size: calc(var(--font-size-root) * var(--font-scale-h3)) !important; }
+  body.theme-custom h4 { font-size: calc(var(--font-size-root) * var(--font-scale-h4)) !important; }
+  body.theme-custom h5 { font-size: calc(var(--font-size-root) * var(--font-scale-h5)) !important; }
+  body.theme-custom h6 { font-size: calc(var(--font-size-root) * var(--font-scale-h6)) !important; }
+
+  body.theme-custom strong {
+    color: var(--accent-color) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body.theme-custom code {
+    font-family: var(--font-code) !important;
+    background: var(--code-bg) !important;
+    color: var(--code-color) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body.theme-custom pre {
+    background: var(--code-block-bg) !important;
+    font-family: var(--font-code) !important;
+    line-height: var(--line-height-code) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body.theme-custom pre code { color: var(--code-block-text) !important; background: transparent !important; }
+
+  body.theme-custom blockquote {
+    background: var(--blockquote-bg) !important;
+    border-left: 4px solid var(--seed-accent) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body.theme-custom table th {
+    background: var(--table-header-bg) !important;
+    color: var(--seed-ink) !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid var(--seed-border) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body.theme-custom a {
+    color: var(--seed-accent) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body.theme-custom hr {
+    border: none !important;
+    border-top: 1px solid var(--hr-color) !important;
+  }
+
+  body.theme-custom img { max-width: 100% !important; border-radius: 4px !important; }
+
+  body.theme-custom .mermaid-block {
+    background: var(--seed-surface) !important;
+    border-color: var(--seed-border) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body.theme-custom .mermaid-preview svg * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body.theme-custom .mermaid-block + p {
+    color: var(--seed-ink-muted) !important;
+    text-align: center !important;
+    font-family: var(--font-heading) !important;
+    font-size: calc(var(--font-size-mermaid) + 2px) !important;
+  }
+}
