@@ -273,13 +273,16 @@ body.theme-custom .mermaid-block + p {
   /* ── 6.0 Variable re-declaration (Chromium strips CSS variables in print) ── */
   body.theme-custom {
     --seed-accent: #ffe14d;
+    --seed-accent-light: rgba(255, 225, 77, 0.12);
     --seed-accent-dark: #e6c900;
     --seed-surface: #1b1b1d;
-    --seed-ink: #e8e4dc;
-    --seed-ink-muted: #b0aca4;
     --seed-panel: #222224;
     --seed-panel-alt: #282830;
+    --seed-ink: #e8e4dc;
+    --seed-ink-muted: #b0aca4;
+    --seed-ink-dim: #787162;
     --seed-border: #3a3a3c;
+    --seed-border-strong: #4a4a4c;
     --font-size-root: 16px;
     --line-height-body: 1.65;
     --line-height-heading: 1.25;
@@ -294,14 +297,43 @@ body.theme-custom .mermaid-block + p {
     --font-size-mermaid: 14px;
     --accent-color: var(--seed-accent);
     --accent-dark: var(--seed-accent-dark);
+    --accent-light: var(--seed-accent-light);
+    --bg-color: var(--seed-surface);
+    --text-color: var(--seed-ink);
+    --heading-color: var(--seed-ink);
+    --text-muted: var(--seed-ink-muted);
+    --text-dim: var(--seed-ink-dim);
+    --link-color: var(--seed-accent);
+    --border-color: var(--seed-border);
+    --blockquote-border: var(--seed-accent);
+    --hr-color: var(--seed-border);
     --code-bg: rgba(255, 255, 255, 0.1);
     --code-color: var(--seed-ink);
     --code-block-bg: var(--seed-panel-alt);
     --code-block-text: var(--seed-ink);
     --blockquote-bg: var(--seed-panel);
     --table-header-bg: rgba(255, 215, 0, 0.06);
-    --border-color: var(--seed-border);
-    --hr-color: var(--seed-border);
+    --table-border: var(--seed-border);
+    --mermaid-background: var(--seed-panel);
+    --mermaid-border-color: var(--seed-border);
+    --mermaid-border-radius: 6px;
+    --mermaid-padding: 20px;
+    --mermaid-node-fill: var(--seed-surface);
+    --mermaid-node-stroke: var(--seed-accent);
+    --mermaid-node-stroke-width: 1.5px;
+    --mermaid-node-text: var(--seed-ink);
+    --mermaid-edge-stroke: var(--seed-ink);
+    --mermaid-edge-stroke-width: 1.5px;
+    --mermaid-cluster-fill: rgba(255, 225, 77, 0.06);
+    --mermaid-cluster-stroke: var(--seed-accent);
+    --mermaid-label-text: var(--seed-ink);
+    --mermaid-edge-label-text: var(--seed-ink);
+    --mermaid-edge-label-bg: var(--seed-surface);
+    --mermaid-title-text: var(--seed-ink);
+    --mermaid-axis-text: var(--seed-ink-muted);
+    --mermaid-highlight: var(--seed-accent);
+    --mermaid-person-stroke: var(--seed-ink);
+    --mermaid-person-fill: var(--seed-surface);
   }
 
   html, body, body.theme-custom {
@@ -388,7 +420,7 @@ body.theme-custom .mermaid-block + p {
   body.theme-custom img { max-width: 100% !important; border-radius: 4px !important; }
 
   body.theme-custom .mermaid-block {
-    background: var(--seed-surface) !important;
+    background: var(--seed-panel) !important;
     border-color: var(--seed-border) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
