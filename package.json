@@ -25,6 +25,7 @@
     "mammoth": "^1.8",
     "ora": "^8.0",
     "pdf-parse": "^1.1",
+    "pptxgenjs": "^4.0.1",
     "puppeteer": "^24.0"
   },
   "devDependencies": {

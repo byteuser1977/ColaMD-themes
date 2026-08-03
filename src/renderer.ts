@@ -191,10 +191,11 @@ export class ColamdRenderer {
     this.server = await startLocalServer(rendererPath);
     const origin = `http://127.0.0.1:${this.server.port}`;
 
-    // Launch Puppeteer
+    // Launch Puppeteer (use "shell" mode — chrome-headless-shell binary is more
+    // stable on this Windows environment than the full Chrome --headless=new mode)
     this.browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: "shell",
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
     });
     this.page = await this.browser.newPage();
 
