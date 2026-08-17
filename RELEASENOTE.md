@@ -1,4 +1,22 @@
 # Release Notes
+## Version 0.4.0 (2026-08-17) — DeepSeek Harness Integration 🤖
+
+> **Multi-agent ecosystem update**: added DeepSeek Harness skill support and formalized 6-agent coverage.
+
+### 🤖 AI Agent Update
+
+**DeepSeek Harness Skill Support**
+- Added `.dsh/skills/colamd-themes/SKILL.md` for DeepSeek Harness integration
+- Build script now supports `bash skills/build-skills.sh dsh` target
+- Consolidated multi-agent documentation across Claude Code, OpenCode, OpenClaw, Hermes, Trae, and DeepSeek Harness
+
+### 🛠️ Improvements
+
+- Standardized agent skill frontmatter with agent-specific metadata and command prerequisites
+- Extended verification scripts (`DSH_SUPPORT_SUMMARY.md`, `test-dsh-skill.sh`)
+
+---
+
 
 ## Version 0.3.2 (2026-05-29) — Theme Authoring Guide 📝
 
@@ -15,7 +33,7 @@
   5. **Mermaid CJK Text Overflow** — ≤ 2 lines per node, `fontSize: 14px`, simplified text
   6. **Mermaid classDef Inheritance** — must explicitly declare `fill / color / stroke`
 - References `academic-paper.css` and `swiss-design.css` as canonical examples
-- Skill files affected: `.claude/skills/`, `.opencode/skills/`, `.openclaw/skills/`, `.hermes/skills/`, `.trae/rules/`
+- Skill files affected: `.claude/skills/`, `.opencode/skills/`, `.openclaw/skills/`, `.hermes/skills/`, `.trae/rules/`, `.dsh/skills/colamd-themes/SKILL.md`
 
 ### 🔧 Changes
 

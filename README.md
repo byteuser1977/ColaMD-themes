@@ -31,7 +31,7 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 - **Color System Library** — 15 predefined seed palettes across 5 families (Morandi, Macaron, Nordic, Vintage, Mint)
 - **Mermaid Presets** — 3 presets (light/dark/elegant) with 20 core variables, auto-selected by luminance and accent warmth
 
-### Security & Performance (v0.3.2+)
+### Security & Performance (v0.4.0+)
 
 - **SSRF Protection** — URL extractor validates against protocol whitelist and blocks private network access to prevent Server-Side Request Forgery attacks
 - **Input Validation** — CSS files validated for extension, size limit (1MB max), and content validity to prevent OOM attacks
@@ -55,7 +55,7 @@ Handlebars-powered template produces v3.0 paradigm CSS (≤300 lines):
 
 ### Multi-Agent Skill
 
-Universal skill definitions for 5 AI coding agents, auto-generated from a single source:
+Universal skill definitions for 6 AI coding agents, auto-generated from a single source:
 
 | Agent | Skill Path | Frontmatter |
 |-------|-----------|-------------|
@@ -64,6 +64,7 @@ Universal skill definitions for 5 AI coding agents, auto-generated from a single
 | **OpenClaw** | `.openclaw/skills/colamd-themes/SKILL.md` | `id`, `name`, `version`, `icon`, `author`, `homepage`, `metadata.openclaw.os` |
 | **Hermes** | `.hermes/skills/tools/colamd-themes/SKILL.md` | `name`, `version`, `author`, `license`, `metadata.hermes.tags`, `prerequisites` |
 | **Trae** | `.trae/rules/colamd-themes.md` | Plain Markdown (no frontmatter) |
+| **DeepSeek Harness** | `.dsh/skills/colamd-themes/SKILL.md` | `name`, `version`, `description`, `metadata.dsh.tags`, `prerequisites` |
 
 **Architecture:**
 
@@ -77,7 +78,8 @@ skills/build-skills.sh              ← Build script (bash)
         ├──→ .opencode/skills/colamd-themes/SKILL.md
         ├──→ .openclaw/skills/colamd-themes/SKILL.md
         ├──→ .hermes/skills/tools/colamd-themes/SKILL.md
-        └──→ .trae/rules/colamd-themes.md
+        ├──→ .trae/rules/colamd-themes.md
+        └──→ .dsh/skills/colamd-themes/SKILL.md
 ```
 
 **Regenerate all agent skills:**
@@ -92,6 +94,7 @@ bash skills/build-skills.sh opencode
 bash skills/build-skills.sh openclaw
 bash skills/build-skills.sh hermes
 bash skills/build-skills.sh trae
+bash skills/build-skills.sh dsh
 ```
 
 To customize: edit `skills/colamd-themes/SKILL.md`, then run `npm run build:skills`.

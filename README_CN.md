@@ -31,7 +31,7 @@
 - **色彩系统库** — 5 大色系 15 套预定义种子色板（莫兰迪、马卡龙、北欧、复古、薄荷绿）
 - **Mermaid 预设** — 3 套预设（light/dark/elegant），20 个核心变量，根据明度和色相自动选择
 
-### 安全与性能 (v0.3.2+)
+### 安全与性能 (v0.4.0+)
 
 - **SSRF 防护** — URL 提取器通过协议白名单验证并阻止私有网络访问，防止服务器端请求伪造攻击
 - **输入验证** — CSS 文件经过扩展名、大小限制（最大 1MB）和内容有效性验证，防止 OOM 攻击
@@ -55,7 +55,7 @@
 
 ### 多 Agent Skill 通用支持
 
-从单一源文件自动生成 5 个 AI 编码代理的 Skill 定义：
+从单一源文件自动生成 6 个 AI 编码代理的 Skill 定义：
 
 | Agent | Skill 路径 | 前置元数据 |
 |-------|-----------|-----------|
@@ -64,6 +64,7 @@
 | **OpenClaw** | `.openclaw/skills/colamd-themes/SKILL.md` | `id`, `name`, `version`, `icon`, `author`, `homepage`, `metadata.openclaw.os` |
 | **Hermes** | `.hermes/skills/tools/colamd-themes/SKILL.md` | `name`, `version`, `author`, `license`, `metadata.hermes.tags`, `prerequisites` |
 | **Trae** | `.trae/rules/colamd-themes.md` | 纯 Markdown（无前置元数据） |
+| **DeepSeek Harness** | `.dsh/skills/colamd-themes/SKILL.md` | `name`, `version`, `description`, `metadata.dsh.tags`, `prerequisites` |
 
 **架构：**
 
@@ -77,7 +78,8 @@ skills/build-skills.sh              ← 构建脚本（bash）
         ├──→ .opencode/skills/colamd-themes/SKILL.md
         ├──→ .openclaw/skills/colamd-themes/SKILL.md
         ├──→ .hermes/skills/tools/colamd-themes/SKILL.md
-        └──→ .trae/rules/colamd-themes.md
+        ├──→ .trae/rules/colamd-themes.md
+        └──→ .dsh/skills/colamd-themes/SKILL.md
 ```
 
 **重新生成所有 Agent 的 Skill：**
@@ -92,6 +94,7 @@ bash skills/build-skills.sh opencode
 bash skills/build-skills.sh openclaw
 bash skills/build-skills.sh hermes
 bash skills/build-skills.sh trae
+bash skills/build-skills.sh dsh
 ```
 
 自定义 Skill 内容：编辑 `skills/colamd-themes/SKILL.md`，然后运行 `npm run build:skills`

@@ -81,6 +81,19 @@ prerequisites:
   commands: [node, npm]
 ---'
 
+FRONT_DSH='---
+name: colamd-themes
+version: "1.0.0"
+description: >
+  Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes.
+  Extract from URLs/DOCX/PDF; export Markdown to HTML/PDF; batch export.
+metadata:
+  dsh:
+    tags: [colamd, themes, css, markdown, export, pdf, html]
+prerequisites:
+  commands: [node, npm]
+---'
+
 # ── Generator functions ──
 
 generate_claude() {
@@ -123,6 +136,16 @@ generate_hermes() {
   echo "  → $file"
 }
 
+generate_dsh() {
+  local dir=".dsh/skills/colamd-themes"
+  mkdir -p "$dir"
+  local file="$dir/SKILL.md"
+  echo "$FRONT_DSH" > "$file"
+  echo "" >> "$file"
+  echo "$BODY" >> "$file"
+  echo "  → $file"
+}
+
 generate_trae() {
   local dir=".trae/rules"
   mkdir -p "$dir"
@@ -148,16 +171,18 @@ case "$TARGET" in
   openclaw) generate_openclaw ;;
   hermes)   generate_hermes ;;
   trae)     generate_trae ;;
+  dsh)      generate_dsh ;;
   all)
     generate_claude
     generate_opencode
     generate_openclaw
     generate_hermes
     generate_trae
+    generate_dsh
     ;;
   *)
     echo "Unknown agent: $TARGET" >&2
-    echo "Usage: $0 [claude|opencode|openclaw|hermes|trae|all]" >&2
+    echo "Usage: $0 [claude|opencode|openclaw|hermes|trae|dsh|all]" >&2
     exit 1
     ;;
 esac

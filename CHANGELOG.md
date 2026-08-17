@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+*No unreleased changes for this snapshot.*
+---
+
 ## [0.3.2] - 2026-05-29
 
 ### Added
@@ -45,6 +50,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - `.DS_Store` files from project directory
 - Local HTTP server security code (token validation, request timeouts) per user request — reverted to simpler implementation
+
+---
+
+## [0.4.0] - 2026-08-17
+
+### Added
+- DeepSeek Harness Agent Support — added `.dsh/skills/colamd-themes/SKILL.md`, available via `skills/build-skills.sh dsh`
+- Agent skill generation coverage expanded from 5 to 6 supported AI agents (Claude Code, OpenCode, OpenClaw, Hermes, Trae, DeepSeek Harness)
+- Agent skill frontmatter standardized with agent-specific command prerequisites and capability tags
+
+### Changed
+- Release version bumped to **0.4.0** across package metadata and documentation
+- README multi-agent section expanded with DeepSeek Harness generation path and frontmatter info
+- Build script aligned with new data-channel contract
+
+### Documentation
+- Added `DSH_SUPPORT_SUMMARY.md` and `test-dsh-skill.sh` for release verification
+- README and CHANGELOG revised for v0.4.0 multi-agent guidance
 
 ---
 
@@ -233,7 +256,8 @@ User Input → Validation Layer → Processing Layer
 
 ---
 
-[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.2.0...v0.3.0
