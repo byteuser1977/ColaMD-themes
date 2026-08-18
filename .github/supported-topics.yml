@@ -1,0 +1,17 @@
+# GitHub Topics 支持列表
+# 此文件帮助 GitHub 在仓库设置页面自动建议相关 topics
+# 添加后需在 GitHub 仓库 Settings > General > Topics 中手动确认保存
+- dsh
+- deepseek-harness
+- colamd
+- themes
+- css
+- markdown
+- pdf
+- html
+- skill
+- ai-agent
+- agent-skill
+- theme-generator
+- markdown-export
+- colamd-themes

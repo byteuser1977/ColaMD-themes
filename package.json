@@ -14,6 +14,19 @@
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js"
   },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "colamd",
+    "themes",
+    "css",
+    "markdown",
+    "pdf",
+    "html",
+    "skill",
+    "ai-agent",
+    "agent-skill"
+  ],
   "dependencies": {
     "@bytechain.cn/colamd": "^1.5.2",
     "axios": "^1.7",
