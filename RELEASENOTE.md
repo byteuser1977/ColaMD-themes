@@ -1,5 +1,77 @@
 # Release Notes
 
+## Version 0.3.3 (2026-08-26) — MCP Server & AI Agent Integration 🤖
+
+> **AI ecosystem integration**: ColaMD-themes now connects to AI coding assistants via MCP protocol.
+> **Chinese theme names now fully supported** — no more ASCII-only restriction.
+
+### ✨ New Features
+
+**MCP Server (Model Context Protocol)**
+- Full MCP server implementation in `mcp-server/` directory
+- 14 tools covering theme extraction, export, validation, and management
+- Works with Chatbox, Cursor, Claude Desktop, Continue, and all MCP-compatible clients
+- Quick setup via `npm run mcp` or configure in your MCP client settings
+
+**Multi-Agent Skill Definitions**
+- Added skill files for 5 AI coding agents:
+  - Claude Code, OpenCode, OpenClaw, Hermes, Trae
+- Auto-generated from `skills/colamd-themes/SKILL.md` via `build-skills.sh`
+
+**Chinese Theme Name Support**
+- Fixed CLI ASCII-only filter that stripped non-ASCII characters from theme names
+- MCP server detects non-ASCII names and bypasses the filter using `-o` flag
+- Tested with: `"我的主题"` -> `themes/我的主题.css` ✅
+
+### 📦 Quick Start (MCP)
+
+**Chatbox Configuration:**
+```json
+{
+  "mcpServers": {
+    "colamd-themes": {
+      "command": "node",
+      "args": ["D:/path/to/ColaMD-themes/mcp-server/dist/index.js"],
+      "cwd": "D:/path/to/ColaMD-themes"
+    }
+  }
+}
+```
+
+**Then in your chat:**
+> "Extract a theme from https://example.com named 'My Theme'"
+
+### 🛠️ MCP Tools Reference
+
+| Category | Tool | Description |
+|----------|------|-------------|
+| Extraction | `extract_from_url` | Theme from web page |
+| | `extract_from_docx` | Theme from Word doc |
+| | `extract_from_pdf` | Theme from PDF |
+| | `extract_auto` | Auto-detect source |
+| Management | `list_themes` | List all themes |
+| | `validate_theme` | Validate theme rules |
+| | `check_fonts` | Check font availability |
+| | `set_theme` | Register custom theme |
+| Color | `list_color_systems` | 15 built-in palettes |
+| | `list_mermaid_presets` | 3 Mermaid presets |
+| Export | `export_html` | Markdown to HTML |
+| | `export_pdf` | Markdown to PDF |
+| | `export_batch` | Batch export |
+
+### 🔧 Migration
+
+**No breaking changes** — fully backward compatible.
+
+**New scripts available:**
+```bash
+npm run build:mcp    # Build MCP server only
+npm run build:all    # Build CLI + MCP server
+npm run mcp          # Start MCP server
+```
+
+---
+
 ## Version 0.3.2 (2026-05-29) — Theme Authoring Guide 📝
 
 > **AI agent skill enhancement**: Added comprehensive CSS pitfall quick reference for reliable theme generation.

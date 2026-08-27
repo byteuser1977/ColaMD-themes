@@ -1,18 +1,22 @@
 {
   "name": "@bytechain.cn/colamd-themes",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Theme development & export tool for ColaMD — extract formatting, generate themes, and export Markdown to HTML/PDF",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "colamd-themes": "./dist/cli.js",
-    "cthemes": "./dist/cli.js"
+    "cthemes": "./dist/cli.js",
+    "colamd-themes-mcp": "./mcp-server/dist/index.js"
   },
   "scripts": {
     "build": "tsc && node --input-type=commonjs -e \"require('fs').cpSync('src/templates','dist/templates',{recursive:true})\"",
     "build:skills": "bash skills/build-skills.sh",
     "dev": "tsx src/cli.ts",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "build:mcp": "cd mcp-server && npm run build",
+    "build:all": "npm run build && npm run build:mcp",
+    "mcp": "node mcp-server/dist/index.js"
   },
   "dependencies": {
     "@bytechain.cn/colamd": "^1.5.2",

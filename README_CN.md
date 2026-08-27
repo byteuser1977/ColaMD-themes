@@ -363,6 +363,28 @@ ColaMD-themes/
 └── tests/
 ```
 
+### MCP 服务器配置
+
+在你的 MCP 客户端配置中添加（如 Chatbox、Cursor、Claude Desktop）：
+
+```json
+{
+  "mcpServers": {
+    "colamd-themes": {
+      "command": "node",
+      "args": ["./mcp-server/dist/index.js"],
+      "cwd": "/path/to/ColaMD-themes"
+    }
+  }
+}
+```
+
+或直接运行：
+
+```bash
+npm run mcp
+```
+
 ## 技术栈
 
 | 组件 | 库 | 用途 |

@@ -53,6 +53,30 @@ Handlebars-powered template produces v3.0 paradigm CSS (≤300 lines):
 | 5 | Selector-Level Micro Adjustments — headings, code, pre, blockquote, table, hr, responsive |
 | 6 | `@media print` — screen-mirror with `!important` + `print-color-adjust: exact` |
 
+### MCP Server (Model Context Protocol)
+
+Full MCP server for AI-native integration — connect ColaMD-themes to Chatbox, Cursor, Claude Desktop, Continue, and all MCP-compatible clients.
+
+- **14 MCP tools** covering theme extraction, export, validation, and management
+- **Stdio transport** — zero network config, direct process communication
+- **Chinese theme name support** — non-ASCII names handled via smart path resolution
+
+| Category | Tool | Description |
+|----------|------|-------------|
+| Extraction | `extract_from_url` | Theme from web page |
+| | `extract_from_docx` | Theme from Word doc |
+| | `extract_from_pdf` | Theme from PDF |
+| | `extract_auto` | Auto-detect source |
+| Management | `list_themes` | List all themes |
+| | `validate_theme` | Validate theme rules |
+| | `check_fonts` | Check font availability |
+| | `set_theme` | Register custom theme |
+| Color | `list_color_systems` | 15 built-in palettes |
+| | `list_mermaid_presets` | 3 Mermaid presets |
+| Export | `export_html` | Markdown to HTML |
+| | `export_pdf` | Markdown to PDF |
+| | `export_batch` | Batch export |
+
 ### Multi-Agent Skill
 
 Universal skill definitions for 5 AI coding agents, auto-generated from a single source:

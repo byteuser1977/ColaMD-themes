@@ -28,12 +28,10 @@ import {
 import { normalizeThemeStyle } from "../color-utils.js";
 import {
   ACADEMIC_PAPER_DEFAULTS,
-  BUSINESS_REPORT_DEFAULTS,
-  TECHNICAL_DOC_DEFAULTS,
   getRecommendedPreset,
   validateDocumentStyle,
-  type DocumentStyleParadigm,
 } from "../docx-style-paradigm.js";
+import { themeToParadigm, logExtractorWarnings } from "../utils/document-paradigm.js";
 
 /** 解析后的 CSS 规则集合 */
 type CssRuleMap = Map<string, Map<string, string>>;
@@ -78,28 +76,18 @@ export class UrlExtractor implements Extractor {
     const hostname = parsed.hostname.toLowerCase();
     const isPrivate =
       hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
+      hostname === "0.0.0.0" ||
+      /^127\./.test(hostname) ||
       hostname === "::1" ||
       hostname === "[::1]" ||
-      hostname.startsWith("10.") ||
-      hostname.startsWith("172.16.") ||
-      hostname.startsWith("172.17.") ||
-      hostname.startsWith("172.18.") ||
-      hostname.startsWith("172.19.") ||
-      hostname.startsWith("172.20.") ||
-      hostname.startsWith("172.21.") ||
-      hostname.startsWith("172.22.") ||
-      hostname.startsWith("172.23.") ||
-      hostname.startsWith("172.24.") ||
-      hostname.startsWith("172.25.") ||
-      hostname.startsWith("172.26.") ||
-      hostname.startsWith("172.27.") ||
-      hostname.startsWith("172.28.") ||
-      hostname.startsWith("172.29.") ||
-      hostname.startsWith("172.30.") ||
-      hostname.startsWith("172.31.") ||
-      hostname.startsWith("192.168.") ||
-      hostname.startsWith("169.254.");
+      hostname === "::" ||
+      /^10\./.test(hostname) ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
+      /^192\.168\./.test(hostname) ||
+      /^169\.254\./.test(hostname) ||
+      /^100\.(6[4-9]|7\d|8\d|9\d|1[01]\d|12[0-7])\./.test(hostname) ||
+      /^\[?fc/.test(hostname) ||
+      /^fe[89ab]/.test(hostname);
 
     if (isPrivate) {
       throw new Error(`Private network access denied: ${hostname}. Only public URLs are allowed for security reasons.`);
@@ -614,12 +602,8 @@ export class UrlExtractor implements Extractor {
     if (st.fontScaleH3 < st.fontScaleH2 * 0.85)
       st.fontScaleH3 = preset.headings.h3.fontSize / 16;
 
-    const issues = validateDocumentStyle(this.themeToParadigm(theme));
-    for (const issue of issues) {
-      if (issue.level === "error") {
-        console.warn(`[UrlExtractor] ${issue.element}: ${issue.message}`);
-      }
-    }
+    const issues = validateDocumentStyle(themeToParadigm(theme));
+    logExtractorWarnings("UrlExtractor", issues.filter((i) => i.level === "error"));
   }
 
   /**

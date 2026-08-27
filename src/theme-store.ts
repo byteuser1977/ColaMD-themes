@@ -5,9 +5,9 @@
  * Uses async file I/O to avoid blocking the event loop.
  */
 
-import { mkdir, readFile, writeFile, access } from "node:fs/promises";
-import { statSync } from "node:fs";
-import { join, basename } from "node:path";
+import { mkdir, readFile, writeFile, access, rename } from "node:fs/promises";
+import { statSync, unlink } from "node:fs";
+import { join, basename, dirname } from "node:path";
 import { homedir } from "node:os";
 
 const CONFIG_DIR = join(homedir(), ".colamd-themes");
@@ -43,7 +43,9 @@ async function writeConfig(config: ThemeConfig): Promise<void> {
   } catch {
     await mkdir(CONFIG_DIR, { recursive: true });
   }
-  await writeFile(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
+  const tmpPath = `${CONFIG_FILE}.${process.pid}.${Date.now()}.tmp`;
+  await writeFile(tmpPath, JSON.stringify(config, null, 2), "utf-8");
+  await rename(tmpPath, CONFIG_FILE);
 }
 
 /** Get the full config. */

@@ -1,13 +1,19 @@
 /** Color manipulation utilities. */
 
 export function hexToRgb(hex: string): [number, number, number] {
-  hex = hex.replace("#", "");
+  const trimmed = hex.replace(/^#/, "").trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(trimmed) && !/^[0-9a-fA-F]{3}$/.test(trimmed)) {
+    throw new Error(`Invalid hex color: "${hex}"`);
+  }
+  hex = trimmed;
   if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
-  return [
-    parseInt(hex.substring(0, 2), 16),
-    parseInt(hex.substring(2, 4), 16),
-    parseInt(hex.substring(4, 6), 16),
-  ];
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  if ([r, g, b].some((v) => Number.isNaN(v))) {
+    throw new Error(`Invalid hex color: "${hex}"`);
+  }
+  return [r, g, b];
 }
 
 export function rgbToHex(r: number, g: number, b: number): string {
@@ -99,6 +105,11 @@ export function deriveSyntaxColors(
   }
 }
 
+export function sanitizeCssString(value: string): string {
+  // Remove HTML-injection vectors while preserving CSS syntax (quotes, spaces, commas)
+  return value.replace(/[<>]/g, "");
+}
+
 export function normalizeThemeStyle(style: import("./models.js").ThemeStyle): void {
   const p = style.palette;
   const t = style.typography;
@@ -109,6 +120,12 @@ export function normalizeThemeStyle(style: import("./models.js").ThemeStyle): vo
   if (!p.blockquoteBorder) p.blockquoteBorder = p.accentColor;
   if (!p.selectionBg) p.selectionBg = toRgba(p.accentColor);
   if (!t.headingFontFamily) t.headingFontFamily = t.bodyFontFamily;
+
+  // Sanitize font stacks to prevent CSS injection via crafted input
+  if (t.bodyFontFamily)    t.bodyFontFamily    = sanitizeCssString(t.bodyFontFamily);
+  if (t.headingFontFamily) t.headingFontFamily = sanitizeCssString(t.headingFontFamily);
+  if (t.codeFontFamily)    t.codeFontFamily    = sanitizeCssString(t.codeFontFamily);
+  if (style.seedTypography.fontMermaid) style.seedTypography.fontMermaid = sanitizeCssString(style.seedTypography.fontMermaid);
 
   if (!s.comment) {
     const derived = deriveSyntaxColors(p.codeBlockText);

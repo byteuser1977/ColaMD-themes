@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.3.3] - 2026-08-26
+
+### Added
+- **MCP Server**: Full MCP (Model Context Protocol) server in `mcp-server/` directory with 14 tools covering theme extraction, HTML/PDF export, validation, color systems, and theme management. Compatible with Chatbox, Cursor, Claude Desktop, Continue, and all MCP-capable clients.
+- **Chinese Theme Name Support**: Fixed non-ASCII (Chinese/CJK) theme names being stripped during extraction. MCP server auto-detects non-ASCII names and constructs full output paths via `-o` flag.
+- **Multi-Agent Skill Definitions**: Added AI agent skill files for 5 coding assistants — Claude Code, OpenCode, OpenClaw, Hermes, Trae — auto-generated from `skills/colamd-themes/SKILL.md`.
+- New MCP binary entry: `colamd-themes-mcp`
+- New scripts: `build:mcp`, `build:all`, `mcp`
+
+### Changed
+- Package version bumped from 0.3.2 to 0.3.3
+- MCP server versioned independently at 0.2.0
+
+---
+
 ## [0.3.2] - 2026-05-29
 
 ### Added
