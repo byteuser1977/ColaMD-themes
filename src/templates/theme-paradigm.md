@@ -15,7 +15,7 @@
 |------|------|
 | **变量化** | 颜色、字体、字号、间距一律通过 CSS 自定义属性定义。选择器规则中禁止出现裸色值（`#xxx`）、裸字号（`12pt`）、裸字体名 |
 | **模块化** | 主题文件只定义变量 + 极小量选择器微调。图表与编辑器排版由内置系统（`base.css` / `editor-preview.css` / Pele 缺省值）自动承继 |
-| **语义化** | 变量名描述用途而非外观。`--color-link` 而非 `--color-blue`；`--font-heading` 而非 `--font-sans` |
+| **语义化** | 变量名描述用途而非外观。`--color-link` 而非 `--color-blue`；`--font-body` 而非 `--font-sans` |
 | **可推导** | 完整主题可由 11 个种子色 + 3 组字体栈自动推导，AI Agent 修改主题只需改动 SECTION 1 |
 | **打印保真** | 2.7 起导出直接对当前窗口 `printToPDF()`，屏幕规则原样生效；`@media print` 只补 `print-color-adjust`，不再重写整份镜像 |
 | **无死规则** | 选择器必须命中真实 DOM。CodeMirror 6 不产出 `#write` / `.ProseMirror` / `<h1>`，这类规则一律禁止 |
@@ -95,7 +95,7 @@ contrastRatio(L1, L2) = (max(L1,L2) + 0.05) / (min(L1,L2) + 0.05)
 
 | Rule ID | 级别 | 规则 |
 |---------|------|------|
-| **AR-01** | SHOULD | 点缀色覆盖面积 ≤ 页面可视面积的 10%（用于链接、Mermaid 节点边框、表头底线、引用块竖线等） |
+| **AR-01** | SHOULD | 点缀色覆盖面积 ≤ 页面可视面积的 10%（用于链接、图表节点描边、表头底线、引用块竖线等） |
 | **AR-02** | MUST NOT | 禁止将点缀色用作大面积背景色（页面底色、代码块背景、表格全局背景） |
 
 #### 2.1.5 中性灰轴约束
@@ -134,9 +134,9 @@ contrastRatio(L1, L2) = (max(L1,L2) + 0.05) / (min(L1,L2) + 0.05)
 |---------|------|------|---------|
 | **FS-01** | MUST | `--font-scale-h1` ≥ 1.75（主标题至少为正文的 1.75 倍） | 检查倍率值 |
 | **FS-02** | MUST | 标题倍率严格递减：`h1 > h2 > h3 > h4 > h5 > h6` | 检查单调性 |
-| **FS-03** | SHOULD | 正文字号 `--font-size-root` ∈ [14px, 18px] | 检查范围 |
-| **FS-04** | SHOULD | Mermaid 字号 `--font-size-mermaid` ∈ [11px, 14px] | 检查范围 |
-| **FS-05** | SHOULD | 标题行高 `--line-height-heading` ∈ [1.15, 1.4]，小于正文行高 | `heading < body` |
+| **FS-03** | SHOULD | 正文字号 `--editor-font-size` ∈ [14px, 18px] | 检查范围 |
+| **FS-04** | SHOULD | 图表文字继承正文/等宽字体，不设独立图表字号变量（无 `--font-size-mermaid`） | 检查变量清单 |
+| **FS-05** | SHOULD | 标题行高（写在 `.cm-md-atxheading*` 的 `line-height`）∈ [1.15, 1.4]，小于正文行高 | `heading < body` |
 
 #### 2.2.4 字体栈构造规则
 
@@ -166,8 +166,8 @@ contrastRatio(L1, L2) = (max(L1,L2) + 0.05) / (min(L1,L2) + 0.05)
 | 内联代码背景 | `--code-bg` | 1.15:1 |
 | 引用块背景 | `--blockquote-bg` | 1.15:1 |
 | 表头背景 | `--table-header-bg` | 1.5:1（需明显区分） |
-| Mermaid 节点填充 | `--mermaid-node-fill` | 1.2:1 |
-| Mermaid 聚类填充 | `--mermaid-cluster-fill` | 1.1:1（极浅即可） |
+| 图表节点填充 | `--pele-surface` | 1.2:1 |
+| 图表聚类填充 | `--pele-surface-alt` | 1.1:1（极浅即可） |
 
 ### 2.4 线条/边框规范
 
@@ -177,7 +177,7 @@ contrastRatio(L1, L2) = (max(L1,L2) + 0.05) / (min(L1,L2) + 0.05)
 |---------|------|------|
 | **BD-01** | MUST | 边框色 (`--seed-border`) 必须比其所在表面色暗：浅色主题 `L(border) < L(surface)`，深色主题反之 |
 | **BD-02** | SHOULD | 强调边框 (`--seed-border-strong`) 比普通边框深 ≥ 0.15 明度差 |
-| **BD-03** | SHOULD | Mermaid 节点描边 (`--mermaid-node-stroke`) 与节点填充 (`--mermaid-node-fill`) 对比度 ≥ 2:1 |
+| **BD-03** | SHOULD | 图表节点描边 (`--pele-border`) 与节点填充 (`--pele-surface`) 对比度 ≥ 2:1 |
 
 #### 2.4.2 边框宽度层级
 
@@ -185,7 +185,7 @@ contrastRatio(L1, L2) = (max(L1,L2) + 0.05) / (min(L1,L2) + 0.05)
 |------|---------|------|
 | 分割线 (hr) | 1px | 最细，仅起分隔作用 |
 | 表格内边框 (td) | 1px | 细线，不抢内容 |
-| Mermaid 节点描边 | 1.5px | 略粗，确保图表清晰 |
+| 图表节点描边 | 1.5px | 略粗，确保图表清晰 |
 | 引用块左侧竖线 | 4px | 最粗，视觉锚点 |
 | 表头底线 | 2px | 区分表头与表体 |
 
@@ -199,16 +199,19 @@ contrastRatio(L1, L2) = (max(L1,L2) + 0.05) / (min(L1,L2) + 0.05)
 |----------|-----------|------|
 | `--bg-color` | `var(--seed-surface)` | 页面底色 = 最浅表面 |
 | `--text-color` | `var(--seed-ink)` | 正文色 = 最深文字 |
-| `--heading-color` | `var(--seed-ink)` | 标题色 = 正文色（统一） |
+| `--text-secondary` | `var(--seed-ink-muted)` | 次级文字 = 弱一档墨色 |
+| `--text-muted` | `var(--seed-ink-dim)` | 弱化文字 = 注释/占位 |
 | `--link-color` | `var(--seed-accent)` | 链接色 = 点缀色 |
-| `--accent-color` | `var(--seed-accent)` | 全局强调色 = 点缀色 |
 | `--border-color` | `var(--seed-border)` | 边框色 = 中性灰 |
 | `--code-bg` | `var(--seed-panel)` | 内联代码背景 = 中间表面 |
 | `--code-block-bg` | `var(--seed-panel-alt)` | 代码块背景 = 最深表面 |
+| `--code-block-text` | 与 `--code-block-bg` 对比度最高者（白/浅灰/`seed.surface`/`seed.ink`） | 代码块文字 |
 | `--blockquote-bg` | `var(--seed-panel)` | 引用块背景 = 中间表面 |
 | `--blockquote-border` | `var(--seed-ink)` 或 `var(--seed-accent)` | 引用竖线 = 正文色或点缀色 |
 | `--table-header-bg` | `var(--seed-panel)` 或 `var(--seed-ink)` | 表头 = 浅底或黑底白字 |
 | `--selection-bg` | `accent color + alpha 0.10~0.20` | 选区 = 点缀色半透明 |
+| `--highlight-bg` | `accent color + alpha 0.10~0.20` | 高亮 = 点缀色半透明 |
+| `--pele-*` | 由 `--code-block-bg` / `--code-block-text` / `--link-color` 经 `color-mix()` 推导 | 图表 9 变量 |
 
 #### 2.5.2 禁止的映射 (Forbidden)
 
@@ -259,7 +262,7 @@ SECTION 4  打印 (media print)           ← 保真补充
 主题的视觉基调由 11 个种子令牌（4 组颜色 + 3 组文字 + 2 组边框）决定。手写主题可跳过这一层，直接写语义变量。
 
 ```
---seed-accent         点缀色（链接、强调、Mermaid 高亮）
+--seed-accent         点缀色（链接、强调、图表高亮）
   ├── --seed-accent-light   浅变体（用作背景）
   └── --seed-accent-dark    深变体（用作 hover / 文字）
 
@@ -281,7 +284,7 @@ SECTION 4  打印 (media print)           ← 保真补充
 |----------|-----------|-----------|
 | 浅色主题 | `surface` < `panel` < `panel-alt` (亮度递减) | `ink` > `muted` > `dim` (亮度递增) |
 | 深色主题 | `surface` > `panel` > `panel-alt` (亮度递增) | `ink` < `muted` < `dim` (亮度递减) |
-| 点缀色面积 | ≤ 页面 10%（链接 + 强调 + Mermaid 节点边框） | |
+| 点缀色面积 | ≤ 页面 10%（链接 + 强调 + 图表节点描边） | |
 
 ### 3.3 设计令牌：字体系统
 

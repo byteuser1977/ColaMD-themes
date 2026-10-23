@@ -34,6 +34,14 @@ function getPackageVersion(): string {
   }
 }
 
+/** Fallback stacks used when colamd.css is missing or a theme rule can't be parsed. */
+const BUILTIN_FONT_FALLBACKS: Record<string, string[]> = {
+  light: ["Noto Sans SC", "sans-serif"],
+  dark: ["Noto Sans SC", "sans-serif"],
+  elegant: ["LXGW WenKai", "Noto Serif SC", "serif"],
+  newsprint: ["Noto Serif SC", "serif"],
+};
+
 /** Font stacks for each built-in theme — parsed dynamically from colamd.css. */
 const THEME_FONTS: Record<string, string[]> = getBuiltinFontStacks();
 
@@ -51,43 +59,30 @@ function findColamdCssPath(): string {
 
 /**
  * Parse font-family values for each built-in theme from colamd.css.
- * Dynamic approach: reads `body.theme-{name} #editor .ProseMirror { font-family: ... }`
+ * Dynamic approach: reads `body.theme-{name} ... .cm-content { font-family: ... }`
  * instead of hardcoding font stacks.
  */
 function getBuiltinFontStacks(): Record<string, string[]> {
+  const result: Record<string, string[]> = { ...BUILTIN_FONT_FALLBACKS };
   const cssPath = findColamdCssPath();
-  if (!cssPath) {
-    // Fallback hardcoded defaults if colamd.css not found
-    return {
-      light: ["Noto Sans SC", "sans-serif"],
-      dark: ["Noto Sans SC", "sans-serif"],
-      elegant: ["LXGW WenKai", "Noto Serif SC", "serif"],
-      newsprint: ["Noto Serif SC", "serif"],
-    };
-  }
+  if (!cssPath) return result;
 
   const css = readFileSync(cssPath, "utf-8");
-  const result: Record<string, string[]> = {};
-  const names = ["light", "dark", "elegant", "newsprint"];
 
-  for (const theme of names) {
-    // Match: body.theme-elegant #editor .ProseMirror { ... font-family: 'LXGW WenKai', ...; }
+  for (const theme of Object.keys(BUILTIN_FONT_FALLBACKS)) {
+    // 2.7 契约：字体栈写在 .cm-content 上（CodeMirror 6 不再有 .ProseMirror）
     const re = new RegExp(
-      `body\\.theme-${theme}\\s+#editor\\s+\\.ProseMirror\\s*\\{[^}]*font-family:\\s*([^;]+)`,
+      `body\\.theme-${theme}[^{]*\\.cm-content[^{]*\\{[^}]*font-family:\\s*([^;]+)`,
       "i"
     );
     const m = css.match(re);
-    if (m) {
-      const fonts = m[1].split(",").map((s) => s.trim().replace(/^['"]|['"]$/g, "").trim());
-      result[theme] = fonts;
-    }
-  }
+    if (!m || m[1].includes("var(")) continue;
 
-  // Fill any missing themes with fallback
-  for (const theme of names) {
-    if (!result[theme]) {
-      result[theme] = ["sans-serif"];
-    }
+    const fonts = m[1]
+      .split(",")
+      .map((s) => s.trim().replace(/^['"]|['"]$/g, "").trim())
+      .filter(Boolean);
+    if (fonts.length > 0) result[theme] = fonts;
   }
 
   return result;

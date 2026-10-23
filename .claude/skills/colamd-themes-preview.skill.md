@@ -109,10 +109,10 @@ The audit checks:
 
 - Color values against type expectations
 - Font stacks for appropriateness
-- Mermaid preset suitability
-- Print styles synchronization (critical for PPT and document types)
+- Pele chart palette suitability (`--pele-*` derives from code block colors)
+- Print fidelity (2.7 exports the current window; `@media print` only needs `print-color-adjust`)
 - Contrast ratios and accessibility
-- Conformance to v3.0 paradigm rules
+- Conformance to the 2.7 contract (`:root` vars, `.cm-md-*` selectors, no dead variables)
 
 Output includes overall score (0–100) and categorized issues (CRITICAL, WARNING, INFO).
 
@@ -130,7 +130,7 @@ WARNINGS:
   - Consider a more muted blue for formal documents
 
 INFO:
-  - Mermaid preset: light (recommended)
+  - Chart palette: derived from `--pele-*`
   - Font stack includes CJK fallbacks: Yes
 ```
 
@@ -276,9 +276,9 @@ The `audit` command validates a theme against expectations for its document type
 - Surface: near-white (Luminance ≥ 0.95)
 - Ink: dark (Luminance ≤ 0.2 or hex `#000000`–`#222222`)
 - Accent: medium saturation (0.3 ≤ S ≤ 0.6), professional hues (blue, teal, burgundy)
-- Mermaid preset: `light`
+- Chart palette: muted `--pele-*` derived from code block tones
 - Font bodies: serif or clean sans-serif, include CJK fallbacks
-- Print styles: MUST match screen colors exactly; `@media print` block must re-declare `--seed-accent` and `--seed-accent-dark` to the same hex values as screen
+- Print styles: no mirrored color block needed; `@media print` only carries `print-color-adjust: exact`
 - Expectation: readability, print-friendliness, conservative palette
 
 **Design** (web page style conversions):
@@ -286,7 +286,7 @@ The `audit` command validates a theme against expectations for its document type
 - Surface: varies (light or dark)
 - Accent: high saturation (S ≥ 0.6), vibrant colors, possible gradients
 - Font families: modern sans-serif stack, may include display fonts
-- Mermaid preset: auto-detected based on background luminance
+- Chart palette: `--pele-*` tuned to the background luminance
 - Print styles: SHOULD preserve brand colors; if source has print styles, compare against them
 - Expectation: faithful reproduction of source website's visual identity
 
@@ -294,9 +294,9 @@ The `audit` command validates a theme against expectations for its document type
 
 - Must preserve original slide color scheme (extracted from source PDF)
 - Text colors must match original slide text colors within tolerance
-- Mermaid colors should follow slide accent palette
+- Chart colors should follow slide accent palette (`--pele-accent`)
 - Font choices should reflect slide typography
-- Print styles: CRITICAL — print MUST match slide design exactly; verify `@media print` exists and re-declares all seed colors correctly (especially accent)
+- Print styles: CRITICAL — 2.7 prints the current window, so screen rules apply as-is; verify `@media print` carries `print-color-adjust: exact`
 - Expectation: high fidelity to original slide design, including print output
 
 ## Implementation Notes

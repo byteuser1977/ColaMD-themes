@@ -1,0 +1,280 @@
+/*
+ * ColaMD 主题：Trae Blue（Trae IDE 文档风格）
+ * 风格：纯白底 + Slate 灰阶文字 + Trae Blue（#3b82f6）点缀
+ * 契约：ColaMD Extend 2.7（CodeMirror 6 + Pele）
+ *
+ * 风格来源：docs.trae.cn 官方文档站。原 v1.0 依赖 body.theme-custom 与
+ * #write / .ProseMirror 等已失效结构；本版按 2.7 契约重写：变量落在 :root，
+ * 编辑器规则只用 .cm-md-* 行级钩子，导出样式挂在 .colamd-document。
+ */
+
+:root {
+  /* ── 1.1 Seed Palette（Slate 亮色 + Trae Blue） ── */
+  --seed-accent:        #3b82f6;
+  --seed-accent-light:  rgba(59, 130, 246, 0.12);
+  --seed-accent-dark:   #2563eb;
+  --seed-surface:       #ffffff;
+  --seed-panel:         #f8fafc;
+  --seed-panel-alt:     #f1f5f9;
+  --seed-ink:           #0f172a;
+  --seed-ink-muted:     #475569;
+  --seed-ink-dim:       #94a3b8;
+  --seed-border:        #e2e8f0;
+  --seed-border-strong: #3b82f6;
+
+  /* ── 1.2 Semantic Colors（活变量） ── */
+  --bg-color:         var(--seed-surface);
+  --text-color:       var(--seed-ink);
+  --text-secondary:   #334155;
+  --text-muted:       var(--seed-ink-muted);
+  --border-color:     var(--seed-border);
+  --link-color:       var(--seed-accent);
+
+  --code-bg:          var(--seed-panel-alt);
+  --code-block-bg:    var(--seed-panel);
+  --code-block-text:  var(--seed-ink);
+
+  --blockquote-border: var(--seed-accent);
+  --blockquote-bg:     var(--seed-panel);
+  --table-header-bg:   #eff6ff;
+
+  --selection-bg: rgba(59, 130, 246, 0.15);
+  --highlight-bg: #eff6ff;
+
+  /* ── 1.3 Typography & Metrics（活变量） ── */
+  --font-body: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", Georgia, "Times New Roman", serif;
+  --font-mono: "Cascadia Code", "JetBrains Mono", "Fira Code", "SF Mono", Menlo, Consolas, monospace;
+  --editor-font-size: 15px;
+  --editor-column-width: 780px;
+
+  /* ── 1.4 Pele 图表：浅底 + Slate 线 + 蓝色强调 ── */
+  --pele-bg:          var(--code-block-bg);
+  --pele-fg:          var(--code-block-text);
+  --pele-muted:       var(--text-muted);
+  --pele-line:        #94a3b8;
+  --pele-surface:     #eef2f7;
+  --pele-surface-alt: #e2e8f0;
+  --pele-border:      #64748b;
+  --pele-accent:      var(--link-color);
+  --pele-radius:      6px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 2 — 编辑器 DOM（#editor .cm-content + .cm-md-*）
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 2.0 正文：思源宋体，1.75 倍行距 ── */
+#editor .cm-content {
+  font-family: var(--font-body);
+  font-size: var(--editor-font-size);
+  line-height: 1.75;
+  color: var(--text-color);
+  background: var(--bg-color);
+}
+
+/* ── 2.1 标题：思源黑体，Slate 900 ── */
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2,
+#editor .cm-content .cm-md-atxheading3,
+#editor .cm-content .cm-md-atxheading4,
+#editor .cm-content .cm-md-atxheading5,
+#editor .cm-content .cm-md-atxheading6 {
+  font-family: "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--text-color);
+  font-weight: 700;
+  line-height: 1.35;
+  padding-top: 0.6em;
+}
+
+#editor .cm-content .cm-md-atxheading1 {
+  font-size: 2em;
+  padding-top: 1em;
+  padding-bottom: 0.3em;
+}
+#editor .cm-content .cm-md-atxheading2 { font-size: 1.75em; }
+#editor .cm-content .cm-md-atxheading3 { font-size: 1.5em; }
+#editor .cm-content .cm-md-atxheading4 { font-size: 1.2em; }
+#editor .cm-content .cm-md-atxheading5 { font-size: 1.05em; }
+#editor .cm-content .cm-md-atxheading6 {
+  font-size: 0.95em;
+  color: var(--text-secondary);
+}
+
+/* ── 2.2 行内：蓝色是唯一强调色 ── */
+#editor .cm-content .cm-md-strong {
+  color: var(--link-color);
+  font-weight: 700;
+}
+#editor .cm-content .cm-md-em {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+#editor .cm-content .cm-md-strike {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+#editor .cm-content .cm-md-highlight {
+  background: var(--highlight-bg);
+  color: var(--text-color);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+#editor .cm-content .cm-md-link {
+  color: var(--link-color);
+  text-decoration: none;
+}
+#editor .cm-content .cm-md-url {
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+#editor .cm-content .cm-md-marker,
+#editor .cm-content .cm-md-quotemark,
+#editor .cm-content .cm-md-listmark {
+  color: var(--text-muted);
+}
+
+/* ── 2.3 内联代码：浅灰蓝底 + 蓝色字 ── */
+#editor .cm-content .cm-md-inlinecode {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  color: var(--link-color);
+  padding: 2px 6px;
+  margin: 0 2px;
+  border-radius: 4px;
+}
+
+/* ── 2.4 引用块：浅底 + 蓝色左竖线（每行一个 div，禁纵向 padding） ── */
+#editor .cm-content .cm-md-blockquote {
+  background: var(--blockquote-bg);
+  color: var(--text-secondary);
+  border-left: 4px solid var(--blockquote-border);
+  padding-left: 20px;
+  padding-right: 16px;
+}
+
+/* ── 2.5 代码块：极浅底 + 深字，圆角落在首末行 ── */
+#editor .cm-content .cm-md-codeblock {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  line-height: 1.6;
+  background: var(--code-block-bg);
+  color: var(--code-block-text);
+  padding-left: 20px;
+  padding-right: 20px;
+}
+#editor .cm-content .cm-md-codeblock-first {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+#editor .cm-content .cm-md-codeblock-last {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* ── 2.6 表格：浅蓝表头 + 蓝色表头线 ── */
+#editor .cm-content .cm-md-table-widget th,
+#editor .cm-content .cm-md-table-widget td {
+  border-color: var(--border-color);
+}
+#editor .cm-content .cm-md-table-widget th {
+  background: var(--table-header-bg);
+  color: var(--text-color);
+  font-weight: 700;
+  border-bottom: 2px solid var(--seed-accent);
+}
+#editor .cm-content .cm-md-table-widget tr:hover td {
+  background: var(--seed-accent-light);
+}
+
+/* ── 2.7 分隔线 ── */
+#editor .cm-content .cm-md-hr {
+  border-top: 1px solid var(--border-color);
+  margin: 2.5em 0;
+}
+
+/* 本主题正文不缩进，故不写 .cm-line 的 text-indent 规则。 */
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 3 — 导出 HTML（.colamd-document，只补配色）
+   结构由上游 document.css 提供。
+   ═══════════════════════════════════════════════════════════ */
+
+.colamd-document {
+  font-family: var(--font-body);
+  font-size: var(--editor-font-size);
+  line-height: 1.75;
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+.colamd-document h1,
+.colamd-document h2,
+.colamd-document h3,
+.colamd-document h4,
+.colamd-document h5,
+.colamd-document h6 {
+  font-family: "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--text-color);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.colamd-document h1 { font-size: 2em; }
+.colamd-document h2 { font-size: 1.75em; }
+.colamd-document h3 { font-size: 1.5em; }
+.colamd-document h4 { font-size: 1.2em; }
+.colamd-document h5 { font-size: 1.05em; }
+.colamd-document h6 { font-size: 0.95em; color: var(--text-secondary); }
+
+.colamd-document strong { color: var(--link-color); }
+.colamd-document em { color: var(--text-secondary); }
+.colamd-document a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+.colamd-document code {
+  background: var(--code-bg);
+  color: var(--link-color);
+  font-family: var(--font-mono);
+  border-radius: 4px;
+}
+.colamd-document pre {
+  background: var(--code-block-bg);
+  border-radius: 6px;
+}
+.colamd-document pre code {
+  background: transparent;
+  color: var(--code-block-text);
+}
+.colamd-document blockquote {
+  background: var(--blockquote-bg);
+  color: var(--text-secondary);
+  border-left: 4px solid var(--blockquote-border);
+}
+.colamd-document mark {
+  background: var(--highlight-bg);
+  color: var(--text-color);
+}
+.colamd-document th {
+  background: var(--table-header-bg);
+  color: var(--text-color);
+  border-bottom: 2px solid var(--seed-accent);
+}
+.colamd-document hr { border-top-color: var(--border-color); }
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 4 — 打印
+   2.7 直接对当前窗口 printToPDF，屏幕规则原样生效，这里只补保真。
+   ═══════════════════════════════════════════════════════════ */
+
+@media print {
+  html,
+  body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

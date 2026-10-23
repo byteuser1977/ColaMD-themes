@@ -36,7 +36,7 @@
 name: colamd-themes
 version: "1.0.0"
 description: >
-  Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes.
+  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes.
   Extract from URLs/DOCX/PDF; export Markdown to HTML/PDF; batch export.
 metadata:
   dsh:

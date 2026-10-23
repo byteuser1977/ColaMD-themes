@@ -52,7 +52,7 @@ export interface SyntaxHighlighting {
 }
 
 // ═══════════════════════════════════════════════════════════
-// v3.0 Seed Palette model
+// 2.7 Seed Palette model
 // ═══════════════════════════════════════════════════════════
 
 export interface SeedPalette {
@@ -97,7 +97,7 @@ export interface ThemeStyle {
   typography: Typography;
   spacing: Spacing;
   syntax: SyntaxHighlighting;
-  /** v3.0 seed palette */
+  /** 2.7 seed palette */
   seed: SeedPalette;
   seedTypography: SeedTypography;
   /** Selected color system */
@@ -161,7 +161,7 @@ export function defaultSeedTypography(): SeedTypography {
     fontBody: `"Inter", "SF Pro Text", -apple-system, "Noto Serif SC", "Source Han Serif SC", Georgia, serif`,
     fontHeading: `"Inter", "SF Pro Display", -apple-system, "Noto Sans SC", "PingFang SC", sans-serif`,
     fontCode: `"JetBrains Mono", "SF Mono", "Fira Code", Menlo, Consolas, monospace`,
-    fontMermaid: `var(--font-heading)`,
+    fontMermaid: `var(--font-body)`,
     fontSizeRoot: "16px",
     fontScaleH1: 2.0, fontScaleH2: 1.5, fontScaleH3: 1.25,
     fontScaleH4: 1.1, fontScaleH5: 1.0, fontScaleH6: 0.95,
