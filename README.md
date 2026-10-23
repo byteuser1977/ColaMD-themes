@@ -1,5 +1,11 @@
 # ColaMD Themes
 
+[![DSH Skill](https://img.shields.io/badge/DSH%20Skill-supported-brightgreen?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0tMSAxN2gxMm0tMTItMmgxMm0tMTItMkgxMg=="/>](https://github.com/deepseek-ai/deepseek-harness)
+[![Awesome DSH](https://awesome.re/badge.svg)](https://github.com/Dominic789654/awesome-deepseek-harness)
+[![Awesome DSH Plugin](https://beancookie.github.io/awesome-dsh-plugin/badge.svg)](https://github.com/beancookie/awesome-dsh-plugin)
+
+**Topics**: `dsh` `deepseek-harness` `colamd` `themes` `css` `markdown` `pdf` `html` `skill` `ai-agent`
+
 A theme development & export toolkit for [ColaMD](https://github.com/cola-md/cola-md) — the Agent-native Markdown editor. Extract visual formatting from web pages, Word documents, and PDFs, convert them into validated CSS theme files, and export Markdown to standalone HTML or PDF with any theme applied.
 
 ## Features
@@ -32,7 +38,7 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 - **2.7 CSS Contract Validator** — flags dead selectors (`#write`, `.ProseMirror`, `body.theme-custom`), dead variables (`--mermaid-*`, `--radius-*`, `--font-size-root`…), `pt` units, and vertical padding on quote/code lines
 - **Pele Diagram Colors** — 9 `--pele-*` variables derived from `--code-block-bg` / `--code-block-text` / `--link-color`, replacing the 20 Mermaid variables
 
-### Security & Performance (v0.3.2+)
+### Security & Performance (v0.4.0+)
 
 - **SSRF Protection** — URL extractor validates against protocol whitelist and blocks private network access to prevent Server-Side Request Forgery attacks
 - **Input Validation** — CSS files validated for extension, size limit (1MB max), and content validity to prevent OOM attacks
@@ -54,7 +60,7 @@ Handlebars-powered template produces ColaMD 2.7 contract CSS (≤300 lines):
 
 ### Multi-Agent Skill
 
-Universal skill definitions for 5 AI coding agents, auto-generated from a single source:
+Universal skill definitions for 6 AI coding agents, auto-generated from a single source:
 
 | Agent | Skill Path | Frontmatter |
 |-------|-----------|-------------|
@@ -63,6 +69,7 @@ Universal skill definitions for 5 AI coding agents, auto-generated from a single
 | **OpenClaw** | `.openclaw/skills/colamd-themes/SKILL.md` | `id`, `name`, `version`, `icon`, `author`, `homepage`, `metadata.openclaw.os` |
 | **Hermes** | `.hermes/skills/tools/colamd-themes/SKILL.md` | `name`, `version`, `author`, `license`, `metadata.hermes.tags`, `prerequisites` |
 | **Trae** | `.trae/rules/colamd-themes.md` | Plain Markdown (no frontmatter) |
+| **DeepSeek Harness** | `.dsh/skills/colamd-themes/SKILL.md` | `name`, `version`, `description`, `metadata.dsh.tags`, `prerequisites` |
 
 **Architecture:**
 
@@ -76,7 +83,8 @@ skills/build-skills.sh              ← Build script (bash)
         ├──→ .opencode/skills/colamd-themes/SKILL.md
         ├──→ .openclaw/skills/colamd-themes/SKILL.md
         ├──→ .hermes/skills/tools/colamd-themes/SKILL.md
-        └──→ .trae/rules/colamd-themes.md
+        ├──→ .trae/rules/colamd-themes.md
+        └──→ .dsh/skills/colamd-themes/SKILL.md
 ```
 
 **Regenerate all agent skills:**
@@ -91,6 +99,7 @@ bash skills/build-skills.sh opencode
 bash skills/build-skills.sh openclaw
 bash skills/build-skills.sh hermes
 bash skills/build-skills.sh trae
+bash skills/build-skills.sh dsh
 ```
 
 To customize: edit `skills/colamd-themes/SKILL.md`, then run `npm run build:skills`.

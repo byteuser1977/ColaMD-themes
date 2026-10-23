@@ -1,3 +1,26 @@
+/* LXGW WenKai 字体 — @font-face（可放任意位置） */
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/lxgwwenkaitc/v10/w8gDH20td8wNsI3f40DmtXZb48uK.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/lxgwwenkaitc/v10/w8gAH20td8wNsI3f40DmtXZb4_M2Avkp.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'LXGW WenKai Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/lxgwwenkaimonotc/v10/pxiYyos4iPVgyWx9WtufHnsIf5nkaB0Him4.ttf') format('truetype');
+}
+
 /*
  * ColaMD Theme: Hermes Security
  * Hermes Security — ColaMD 2.7 主题

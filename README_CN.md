@@ -1,5 +1,11 @@
 # ColaMD Themes
 
+[![DSH Skill](https://img.shields.io/badge/DSH%20Skill-supported-brightgreen?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0tMSAxN2gxMm0tMTItMmgxMm0tMTItMkgxMg=="/>](https://github.com/deepseek-ai/deepseek-harness)
+[![Awesome DSH](https://awesome.re/badge.svg)](https://github.com/Dominic789654/awesome-deepseek-harness)
+[![Awesome DSH Plugin](https://beancookie.github.io/awesome-dsh-plugin/badge.svg)](https://github.com/beancookie/awesome-dsh-plugin)
+
+**Topics**: `dsh` `deepseek-harness` `colamd` `themes` `css` `markdown` `pdf` `html` `skill` `ai-agent`
+
 [ColaMD](https://github.com/cola-md/cola-md) Agent 原生 Markdown 编辑器的主题开发与导出工具。从网页、Word 文档和 PDF 中提取视觉格式，转换为经过范式验证的 CSS 主题文件，并可将 Markdown 导出为带主题样式的独立 HTML 或 PDF。
 
 ## 功能特性
@@ -32,7 +38,7 @@
 - **2.7 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
 - **Pele 图表配色** — 9 个 `--pele-*` 变量由 `--code-block-bg` / `--code-block-text` / `--link-color` 推导，取代 Mermaid 20 变量
 
-### 安全与性能 (v0.3.2+)
+### 安全与性能 (v0.4.0+)
 
 - **SSRF 防护** — URL 提取器通过协议白名单验证并阻止私有网络访问，防止服务器端请求伪造攻击
 - **输入验证** — CSS 文件经过扩展名、大小限制（最大 1MB）和内容有效性验证，防止 OOM 攻击
@@ -54,7 +60,7 @@
 
 ### 多 Agent Skill 通用支持
 
-从单一源文件自动生成 5 个 AI 编码代理的 Skill 定义：
+从单一源文件自动生成 6 个 AI 编码代理的 Skill 定义：
 
 | Agent | Skill 路径 | 前置元数据 |
 |-------|-----------|-----------|
@@ -63,6 +69,7 @@
 | **OpenClaw** | `.openclaw/skills/colamd-themes/SKILL.md` | `id`, `name`, `version`, `icon`, `author`, `homepage`, `metadata.openclaw.os` |
 | **Hermes** | `.hermes/skills/tools/colamd-themes/SKILL.md` | `name`, `version`, `author`, `license`, `metadata.hermes.tags`, `prerequisites` |
 | **Trae** | `.trae/rules/colamd-themes.md` | 纯 Markdown（无前置元数据） |
+| **DeepSeek Harness** | `.dsh/skills/colamd-themes/SKILL.md` | `name`, `version`, `description`, `metadata.dsh.tags`, `prerequisites` |
 
 **架构：**
 
@@ -76,7 +83,8 @@ skills/build-skills.sh              ← 构建脚本（bash）
         ├──→ .opencode/skills/colamd-themes/SKILL.md
         ├──→ .openclaw/skills/colamd-themes/SKILL.md
         ├──→ .hermes/skills/tools/colamd-themes/SKILL.md
-        └──→ .trae/rules/colamd-themes.md
+        ├──→ .trae/rules/colamd-themes.md
+        └──→ .dsh/skills/colamd-themes/SKILL.md
 ```
 
 **重新生成所有 Agent 的 Skill：**
@@ -91,6 +99,7 @@ bash skills/build-skills.sh opencode
 bash skills/build-skills.sh openclaw
 bash skills/build-skills.sh hermes
 bash skills/build-skills.sh trae
+bash skills/build-skills.sh dsh
 ```
 
 自定义 Skill 内容：编辑 `skills/colamd-themes/SKILL.md`，然后运行 `npm run build:skills`
