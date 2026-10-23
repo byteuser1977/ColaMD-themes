@@ -1,4 +1,4 @@
-/** Theme style data models — v3.0 Seed Palette paradigm. */
+/** Theme style data models — v4.0 Seed Palette paradigm (ColaMD 2.7 contract). */
 
 // ═══════════════════════════════════════════════════════════
 // Legacy model (kept for extractor compatibility)
@@ -52,7 +52,7 @@ export interface SyntaxHighlighting {
 }
 
 // ═══════════════════════════════════════════════════════════
-// v3.0 Seed Palette model
+// 2.7 Seed Palette model
 // ═══════════════════════════════════════════════════════════
 
 export interface SeedPalette {
@@ -73,6 +73,7 @@ export interface SeedTypography {
   fontBody: string;
   fontHeading: string;
   fontCode: string;
+  /** @deprecated 2.7 起图表改用 Pele，Mermaid 字段仅为提取器兼容保留 */
   fontMermaid: string;
   fontSizeRoot: string;      // e.g. "16px"
   fontScaleH1: number;
@@ -81,6 +82,7 @@ export interface SeedTypography {
   fontScaleH4: number;
   fontScaleH5: number;
   fontScaleH6: number;
+  /** @deprecated 2.7 起图表改用 Pele */
   fontSizeMermaid: string;
   lineHeightBody: number;
   lineHeightHeading: number;
@@ -95,12 +97,11 @@ export interface ThemeStyle {
   typography: Typography;
   spacing: Spacing;
   syntax: SyntaxHighlighting;
-  /** v3.0 seed palette */
+  /** 2.7 seed palette */
   seed: SeedPalette;
   seedTypography: SeedTypography;
-  /** Selected presets */
+  /** Selected color system */
   colorSystemId: string;
-  mermaidPresetId: string;
   /** Metadata */
   sourceUrl: string;
   sourceType: string;
@@ -160,7 +161,7 @@ export function defaultSeedTypography(): SeedTypography {
     fontBody: `"Inter", "SF Pro Text", -apple-system, "Noto Serif SC", "Source Han Serif SC", Georgia, serif`,
     fontHeading: `"Inter", "SF Pro Display", -apple-system, "Noto Sans SC", "PingFang SC", sans-serif`,
     fontCode: `"JetBrains Mono", "SF Mono", "Fira Code", Menlo, Consolas, monospace`,
-    fontMermaid: `var(--font-heading)`,
+    fontMermaid: `var(--font-body)`,
     fontSizeRoot: "16px",
     fontScaleH1: 2.0, fontScaleH2: 1.5, fontScaleH3: 1.25,
     fontScaleH4: 1.1, fontScaleH5: 1.0, fontScaleH6: 0.95,
@@ -184,7 +185,6 @@ export function makeThemeStyle(name: string, sourceType: string, sourceUrl: stri
     seed: defaultSeedPalette(),
     seedTypography: defaultSeedTypography(),
     colorSystemId: "",
-    mermaidPresetId: "",
     sourceUrl,
     sourceType,
     radiusSm: "3px",

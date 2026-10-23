@@ -13,8 +13,7 @@ import { PdfExtractor } from "./extractors/pdf-extractor.js";
 import type { Extractor } from "./extractors/base.js";
 import { writeThemeFile } from "./generator.js";
 import { COLOR_SYSTEMS, getColorSystem } from "./color-systems.js";
-import { MERMAID_PRESETS } from "./mermaid-presets.js";
-import { validateSeedPalette, summarizeIssues } from "./validators.js";
+import { validateSeedPalette, validateThemeCss, summarizeIssues } from "./validators.js";
 import type { ThemeStyle } from "./models.js";
 import { registerExportCommands } from "./export-cli.js";
 import { BUILTIN_THEMES } from "./theme-store.js";
@@ -35,6 +34,14 @@ function getPackageVersion(): string {
   }
 }
 
+/** Fallback stacks used when colamd.css is missing or a theme rule can't be parsed. */
+const BUILTIN_FONT_FALLBACKS: Record<string, string[]> = {
+  light: ["Noto Sans SC", "sans-serif"],
+  dark: ["Noto Sans SC", "sans-serif"],
+  elegant: ["LXGW WenKai", "Noto Serif SC", "serif"],
+  newsprint: ["Noto Serif SC", "serif"],
+};
+
 /** Font stacks for each built-in theme — parsed dynamically from colamd.css. */
 const THEME_FONTS: Record<string, string[]> = getBuiltinFontStacks();
 
@@ -52,43 +59,30 @@ function findColamdCssPath(): string {
 
 /**
  * Parse font-family values for each built-in theme from colamd.css.
- * Dynamic approach: reads `body.theme-{name} #editor .ProseMirror { font-family: ... }`
+ * Dynamic approach: reads `body.theme-{name} ... .cm-content { font-family: ... }`
  * instead of hardcoding font stacks.
  */
 function getBuiltinFontStacks(): Record<string, string[]> {
+  const result: Record<string, string[]> = { ...BUILTIN_FONT_FALLBACKS };
   const cssPath = findColamdCssPath();
-  if (!cssPath) {
-    // Fallback hardcoded defaults if colamd.css not found
-    return {
-      light: ["Noto Sans SC", "sans-serif"],
-      dark: ["Noto Sans SC", "sans-serif"],
-      elegant: ["LXGW WenKai", "Noto Serif SC", "serif"],
-      newsprint: ["Noto Serif SC", "serif"],
-    };
-  }
+  if (!cssPath) return result;
 
   const css = readFileSync(cssPath, "utf-8");
-  const result: Record<string, string[]> = {};
-  const names = ["light", "dark", "elegant", "newsprint"];
 
-  for (const theme of names) {
-    // Match: body.theme-elegant #editor .ProseMirror { ... font-family: 'LXGW WenKai', ...; }
+  for (const theme of Object.keys(BUILTIN_FONT_FALLBACKS)) {
+    // 2.7 契约：字体栈写在 .cm-content 上（CodeMirror 6 不再有 .ProseMirror）
     const re = new RegExp(
-      `body\\.theme-${theme}\\s+#editor\\s+\\.ProseMirror\\s*\\{[^}]*font-family:\\s*([^;]+)`,
+      `body\\.theme-${theme}[^{]*\\.cm-content[^{]*\\{[^}]*font-family:\\s*([^;]+)`,
       "i"
     );
     const m = css.match(re);
-    if (m) {
-      const fonts = m[1].split(",").map((s) => s.trim().replace(/^['"]|['"]$/g, "").trim());
-      result[theme] = fonts;
-    }
-  }
+    if (!m || m[1].includes("var(")) continue;
 
-  // Fill any missing themes with fallback
-  for (const theme of names) {
-    if (!result[theme]) {
-      result[theme] = ["sans-serif"];
-    }
+    const fonts = m[1]
+      .split(",")
+      .map((s) => s.trim().replace(/^['"]|['"]$/g, "").trim())
+      .filter(Boolean);
+    if (fonts.length > 0) result[theme] = fonts;
   }
 
   return result;
@@ -219,7 +213,7 @@ const program = new Command();
 
 program
   .name("colamd-themes")
-  .description("ColaMD Theme Development Tool — extract formatting and generate v3.0 paradigm CSS themes")
+  .description("ColaMD Theme Development Tool — extract formatting and generate 2.7-contract CSS themes")
   .version(getPackageVersion());
 
 // ── Shared extract options builder ──
@@ -230,8 +224,7 @@ function addExtractOptions(cmd: Command): Command {
     .option("-o, --output <path>", "Output CSS file path")
     .option("-d, --themes-dir <dir>", "Themes directory", "themes")
     .option("-c, --color-system <id>", "Force a color system (use `color-systems` to list)")
-    .option("-m, --mermaid-preset <id>", "Force a Mermaid preset (light/dark/elegant)")
-    .option("-A, --auto-match", "Auto-match color system and mermaid preset");
+    .option("-A, --auto-match", "Auto-match a color system from the extracted palette");
 }
 
 async function runExtraction(
@@ -249,9 +242,8 @@ async function runExtraction(
       style.seed = { ...cs.palette };
       style.colorSystemId = cs.id;
     }
-    if (options.mermaidPreset) style.mermaidPresetId = options.mermaidPreset;
-    if (options.autoMatch) { style.colorSystemId = ""; style.mermaidPresetId = ""; }
-    spinner.text = "Generating CSS (v3.0 paradigm)...";
+    if (options.autoMatch) style.colorSystemId = "";
+    spinner.text = "Generating CSS (2.7 contract)...";
     const outputPath = writeThemeFile(style, options.output || options.themesDir);
     spinner.succeed(chalk.green(`Theme "${style.name}" generated: ${outputPath}`));
     printSummary(style);
@@ -323,19 +315,6 @@ program
     console.log();
   });
 
-// ── mermaid-presets ──
-program
-  .command("mermaid-presets")
-  .description("List Mermaid theme presets (light / dark / elegant)")
-  .option("-j, --json", "Output as JSON")
-  .action((options: Record<string, string>) => {
-    if (options.json) { console.log(JSON.stringify(MERMAID_PRESETS, null, 2)); return; }
-    for (const p of MERMAID_PRESETS) {
-      console.log(`  ${chalk.cyan(p.id.padEnd(12))} ${chalk.white(p.name)}  ${chalk.dim(p.description)}`);
-    }
-    console.log();
-  });
-
 // ── list ──
 program
   .command("list")
@@ -354,7 +333,7 @@ program
 // ── validate ──
 program
   .command("validate")
-  .description("Validate a theme CSS against v3.0 paradigm rules")
+  .description("Validate a theme CSS against the 2.7 contract and paradigm rules")
   .argument("<file>", "Path to theme CSS file")
   .action((file: string) => {
     if (!existsSync(file)) { console.error(chalk.red(`File not found: ${file}`)); process.exit(1); }
@@ -371,8 +350,16 @@ program
       inkDim: extract("--seed-ink-dim"), border: extract("--seed-border"),
       borderStrong: extract("--seed-border-strong"),
     };
-    if (!seed.accent) { console.error(chalk.yellow("Not a v3.0 paradigm theme (no seed palette found).")); process.exit(0); }
-    console.log(chalk.bold("Seed palette:"));
+    console.log(chalk.bold("CSS contract (ColaMD 2.7):"));
+    const cssIssues = validateThemeCss(css);
+    console.log(cssIssues.length === 0 ? chalk.green("  ✔ :root 根块与选择器契约通过") : summarizeIssues(cssIssues));
+
+    if (!seed.accent) {
+      console.log(chalk.yellow("\nNot a seed-palette theme (no --seed-* found); seed checks skipped."));
+      if (cssIssues.some((i) => i.level === "MUST" || i.level === "MUST_NOT")) process.exit(1);
+      return;
+    }
+    console.log(chalk.bold("\nSeed palette:"));
     for (const [k, v] of Object.entries(seed)) console.log(`  ${chalk.dim(k.padEnd(18))} ${v}`);
     const issues = validateSeedPalette(seed);
     console.log(chalk.bold(`\nParadigm validation (${issues.length} issues):`));
@@ -479,7 +466,7 @@ function printSummary(style: ThemeStyle): void {
   console.log(`  ${chalk.white("surface:")} ${s.surface}  ${chalk.white("ink:")} ${s.ink}  ${chalk.white("accent:")} ${s.accent}`);
   console.log(`  ${chalk.white("panel:")} ${s.panel}  ${chalk.white("panel-alt:")} ${s.panelAlt}`);
   if (style.colorSystemId) {
-    console.log(chalk.dim(`  Color system: ${style.colorSystemId}  Mermaid: ${style.mermaidPresetId}`));
+    console.log(chalk.dim(`  Color system: ${style.colorSystemId}`));
   }
 }
 

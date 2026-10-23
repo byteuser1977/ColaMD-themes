@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+*No unreleased changes for this snapshot.*
+
+## [0.4.0] - 2026-10-23
+
+### Added
+- **DeepSeek Harness Agent Support** — 新增 `.dsh/skills/colamd-themes/SKILL.md`，通过 `skills/build-skills.sh dsh` 生成
+- Agent skill 覆盖扩展至 6 个（Claude Code、OpenCode、OpenClaw、Hermes、Trae、DeepSeek Harness），frontmatter 统一加入各 Agent 的命令前置条件与能力标签
+- `validateThemeCss()` 契约校验器：检查 `:root` 根块、死选择器、死变量、`pt` 单位、引用/代码块纵向 padding
+- `colamd-themes validate` 现在同时输出 CSS 契约检查结果
+- 生成后自动跑一次契约自检
+- `DSH_SUPPORT_SUMMARY.md` 与 `test-dsh-skill.sh` 用于发布验证
+
+### Changed
+- **主题契约升级到 ColaMD Extend 2.7**：主题根块由 `body.theme-custom` 改为 `:root`；生成器模板升为 v4.0（`src/templates/theme-template.hbs`）
+- **选择器层重写**：`#write` / `.ProseMirror` / 语义标签规则全部替换为 `#editor .cm-content .cm-md-*`（CodeMirror 6 钩子）；引用块与代码块只设左右 padding
+- **变量体系重写**：新增 `--text-secondary` / `--highlight-bg` / `--editor-font-size` / `--editor-column-width` / `--pele-*`；删除 `--surface-color`、`--heading-color`、`--accent-*`、`--hr-color`、`--code-color`、`--code-block-color`、`--table-border`、`--scrollbar-thumb*`、`--mermaid-*`、`--radius-*`、`--content-width`、`--font-size-root`、`--font-scale-*`、`--line-height-*`、`--font-heading`、`--font-code` 等死变量
+- **图表配色**：Mermaid 20 变量预设改为 Pele 9 变量，缺省值由 `--code-block-bg` / `--code-block-text` / `--link-color` 经 `color-mix()` 推导；CLI 移除 `mermaid-presets` 命令与 `--mermaid-preset` 选项
+- **代码块文字色**：由代码块底色对比度自动派生（深色底拿浅字、浅色底拿正文色），不再硬编码
+- **打印规范**：删除整份 `@media print` 镜像与变量重声明，只保留 `print-color-adjust` 保真
+- `themes/template.css` 与 `src/templates/theme-paradigm.md` 同步至 v4.0
+- 版本号统一为 **0.4.0**，README 多 Agent 章节补充 DeepSeek Harness 生成路径与 frontmatter 说明
+- 构建脚本对齐新的数据通道契约
+
+### Removed
+- `src/mermaid-presets.ts`（Mermaid 预设链路）
+- `ThemeStyle.mermaidPresetId`
+- 误跟踪的 `.DS_Store` 文件
+
+---
 
 ## [0.3.3] - 2026-08-26
 
@@ -249,7 +280,8 @@ User Input → Validation Layer → Processing Layer
 
 ---
 
-[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.2.0...v0.3.0

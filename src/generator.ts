@@ -1,4 +1,4 @@
-/** CSS theme file generator — v3.0 seed palette pipeline. */
+/** CSS theme file generator — v4.0 seed palette pipeline (ColaMD 2.7 contract). */
 
 import Handlebars from "handlebars";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from "node:fs";
@@ -8,8 +8,8 @@ import type { ThemeStyle } from "./models.js";
 import { paletteToSeed } from "./models.js";
 import { toRgba, normalizeThemeStyle } from "./color-utils.js";
 import { matchColorSystem } from "./color-systems.js";
-import { selectMermaidPreset } from "./mermaid-presets.js";
-import { validateSeedPalette, summarizeIssues } from "./validators.js";
+import { contrastRatio } from "./contrast.js";
+import { validateSeedPalette, validateThemeCss, summarizeIssues } from "./validators.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const templatePath = join(__dirname, "templates", "theme-template.hbs");
@@ -22,8 +22,11 @@ Handlebars.registerHelper("rgba", (hex: unknown, alpha: unknown) => {
 
 // ── Template Cache with Size Limits and Auto-Invalidation ──
 
+/** 模板上下文：ThemeStyle + 生成阶段算出的派生值。 */
+type TemplateContext = ThemeStyle & { codeBlockText: string };
+
 interface CachedTemplate {
-  compiled: HandlebarsTemplateDelegate<ThemeStyle>;
+  compiled: HandlebarsTemplateDelegate<TemplateContext>;
   mtimeMs: number;
   compiledAt: number;
 }
@@ -41,7 +44,7 @@ const templateCache = new Map<string, CachedTemplate>();
  * - TTL-based expiration (30 minutes)
  * - Automatic cleanup of expired entries on access
  */
-function getTemplate(path?: string): HandlebarsTemplateDelegate<ThemeStyle> {
+function getTemplate(path?: string): HandlebarsTemplateDelegate<TemplateContext> {
   const key = path || templatePath;
 
   // Check cache hit
@@ -111,6 +114,24 @@ export function clearTemplateCache(): void {
   templateCache.clear();
 }
 
+/**
+ * 代码块文字色：从代码块底色出发，在白、浅灰、种子正文色里挑对比度最高的一档。
+ * 深色代码块（如 elegant）因此拿到浅色文字，浅色代码块拿到正文色。
+ */
+function pickCodeBlockText(bg: string, seed: ThemeStyle["seed"]): string {
+  const candidates = Array.from(new Set(["#ffffff", "#f5f5f5", seed.surface, seed.ink]));
+  let best = candidates[0];
+  let bestRatio = 0;
+  for (const candidate of candidates) {
+    const ratio = contrastRatio(candidate, bg);
+    if (ratio > bestRatio) {
+      bestRatio = ratio;
+      best = candidate;
+    }
+  }
+  return best;
+}
+
 // ── Pipeline ──
 
 export function generateCss(style: ThemeStyle): string {
@@ -128,21 +149,28 @@ export function generateCss(style: ThemeStyle): string {
     style.colorSystemId = cs.id;
   }
 
-  // 4. Select Mermaid preset
-  if (!style.mermaidPresetId) {
-    const mp = selectMermaidPreset(style.seed.surface, style.seed.accent);
-    style.mermaidPresetId = mp.id;
-  }
-
-  // 5. Validate against paradigm
+  // 4. Validate seed palette against paradigm
   const issues = validateSeedPalette(style.seed);
   if (issues.filter((i) => i.level === "MUST" || i.level === "MUST_NOT").length > 0) {
     console.warn("Paradigm validation issues:", summarizeIssues(issues));
   }
 
-  // 6. Render
+  // 5. Render
   const template = getTemplate();
-  return template(style);
+  const css = template({
+    ...style,
+    codeBlockText: pickCodeBlockText(style.seed.panelAlt, style.seed),
+  });
+
+  // 6. Self-check the rendered CSS against the 2.7 contract
+  const cssIssues = validateThemeCss(css).filter(
+    (i) => i.level === "MUST" || i.level === "MUST_NOT"
+  );
+  if (cssIssues.length > 0) {
+    console.warn("CSS contract issues:", summarizeIssues(cssIssues));
+  }
+
+  return css;
 }
 
 export function writeThemeFile(

@@ -1,5 +1,11 @@
 # ColaMD Themes
 
+[![DSH Skill](https://img.shields.io/badge/DSH%20Skill-supported-brightgreen?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0tMSAxN2gxMm0tMTItMmgxMm0tMTItMkgxMg=="/>](https://github.com/deepseek-ai/deepseek-harness)
+[![Awesome DSH](https://awesome.re/badge.svg)](https://github.com/Dominic789654/awesome-deepseek-harness)
+[![Awesome DSH Plugin](https://beancookie.github.io/awesome-dsh-plugin/badge.svg)](https://github.com/beancookie/awesome-dsh-plugin)
+
+**Topics**: `dsh` `deepseek-harness` `colamd` `themes` `css` `markdown` `pdf` `html` `skill` `ai-agent`
+
 A theme development & export toolkit for [ColaMD](https://github.com/cola-md/cola-md) — the Agent-native Markdown editor. Extract visual formatting from web pages, Word documents, and PDFs, convert them into validated CSS theme files, and export Markdown to standalone HTML or PDF with any theme applied.
 
 ## Features
@@ -14,9 +20,9 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 ### HTML / PDF Export
 
 - **`export-html`** — render Markdown to a standalone HTML document with theme CSS embedded, Mermaid diagrams and KaTeX math fully rendered
-- **`export-pdf`** — render Markdown to PDF via Puppeteer (Chromium), preserving theme colors with `@media print` fidelity
+- **`export-pdf`** — render Markdown to PDF via Puppeteer (Chromium); theme colors are preserved with `print-color-adjust: exact`
 - **`export`** — batch export multiple files or entire directories to HTML or PDF
-- Powered by `@bytechain.cn/colamd/renderer` — the same Milkdown editor engine used by ColaMD itself
+- Powered by `@bytechain.cn/colamd/renderer` (1.5.x, Milkdown) until the upstream 2.x renderer publishes a standalone library build. Generated themes already target the 2.7 contract, so they carry over unchanged.
 
 ### Theme Management
 
@@ -29,9 +35,10 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 - **Contrast Engine** — WCAG 2.1 relative luminance & contrast ratio calculations
 - **Paradigm Validator** — 15+ design constraint rules (CR, HR, SL, NT, BD, MP, FP, FS, SH) with auto-fix suggestions
 - **Color System Library** — 15 predefined seed palettes across 5 families (Morandi, Macaron, Nordic, Vintage, Mint)
-- **Mermaid Presets** — 3 presets (light/dark/elegant) with 20 core variables, auto-selected by luminance and accent warmth
+- **2.7 CSS Contract Validator** — flags dead selectors (`#write`, `.ProseMirror`, `body.theme-custom`), dead variables (`--mermaid-*`, `--radius-*`, `--font-size-root`…), `pt` units, and vertical padding on quote/code lines
+- **Pele Diagram Colors** — 9 `--pele-*` variables derived from `--code-block-bg` / `--code-block-text` / `--link-color`, replacing the 20 Mermaid variables
 
-### Security & Performance (v0.3.2+)
+### Security & Performance (v0.4.0+)
 
 - **SSRF Protection** — URL extractor validates against protocol whitelist and blocks private network access to prevent Server-Side Request Forgery attacks
 - **Input Validation** — CSS files validated for extension, size limit (1MB max), and content validity to prevent OOM attacks
@@ -42,16 +49,14 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 
 ### CSS Template Engine
 
-Handlebars-powered template produces v3.0 paradigm CSS (≤300 lines):
+Handlebars-powered template produces ColaMD 2.7 contract CSS (≤300 lines):
 
 | Section | Content |
 |---------|---------|
-| 1 | Design Tokens — seed palette (11 vars), typography (4 font stacks), font sizing, radii & spacing |
-| 2 | Semantic Mapping — auto-derived from seed tokens via `var(--seed-*)` |
-| 3 | Mermaid 20 Core Variables — container, font, nodes, edges, clusters, labels, titles, person, offset |
-| 4 | Fine Tuning |
-| 5 | Selector-Level Micro Adjustments — headings, code, pre, blockquote, table, hr, responsive |
-| 6 | `@media print` — screen-mirror with `!important` + `print-color-adjust: exact` |
+| 1 | Design Tokens — `:root` seed palette (11 vars), 14 semantic colors, fonts, metrics, 9 `--pele-*` |
+| 2 | Editor DOM — `#editor .cm-content` + `.cm-md-*` (headings, inline, quote, code block, table, indent) |
+| 3 | Exported HTML — `.colamd-document` color layer for semantic tags |
+| 4 | `@media print` — print-color fidelity only (screen rules already apply) |
 
 ### MCP Server (Model Context Protocol)
 
@@ -79,7 +84,7 @@ Full MCP server for AI-native integration — connect ColaMD-themes to Chatbox, 
 
 ### Multi-Agent Skill
 
-Universal skill definitions for 5 AI coding agents, auto-generated from a single source:
+Universal skill definitions for 6 AI coding agents, auto-generated from a single source:
 
 | Agent | Skill Path | Frontmatter |
 |-------|-----------|-------------|
@@ -88,6 +93,7 @@ Universal skill definitions for 5 AI coding agents, auto-generated from a single
 | **OpenClaw** | `.openclaw/skills/colamd-themes/SKILL.md` | `id`, `name`, `version`, `icon`, `author`, `homepage`, `metadata.openclaw.os` |
 | **Hermes** | `.hermes/skills/tools/colamd-themes/SKILL.md` | `name`, `version`, `author`, `license`, `metadata.hermes.tags`, `prerequisites` |
 | **Trae** | `.trae/rules/colamd-themes.md` | Plain Markdown (no frontmatter) |
+| **DeepSeek Harness** | `.dsh/skills/colamd-themes/SKILL.md` | `name`, `version`, `description`, `metadata.dsh.tags`, `prerequisites` |
 
 **Architecture:**
 
@@ -101,7 +107,8 @@ skills/build-skills.sh              ← Build script (bash)
         ├──→ .opencode/skills/colamd-themes/SKILL.md
         ├──→ .openclaw/skills/colamd-themes/SKILL.md
         ├──→ .hermes/skills/tools/colamd-themes/SKILL.md
-        └──→ .trae/rules/colamd-themes.md
+        ├──→ .trae/rules/colamd-themes.md
+        └──→ .dsh/skills/colamd-themes/SKILL.md
 ```
 
 **Regenerate all agent skills:**
@@ -116,6 +123,7 @@ bash skills/build-skills.sh opencode
 bash skills/build-skills.sh openclaw
 bash skills/build-skills.sh hermes
 bash skills/build-skills.sh trae
+bash skills/build-skills.sh dsh
 ```
 
 To customize: edit `skills/colamd-themes/SKILL.md`, then run `npm run build:skills`.
@@ -179,7 +187,6 @@ cthemes validate themes/my-theme.css
 ```bash
 cthemes list
 cthemes color-systems
-cthemes mermaid-presets
 ```
 
 ### Export to HTML
@@ -237,9 +244,8 @@ cthemes set-theme my-brand --remove
 | `from-pdf <file>` | Extract theme from a PDF document |
 | `extract <source>` | Auto-detect source type and extract theme |
 | `color-systems` | List 15 built-in color systems |
-| `mermaid-presets` | List Mermaid presets (light/dark/elegant) |
 | `list` | List all generated themes |
-| `validate <file>` | Validate a theme against v3.0 paradigm rules |
+| `validate <file>` | Validate a theme against the 2.7 contract and paradigm rules |
 | `set-theme <name>` | Set, register, or remove export themes |
 | `export-html <input>` | Export Markdown → standalone HTML |
 | `export-pdf <input>` | Export Markdown → PDF |
@@ -253,8 +259,7 @@ cthemes set-theme my-brand --remove
 | `-o, --output` | Output CSS file path |
 | `-d, --themes-dir` | Themes directory (default: `themes/`) |
 | `-c, --color-system` | Force a color system |
-| `-m, --mermaid-preset` | Force a Mermaid preset |
-| `-A, --auto-match` | Auto-match color system and Mermaid preset |
+| `-A, --auto-match` | Auto-match a color system from the extracted palette |
 
 ### Export options
 
@@ -281,13 +286,12 @@ Source (URL / .docx / .pdf)
            ▼
 ┌─────────────────────┐
 │  Color System       │  Match → 15 built-in palettes
-│  Mermaid Preset     │  Select light/dark/elegant
-│  Validators         │  WCAG contrast + paradigm rules
+│  Validators         │  WCAG contrast + paradigm + 2.7 contract
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────┐
-│  Template Engine    │  Handlebars → v3.0 CSS (≤300 lines)
+│  Template Engine    │  Handlebars → 2.7 CSS (≤300 lines)
 └──────────┬──────────┘
            │
            ▼
@@ -320,7 +324,7 @@ Markdown file
 └─────────────────────────────────────────────┘
 ```
 
-## Design Paradigm (v3.0)
+## Design Paradigm (2.7 contract)
 
 Full specification: [`templates/theme-paradigm.md`](src/templates/theme-paradigm.md).
 
@@ -330,9 +334,10 @@ Full specification: [`templates/theme-paradigm.md`](src/templates/theme-paradigm
 |-----------|-------------|
 | **Variable-first** | All colors, fonts, sizes, spacing as CSS custom properties. No raw values in selectors |
 | **Modular** | Theme = variables + minimal selector tweaks. Built-in systems inherit automatically |
-| **Semantic** | `--color-link` not `--color-blue`; `--font-heading` not `--font-sans` |
-| **Derivable** | Full theme from 5 seed colors + 3 font stacks. AI agents modify only Section 1 |
-| **Print-faithful** | `@media print` mirrors screen styles with `!important` + `print-color-adjust` |
+| **Semantic** | `--link-color` not `--color-blue`; `--font-body` not `--font-sans` |
+| **Derivable** | Full theme from 11 seed tokens + 3 font stacks. AI agents modify only Section 1 |
+| **Print-faithful** | Export prints the current window, so screen rules apply as-is; `@media print` only adds `print-color-adjust` |
+| **No dead rules** | CodeMirror 6 has no `#write`, `.ProseMirror`, `<h1>` or `<blockquote>` elements — only `.cm-md-*` line classes |
 
 ### Contrast Requirements (WCAG 2.1)
 
@@ -373,7 +378,6 @@ ColaMD-themes/
 │   ├── contrast.ts                          # WCAG 2.1 luminance & contrast
 │   ├── validators.ts                        # Paradigm validation engine
 │   ├── color-systems.ts                     # 15 predefined seed palettes
-│   ├── mermaid-presets.ts                   # Mermaid 20-variable presets
 │   ├── docx-style-paradigm.ts              # Document style specification
 │   ├── extractors/
 │   │   ├── base.ts                          # Extractor interface
@@ -382,7 +386,7 @@ ColaMD-themes/
 │   │   └── pdf-extractor.ts                 # PDF → ThemeStyle
 │   └── templates/
 │       ├── template.css                     # Paradigm companion CSS
-│       ├── theme-paradigm.md               # v3.0 design specification
+│       ├── theme-paradigm.md               # v4.0 design specification (2.7 contract)
 │       └── theme-template.hbs              # Handlebars CSS template
 └── tests/
 ```
@@ -393,7 +397,7 @@ ColaMD-themes/
 |-----------|---------|---------|
 | Runtime | Node.js + TypeScript | ESM modules, strict typing |
 | CLI framework | Commander.js | Argument parsing, subcommands |
-| CSS templating | Handlebars | v3.0 paradigm CSS generation |
+| CSS templating | Handlebars | 2.7 contract CSS generation |
 | HTML parsing | Cheerio | DOM traversal for URL extraction |
 | CSS parsing | css-tree | CSS rule AST parsing |
 | DOCX parsing | Mammoth | Word → HTML conversion |

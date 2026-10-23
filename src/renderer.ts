@@ -111,69 +111,6 @@ function startLocalServer(rendererPath: string): Promise<LocalServer> {
   });
 }
 
-// ── Export CSS variable supplementation ──
-
-/**
- * CSS variables that colamd-renderer.js's buildExportHTML() may not include.
- * Injected as a post-processing step so we don't need to patch node_modules.
- */
-const EXTRA_CSS_VARIABLES: Record<string, string> = {
-  "--seed-accent": "var(--accent-color, #333)",           // hardcoded — not in colamd.css
-  "--seed-accent-light": "var(--accent-light, #e0e0e0)",  // hardcoded — not in colamd.css
-  "--seed-accent-dark": "var(--accent-dark, #111)",       // hardcoded — not in colamd.css
-  "--seed-surface": "var(--bg-color, #fff)",               // chains to colamd.css --bg-color
-  "--seed-panel": "var(--surface-color, #f5f5f5)",        // hardcoded — not in colamd.css
-  "--seed-panel-alt": "var(--surface-alt, #eee)",          // hardcoded — not in colamd.css
-  "--seed-ink": "var(--text-color, #333)",                 // chains to colamd.css --text-color
-  "--seed-ink-muted": "var(--text-muted, #888)",           // chains to colamd.css --text-muted
-  "--seed-ink-dim": "var(--text-dim, #aaa)",               // hardcoded — not in colamd.css
-  "--seed-border": "var(--border-color, #ddd)",            // chains to colamd.css --border-color
-  "--seed-border-strong": "var(--table-border, #ccc)",     // hardcoded — not in colamd.css
-  "--heading-color": "var(--text-color, #333)",            // chains to colamd.css --text-color
-  "--code-color": "var(--code-block-text, #333)",          // chains to colamd.css --code-block-text
-  "--hr-color": "var(--border-color, #ddd)",               // chains to colamd.css --border-color
-  "--table-header-text": "var(--text-color, #333)",        // chains to colamd.css --text-color
-  "--table-border": "var(--border-color, #ddd)",           // chains to colamd.css --border-color
-  "--scrollbar-thumb": "var(--border-color, #ccc)",        // chains to colamd.css --border-color
-  "--scrollbar-thumb-hover": "var(--text-muted, #999)",    // chains to colamd.css --text-muted
-  "--content-width": "780px",                              // hardcoded — no colamd.css equivalent
-  "--line-height-body": "1.75",                            // hardcoded — no colamd.css equivalent
-  "--line-height-heading": "1.3",                          // hardcoded — no colamd.css equivalent
-  "--line-height-code": "1.6",                             // hardcoded — no colamd.css equivalent
-};
-
-/**
- * Supplement a buildExportHTML() result with extra CSS variables
- * that colamd-renderer.js may not include. Only adds variables
- * that are not already present in the HTML's <style> block.
- */
-function supplementExportHTML(html: string): string {
-  // Find the existing CSS variables (--name: value; or --name:value;)
-  const existing = new Set<string>();
-  const varRe = /(--[\w-]+)\s*:/g;
-  let vm: RegExpExecArray | null;
-  while ((vm = varRe.exec(html)) !== null) {
-    existing.add(vm[1]);
-  }
-
-  // Build style block for only missing variables
-  const missingLines: string[] = [];
-  for (const [name, fallback] of Object.entries(EXTRA_CSS_VARIABLES)) {
-    if (!existing.has(name)) {
-      missingLines.push(`  ${name}: ${fallback};`);
-    }
-  }
-
-  if (missingLines.length === 0) return html;
-
-  // Inject into :root block, or before first style rule
-  const supplement = `\n  /* colamd-themes supplement */\n${missingLines.join("\n")}\n`;
-  return html.replace(
-    /(<style[^>]*>)/i,
-    (match, styleTag) => `${styleTag}:root {\n${supplement}}`
-  );
-}
-
 // ── Renderer ──
 
 export class ColamdRenderer {
@@ -191,10 +128,11 @@ export class ColamdRenderer {
     this.server = await startLocalServer(rendererPath);
     const origin = `http://127.0.0.1:${this.server.port}`;
 
-    // Launch Puppeteer
+    // Launch Puppeteer (use "shell" mode — chrome-headless-shell binary is more
+    // stable on this Windows environment than the full Chrome --headless=new mode)
     this.browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: "shell",
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
     });
     this.page = await this.browser.newPage();
 
@@ -267,13 +205,10 @@ export class ColamdRenderer {
       return (window as any).__colamdHandle.buildExportHTML();
     });
 
-    // Post-process: supplement any CSS variables that colamd-renderer.js may not include
-    const supplementedHtml = supplementExportHTML(html);
-
     // Inject custom title if provided
     const finalHtml = input.title
-      ? supplementedHtml.replace(/<title>[^<]*<\/title>/, `<title>${input.title}</title>`)
-      : supplementedHtml;
+      ? html.replace(/<title>[^<]*<\/title>/, `<title>${input.title}</title>`)
+      : html;
 
     return { html: finalHtml };
   }

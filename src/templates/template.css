@@ -1,498 +1,220 @@
-/*
- * ColaMD 主题模板：{你的主题名称}
- * 版本：v3.0（模块化 + 变量驱动范式）
- *
- * ═══════════════════════════════════════════════════════════
- *   使用说明（面向用户 & AI Agent）
- * ═══════════════════════════════════════════════════════════
- *
- * 【快速上手】
- *   1. 修改 SECTION 1 的种子色板 (5 个种子色)
- *   2. 修改 SECTION 1 的字体选择 (3 组字体栈)
- *   3. 保存，导入 ColaMD：Theme > Import Theme
- *   → 其余变量自动推导，无需手动调整
- *
- * 【变量命名规则】
- *   --seed-*    = 用户定义的原始设计令牌 (SECTION 1)
- *   --color-*   = 自动推导的色阶变量 (SECTION 2)
- *   --font-*    = 字体栈变量
- *   --mermaid-* = Mermaid 图表变量 (被内置 variables.css 消费)
- *
- * 【架构原理】
- *   本文件只定义变量 + 极小量微调选择器。
- *   所有 Mermaid SVG 样式由 src/.../mermaid/variables.css 自动映射。
- *   所有编辑器排版由 src/.../base.css 自动承继。
- *   → 主题作者只需关注「变量值」，无需写重复的选择器。
- *
- * 【配色方法论】
- *   浅色主题：seed-surface 最浅 → seed-panel 稍深 → seed-ink 最深
- *   深色主题：反转以上关系
- *   点缀色 (seed-accent)：占页面 5-10% 面积，用于链接/强调/边框
- *
- * ═══════════════════════════════════════════════════════════
- *   SECTION 1 — 设计令牌 (Design Tokens)
- *   用户只需修改此区域的数值
- * ═══════════════════════════════════════════════════════════ */
+/* ===== ColaMD 自定义主题模板（2.7 契约）=====
 
-body.theme-custom {
+   复制这一份改就是了：改配色、改字体、改文件名，然后 Theme > Import Theme，
+   或者放进 ~/.colamd/themes/。
 
-  /* ═══════════════════════════════════════════════════════════
-     1.1 种子色板 (Seed Palette)
-     修改这 5 个种子色即可改变整个主题的视觉基调
-     ═══════════════════════════════════════════════════════════ */
+   三件事先说清楚：
 
-  /* 点缀色：用于链接、强调、Mermaid 高亮、引用边框（占页面 ≤10%） */
-  --seed-accent:        #6366f1;   /* 主色 (Indigo)       */
-  --seed-accent-light:  #eef2ff;   /* 浅变体 (bg 用途)     */
-  --seed-accent-dark:   #4f46e5;   /* 深变体 (hover/text)  */
+   1. 变量写在 :root 里。没写的活变量继承 Light 主题的默认值，所以只想改配色的话，
+      下面第一段往往就够了，选择器那一段可以整段删掉。
+   2. 编辑器里没有 <h1>、<blockquote> 这种元素：标题是一「行」带一个类，引用与代码块
+      是每一行一个 div，加粗是一个 span。所以只能选 .cm-md-* 这些钩子。
+   3. 引用块与代码块**不能加纵向 padding**：一行一个 div，纵向 padding 会按行累加。
+      要留呼吸感只给 padding-left / padding-right。
 
-  /* 表面色：页面底色层次（从浅到深，3 级） */
-  --seed-surface:       #ffffff;   /* L0 页面背景 (最浅)   */
-  --seed-panel:         #f8f9fb;   /* L1 卡片/代码区背景    */
-  --seed-panel-alt:     #f1f3f5;   /* L2 表头/引用块背景    */
+   这份故意不是一套好看的配色，它是照着改的起点。 */
 
-  /* 文字色：前景色层次（从深到浅，3 级） */
-  --seed-ink:           #1a1d26;   /* T0 正文/标题 (最深)   */
-  --seed-ink-muted:     #6b7280;   /* T1 次要文字           */
-  --seed-ink-dim:       #9ca3af;   /* T2 弱化/禁用文字      */
+:root {
+  /* ---- 语义色（活变量）---- */
+  --bg-color: #ffffff;                    /* 正文底色 */
+  --text-color: #24292f;                  /* 正文字色 */
+  --text-secondary: #57606a;              /* 次级文字：引用、标签 */
+  --text-muted: #6e7781;                  /* 压淡文字：行号、链接地址、列表圆点 */
+  --border-color: #d0d7de;                /* 分隔线、表格边框、面板描边 */
+  --link-color: #0969da;                  /* 链接、搜索高亮 */
 
-  /* 边框色 */
-  --seed-border:        #e5e7eb;   /* 分割线/表格边框       */
-  --seed-border-strong: #d1d5db;   /* 强调边框              */
+  --code-bg: rgba(175, 184, 193, 0.2);    /* 行内代码底色 */
+  --code-block-bg: #f6f8fa;               /* 代码块底色：明暗决定 Pele 图表配色 */
+  --code-block-text: #24292f;             /* 代码块文字 */
 
-  /* ═══════════════════════════════════════════════════════════
-     1.2 字体系统 (Typography)
-     ═══════════════════════════════════════════════════════════ */
+  --blockquote-border: #d0d7de;           /* 引用块左竖线 */
+  --blockquote-bg: transparent;           /* 引用块底色，transparent 就是不要底 */
+  --table-header-bg: #f6f8fa;             /* 表头底色 */
+  --selection-bg: rgba(9, 105, 218, 0.15);/* 选中背景 */
+  --highlight-bg: #fff3bf;                /* ==高亮== 底色 */
 
-  /* 正文字体栈：优先西文 → 中文衬线 → 通用衬线 */
-  --font-body: "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont,
-               "Noto Serif SC", "Source Han Serif SC", "Songti SC",
-               Georgia, "Times New Roman", serif;
+  /* ---- 字体与度量（活变量）---- */
+  --font-body: Georgia, 'Songti SC', 'Noto Serif SC', serif;
+  --font-mono: 'SF Mono', 'Fira Code', Menlo, Consolas, monospace;
+  --editor-font-size: 16px;
+  --editor-column-width: 780px;
 
-  /* 标题字体栈：无衬线优先，与正文形成对比 */
-  --font-heading: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont,
-                  "Noto Sans SC", "Source Han Sans SC", "PingFang SC",
-                  "Microsoft YaHei", sans-serif;
-
-  /* 等宽字体栈：代码/公式 */
-  --font-code: "JetBrains Mono", "SF Mono", "Fira Code", Menlo, Consolas, monospace;
-
-  /* Mermaid 图表字体（与标题保持一致，字号独立控制） */
-  --font-mermaid: var(--font-heading);
-
-  /* ═══════════════════════════════════════════════════════════
-     1.3 字号 & 间距
-     ═══════════════════════════════════════════════════════════ */
-
-  /* 基准字号 (1rem = 该值) */
-  --font-size-root: 16px;
-
-  /* 标题倍率（相对于根字号） */
-  --font-scale-h1: 2.0;     /* 32px */
-  --font-scale-h2: 1.5;     /* 24px */
-  --font-scale-h3: 1.25;    /* 20px */
-  --font-scale-h4: 1.1;     /* 17.6px */
-  --font-scale-h5: 1.0;     /* 16px */
-  --font-scale-h6: 0.95;    /* 15.2px */
-
-  /* Mermaid 独立字号 */
-  --font-size-mermaid: 13px;
-
-  /* 行高 */
-  --line-height-body: 1.75;
-  --line-height-heading: 1.35;
-  --line-height-code: 1.6;
-
-  /* ═══════════════════════════════════════════════════════════
-     1.4 圆角 & 间距 (可选)
-     ═══════════════════════════════════════════════════════════ */
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --content-width: 820px;
-
-  /* ═══════════════════════════════════════════════════════════
-     SECTION 2 — 语义映射 (Semantic Mapping)
-     将 SECTION 1 的令牌自动映射到 ColaMD 内置系统消费的变量
-     通常无需修改，除非需要特殊微调某个语义角色
-     ═══════════════════════════════════════════════════════════ */
-
-  /* ── 2.1 编辑区表面色 ── */
-  --bg-color:           var(--seed-surface);
-  --surface-color:      var(--seed-panel);
-  --surface-alt:        var(--seed-panel-alt);
-
-  /* ── 2.2 编辑区文字色 ── */
-  --text-color:         var(--seed-ink);
-  --heading-color:      var(--seed-ink);
-  --text-muted:         var(--seed-ink-muted);
-  --text-dim:           var(--seed-ink-dim);
-
-  /* ── 2.3 链接 & 强调 ── */
-  --link-color:         var(--seed-accent);
-  --accent-color:       var(--seed-accent);
-  --accent-dark:        var(--seed-accent-dark);
-  --accent-light:       var(--seed-accent-light);
-  --selection-bg:       rgba(99, 102, 241, 0.15);  /* 手动匹配 accent */
-
-  /* ── 2.4 边框 & 分割线 ── */
-  --border-color:       var(--seed-border);
-  --blockquote-border:  var(--seed-accent);
-  --hr-color:           var(--seed-border);
-
-  /* ── 2.5 内联代码 ── */
-  --code-bg:            var(--seed-panel);
-  --code-color:         var(--seed-accent-dark);
-
-  /* ── 2.6 代码块 ── */
-  --code-block-bg:      var(--seed-panel-alt);
-  --code-block-text:    var(--seed-ink);
-  --code-block-color:   var(--seed-ink);
-
-  /* ── 2.7 引用块 ── */
-  --blockquote-bg:      var(--seed-panel);
-
-  /* ── 2.8 表格 ── */
-  --table-header-bg:    var(--seed-panel);
-  --table-border:       var(--seed-border);
-
-  /* ── 2.9 滚动条 ── */
-  --scrollbar-thumb:    var(--seed-border-strong);
-  --scrollbar-thumb-hover: var(--seed-ink-muted);
-
-  /* ═══════════════════════════════════════════════════════════
-     SECTION 3 — Mermaid 图表变量 (20 核心变量)
-     由内置 src/.../mermaid/variables.css 自动消费
-     变量说明注释标注了每个变量的视觉作用
-     ═══════════════════════════════════════════════════════════ */
-
-  /* ── 3.1 容器 ── */
-  --mermaid-background:   var(--seed-panel);       /* 图表容器背景    */
-  --mermaid-border-color: var(--seed-border);      /* 图表容器边框    */
-  --mermaid-border-radius: var(--radius-md);       /* 图表容器圆角    */
-  --mermaid-padding:     20px;                     /* 图表容器内边距  */
-
-  /* ── 3.2 字体 ── */
-  --mermaid-font-family:  var(--font-mermaid);      /* 图表内字体      */
-  --mermaid-font-size:    var(--font-size-mermaid); /* 图表内字号      */
-
-  /* ── 3.3 节点 (所有图表类型的矩形/圆形/菱形等) ── */
-  --mermaid-node-fill:        var(--seed-panel);    /* 节点填充色      */
-  --mermaid-node-stroke:      var(--seed-accent);   /* 节点描边色      */
-  --mermaid-node-stroke-width: 1.5px;               /* 节点描边宽度    */
-  --mermaid-node-text:        var(--seed-ink);      /* 节点内文字色    */
-
-  /* ── 3.4 连线 (边/箭头) ── */
-  --mermaid-edge-stroke:       var(--seed-ink-muted); /* 连线颜色     */
-  --mermaid-edge-stroke-width: 1.5px;                  /* 连线宽度     */
-
-  /* ── 3.5 聚类 (Subgraph / 子图容器) ── */
-  --mermaid-cluster-fill:      rgba(99, 102, 241, 0.06); /* 聚类填充   */
-  --mermaid-cluster-stroke:    var(--seed-accent);        /* 聚类边框   */
-
-  /* ── 3.6 标签 (节点内文本 / 边标签文本) ── */
-  --mermaid-label-text:      var(--seed-ink);           /* 标签文字色    */
-  --mermaid-edge-label-text: var(--seed-ink-muted);     /* 边标签文字色  */
-  --mermaid-edge-label-bg:   var(--seed-surface);       /* 边标签背景色  */
-
-  /* ── 3.7 标题 & 坐标轴 (Pie/Gantt/XYChart 等) ── */
-  --mermaid-title-text:  var(--seed-ink);               /* 图表标题色    */
-  --mermaid-axis-text:   var(--seed-ink-muted);         /* 坐标轴文字色  */
-  --mermaid-highlight:   var(--seed-accent);            /* 高亮/标记色   */
-
-  /* ── 3.8 人物节点 (Sequence / C4 等) ── */
-  --mermaid-person-stroke: var(--seed-ink);             /* 人物描边色    */
-  --mermaid-person-fill:   var(--seed-panel);           /* 人物填充色    */
-
-  /* ── 3.9 标签 Y 偏移 (微调文字垂直对齐，通常 0 或 -3px) ── */
-  --mermaid-label-offset-y: 0px;
-
-  /* ═══════════════════════════════════════════════════════════
-     SECTION 4 — 排版微调 (Fine Tuning)
-     仅覆盖 base.css 未通过变量处理的样式
-     所有值继续引用变量，禁止硬编码
-     ═══════════════════════════════════════════════════════════ */
-
-
-  /* ── 4.1 中文字体适应：适当增大行高 ── */
-  --line-height-base: var(--line-height-body);
-
-  /* ── 4.2 深色代码块需要文字变亮 (可选，若代码块背景很深则启用) ── */
-  /* --code-block-text: #e4e7ed; */  /* 默认注释，按需取消 */
+  /* ---- Pele 图表（可选，9 个）----
+     图直接画在 --code-block-bg 上，缺省会由代码块底色与字色推导。 */
+  --pele-bg: var(--code-block-bg);
+  --pele-fg: var(--code-block-text);
+  --pele-muted: color-mix(in srgb, var(--code-block-text) 70%, var(--code-block-bg));
+  --pele-line: var(--code-block-text);
+  --pele-surface: color-mix(in srgb, var(--code-block-text) 18%, var(--code-block-bg));
+  --pele-surface-alt: color-mix(in srgb, var(--code-block-text) 28%, var(--code-block-bg));
+  --pele-border: color-mix(in srgb, var(--code-block-text) 45%, var(--code-block-bg));
+  --pele-accent: var(--link-color);
+  --pele-radius: 6px;
 }
 
-/* ═════════════════════════════════════════════════════════════
-   SECTION 5 — 选择器级微调 (Selector Fine-Tuning)
-   仅用于 base.css 不提供的个性化样式
-   所有值严格引用变量，禁止出现裸色值/裸字号
-   ═════════════════════════════════════════════════════════════ */
+/* ===== 编辑器 DOM =====
+   CodeMirror 6 的选择器优先级：行级规则写成「两个类」才压得住它运行时注入的
+   baseTheme，所以下面一律用 #editor .cm-content .cm-md-*。 */
 
-/* ── 5.1 全局：字体 + 底色 + 字号 ── */
-html { font-size: var(--font-size-root); }
-body.theme-custom, html, body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
+#editor .cm-content {
   font-family: var(--font-body);
-  line-height: var(--line-height-body);
+  line-height: 1.75;
 }
 
-/* ── 5.2 编辑区 ── */
-#write {
-  max-width: var(--content-width);
-  margin: 0 auto;
-  padding: 30px 60px 100px;
+/* 标题。只要一级二级就这样写，三级往下照抄类名即可。 */
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2 {
+  color: #1b4f72;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--border-color);
+}
+#editor .cm-content .cm-md-atxheading3,
+#editor .cm-content .cm-md-atxheading4,
+#editor .cm-content .cm-md-atxheading5,
+#editor .cm-content .cm-md-atxheading6 {
+  color: #1b4f72;
 }
 
-/* ── 5.3 标题：字体 + 倍率 ── */
-body.theme-custom h1, body.theme-custom h2, body.theme-custom h3,
-body.theme-custom h4, body.theme-custom h5, body.theme-custom h6 {
-  font-family: var(--font-heading);
-  color: var(--heading-color);
-  font-weight: 700;
-  line-height: var(--line-height-heading);
-}
+/* 行内格式。 */
+#editor .cm-content .cm-md-strong { color: var(--link-color); }
+#editor .cm-content .cm-md-em { font-style: italic; }
+#editor .cm-content .cm-md-strike { text-decoration: line-through; }
+#editor .cm-content .cm-md-highlight { background: var(--highlight-bg); }
+#editor .cm-content .cm-md-link { color: var(--link-color); }
+#editor .cm-content .cm-md-url { color: var(--text-muted); }
 
-body.theme-custom h1 { font-size: calc(var(--font-size-root) * var(--font-scale-h1)); }
-body.theme-custom h2 { font-size: calc(var(--font-size-root) * var(--font-scale-h2)); }
-body.theme-custom h3 { font-size: calc(var(--font-size-root) * var(--font-scale-h3)); }
-body.theme-custom h4 { font-size: calc(var(--font-size-root) * var(--font-scale-h4)); }
-body.theme-custom h5 { font-size: calc(var(--font-size-root) * var(--font-scale-h5)); }
-body.theme-custom h6 { font-size: calc(var(--font-size-root) * var(--font-scale-h6)); }
-
-/* ── 5.4 内联强调：使用点缀色 ── */
-body.theme-custom strong { color: var(--accent-color); }
-
-/* ── 5.5 内联代码 ── */
-body.theme-custom code {
-  font-family: var(--font-code);
+#editor .cm-content .cm-md-inlinecode {
+  font-family: var(--font-mono);
   background: var(--code-bg);
-  color: var(--code-color);
+  color: var(--text-color);
+  border-radius: 3px;
 }
 
-/* ── 5.6 代码块 ── */
-body.theme-custom pre {
-  background: var(--code-block-bg);
-  font-family: var(--font-code);
-  line-height: var(--line-height-code);
-}
-body.theme-custom pre code {
-  color: var(--code-block-text);
-  background: transparent;
-}
-
-/* ── 5.7 引用块 ── */
-body.theme-custom blockquote {
-  background: var(--blockquote-bg);
-  border-left: 4px solid var(--blockquote-border);
-}
-
-/* ── 5.8 表格表头 ── */
-body.theme-custom table th {
-  background: var(--table-header-bg);
-  font-weight: 700;
-  border-bottom: 2px solid var(--accent-color);
-}
-
-/* ── 5.9 分割线 ── */
-body.theme-custom hr {
-  border: none;
-  border-top: 1px solid var(--hr-color);
-}
-
-/* ── 5.10 图片居中 ── */
-body.theme-custom img { max-width: 100%; }
-
-/* ── 5.11 Mermaid 图表标题（跟随图表的 p） ── */
-/* 用于 **图X ...** 这类 Markdown 标题自动居中 */
-body.theme-custom .mermaid-block + p {
-  text-align: center;
-  font-family: var(--font-heading);
-  font-size: calc(var(--font-size-mermaid) + 2px);
+/* 标记字符（#、>、-、围栏）：光标不在这一行时压淡。 */
+#editor .cm-content .cm-md-marker,
+#editor .cm-content .cm-md-quotemark,
+#editor .cm-content .cm-md-listmark {
   color: var(--text-muted);
 }
 
-/* ── 5.12 响应式 ── */
-@media only screen and (max-width: 768px) {
-  #write { padding: 20px; }
-  body.theme-custom .mermaid-block { padding: 12px; }
-  body.theme-custom .mermaid-preview svg { max-width: 100% !important; height: auto !important; }
+/* 引用块：一行一个 div，所以只给左右内边距。 */
+#editor .cm-content .cm-md-blockquote {
+  background: var(--blockquote-bg);
+  color: var(--text-secondary);
+  border-left: 3px solid var(--blockquote-border);
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
-/* ═════════════════════════════════════════════════════════════
-   SECTION 6 — 打印 / 导出 (Print / Export)
-   原则：屏幕样式的完整镜像。每个屏幕属性都必须在 print 中显式声明。
-   禁止在 print 中引入新色值，禁止遗漏任何有色/有尺寸的元素。
-   ═════════════════════════════════════════════════════════════ */
+/* 代码块：同样一行一个 div；圆角放在首行/末行。 */
+#editor .cm-content .cm-md-codeblock {
+  background: var(--code-block-bg);
+  color: var(--code-block-text);
+  padding-left: 16px;
+  padding-right: 16px;
+}
+#editor .cm-content .cm-md-codeblock-first {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+#editor .cm-content .cm-md-codeblock-last {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* 表格：单元格是 .cm-md-table-widget 里的 th / td。 */
+#editor .cm-content .cm-md-table-widget th,
+#editor .cm-content .cm-md-table-widget td {
+  border-color: var(--border-color);
+}
+#editor .cm-content .cm-md-table-widget th {
+  background: var(--table-header-bg);
+  color: var(--text-color);
+  border-bottom: 2px solid var(--link-color);
+}
+
+/* 分隔线。 */
+#editor .cm-content .cm-md-hr { border-top-color: var(--border-color); }
+
+/* 中文正文首行缩进：一行就是一个 div，标题/引用/代码/列表行归零。 */
+#editor .cm-content .cm-line { text-indent: 2em; }
+
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2,
+#editor .cm-content .cm-md-atxheading3,
+#editor .cm-content .cm-md-atxheading4,
+#editor .cm-content .cm-md-atxheading5,
+#editor .cm-content .cm-md-atxheading6,
+#editor .cm-content .cm-md-blockquote,
+#editor .cm-content .cm-md-codeblock,
+#editor .cm-content .cm-md-hr,
+#editor .cm-content .cm-md-mermaid,
+#editor .cm-content .cm-md-li-0,
+#editor .cm-content .cm-md-li-1,
+#editor .cm-content .cm-md-li-2,
+#editor .cm-content .cm-md-li-3,
+#editor .cm-content .cm-md-li-4,
+#editor .cm-content .cm-md-li-5,
+#editor .cm-content .cm-md-li-6 {
+  text-indent: 0;
+}
+
+/* ===== 导出的 HTML =====
+   导出件是语义标签（h1/p/pre/table…），挂在 .colamd-document 上，
+   编辑器里不存在这个类。document.css 已给结构，这里只补配色。 */
+
+.colamd-document {
+  font-family: var(--font-body);
+  font-size: var(--editor-font-size);
+  line-height: 1.75;
+}
+
+.colamd-document h1,
+.colamd-document h2,
+.colamd-document h3,
+.colamd-document h4,
+.colamd-document h5,
+.colamd-document h6 {
+  color: #1b4f72;
+}
+
+.colamd-document strong { color: var(--link-color); }
+.colamd-document code {
+  background: var(--code-bg);
+  color: var(--text-color);
+  font-family: var(--font-mono);
+}
+.colamd-document pre { background: var(--code-block-bg); }
+.colamd-document pre code { color: var(--code-block-text); }
+.colamd-document blockquote {
+  background: var(--blockquote-bg);
+  color: var(--text-secondary);
+  border-left-color: var(--blockquote-border);
+}
+.colamd-document mark { background: var(--highlight-bg); }
+.colamd-document th {
+  background: var(--table-header-bg);
+  border-bottom: 2px solid var(--link-color);
+}
+.colamd-document hr { border-top-color: var(--border-color); }
+
+.colamd-document p { text-indent: 2em; }
+.colamd-document li p,
+.colamd-document td p,
+.colamd-document th p,
+.colamd-document blockquote p {
+  text-indent: 0;
+}
+
+/* ===== 打印 =====
+   应用直接对当前窗口 printToPDF，上面所有规则原样生效。 */
+
 @media print {
-  @page { margin: 20mm; }
-
-  /* ── 6.0 变量重声明（Chromium 打印引擎会丢失 CSS 变量，需重新注入） ── */
-  body.theme-custom {
-    --seed-accent:       #6366f1;   /* ⬅ 与 SECTION 1.1 保持完全一致 */
-    --seed-accent-dark:  #4f46e5;
-    --seed-surface:      #ffffff;
-    --seed-ink:          #1a1d26;
-    --seed-ink-muted:    #6b7280;
-    --seed-panel:        #f8f9fb;
-    --seed-panel-alt:    #f1f3f5;
-    --seed-border:       #e5e7eb;
-    --font-size-root:    16px;
-    --line-height-body:  1.75;
-    --line-height-heading: 1.35;
-    --line-height-code:  1.6;
-    --font-scale-h1:     2.0;
-    --font-scale-h2:     1.5;
-    --font-scale-h3:     1.25;
-    --font-scale-h4:     1.1;
-    --font-scale-h5:     1.0;
-    --font-scale-h6:     0.95;
-    --content-width:     820px;
-    --font-size-mermaid: 13px;
-    --accent-color:      var(--seed-accent);
-    --accent-dark:       var(--seed-accent-dark);
-    --code-bg:           var(--seed-panel);
-    --code-color:        var(--seed-accent-dark);
-    --code-block-bg:     var(--seed-panel-alt);
-    --code-block-text:   var(--seed-ink);
-    --blockquote-bg:     var(--seed-panel);
-    --table-header-bg:   var(--seed-panel);
-    --border-color:      var(--seed-border);
-    --hr-color:          var(--seed-border);
-    --font-body: "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont,
-                 "Noto Serif SC", "Source Han Serif SC", "Songti SC",
-                 Georgia, "Times New Roman", serif;
-    --font-heading: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont,
-                    "Noto Sans SC", "Source Han Sans SC", "PingFang SC",
-                    "Microsoft YaHei", sans-serif;
-    --font-code: "JetBrains Mono", "SF Mono", "Fira Code", Menlo, Consolas, monospace;
-  }
-
-  /* ── 6.1 根元素：字号 + 字体 + 行高 + 底色 ── */
-  html {
-    font-size: var(--font-size-root) !important;
-  }
-  html, body, body.theme-custom {
-    background: var(--seed-surface) !important;
-    color: var(--seed-ink) !important;
-    font-family: var(--font-body) !important;
-    line-height: var(--line-height-body) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* ── 6.2 编辑区 ── */
-  #write {
-    max-width: var(--content-width) !important;
-    margin: 0 auto !important;
-    padding: 30px 60px 100px !important;
-  }
-
-  /* ── 6.3 标题：字号 + 字体 + 字重 + 行高 ── */
-  body.theme-custom h1, body.theme-custom h2, body.theme-custom h3,
-  body.theme-custom h4, body.theme-custom h5, body.theme-custom h6 {
-    font-family: var(--font-heading) !important;
-    color: var(--seed-ink) !important;
-    font-weight: 700 !important;
-    line-height: var(--line-height-heading) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  body.theme-custom h1 { font-size: calc(var(--font-size-root) * var(--font-scale-h1)) !important; }
-  body.theme-custom h2 { font-size: calc(var(--font-size-root) * var(--font-scale-h2)) !important; }
-  body.theme-custom h3 { font-size: calc(var(--font-size-root) * var(--font-scale-h3)) !important; }
-  body.theme-custom h4 { font-size: calc(var(--font-size-root) * var(--font-scale-h4)) !important; }
-  body.theme-custom h5 { font-size: calc(var(--font-size-root) * var(--font-scale-h5)) !important; }
-  body.theme-custom h6 { font-size: calc(var(--font-size-root) * var(--font-scale-h6)) !important; }
-
-  /* ── 6.4 内联强调 ── */
-  body.theme-custom strong {
-    color: var(--accent-color) !important;
-    font-weight: 700 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* ── 6.5 内联代码：字体 + 背景 + 颜色 ── */
-  body.theme-custom code {
-    font-family: var(--font-code) !important;
-    background: var(--code-bg) !important;
-    color: var(--code-color) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* ── 6.6 代码块：背景 + 字体 + 行高 ── */
-  body.theme-custom pre {
-    background: var(--code-block-bg) !important;
-    font-family: var(--font-code) !important;
-    line-height: var(--line-height-code) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  body.theme-custom pre code {
-    color: var(--code-block-text) !important;
-    background: transparent !important;
-  }
-
-  /* ── 6.7 引用块：背景 + 左侧竖线（色值与屏幕一致：accent） ── */
-  body.theme-custom blockquote {
-    background: var(--blockquote-bg) !important;
-    border-left: 4px solid var(--seed-accent) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* ── 6.8 表格：边框合并 + 表头 ── */
-  body.theme-custom table {
-    border-collapse: collapse !important;
-  }
-  body.theme-custom table th {
-    background: var(--table-header-bg) !important;
-    color: var(--seed-ink) !important;
-    font-weight: 700 !important;
-    border-bottom: 2px solid var(--accent-color) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  body.theme-custom table td {
-    border-color: var(--seed-border) !important;
-  }
-
-  /* ── 6.9 链接 ── */
-  body.theme-custom a {
-    color: var(--seed-accent) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* ── 6.10 分割线 ── */
-  body.theme-custom hr {
-    border: none !important;
-    border-top: 1px solid var(--hr-color) !important;
-  }
-
-  /* ── 6.11 图片 ── */
-  body.theme-custom img {
-    max-width: 100% !important;
-  }
-
-  /* ── 6.12 Mermaid 图表容器 ── */
-  body.theme-custom .mermaid-block {
-    background: var(--seed-surface) !important;
-    border-color: var(--seed-border) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  body.theme-custom .mermaid-preview svg * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* ── 6.13 图表标题 ── */
-  body.theme-custom .mermaid-block + p {
-    color: var(--seed-ink-muted) !important;
-    text-align: center !important;
-    font-family: var(--font-heading) !important;
-    font-size: calc(var(--font-size-mermaid) + 2px) !important;
+  html,
+  body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
