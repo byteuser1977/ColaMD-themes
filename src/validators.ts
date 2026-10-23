@@ -1,8 +1,10 @@
 /**
- * Paradigm validation engine — checks SeedPalette against v3.0 design constraints.
+ * Paradigm validation engine — checks SeedPalette against v4.0 design constraints
+ * and scans generated CSS for the ColaMD 2.7 theme contract.
  * Based on theme-paradigm.md Section 2.
  */
 
+import { parse, walk, generate } from "css-tree";
 import { contrastRatio, hslSaturation, hslLightness, hslHue, sameHueAxis, isLightMode } from "./contrast.js";
 
 export interface ValidationIssue {
@@ -150,6 +152,126 @@ export function validateSeedPalette(palette: SeedPalette): ValidationIssue[] {
       ruleId: "HR-01",
       level: "SHOULD",
       message: `点缀色饱和度 ${(sAccent * 100).toFixed(1)}% < 30%，建议选暖色或冷色`,
+    });
+  }
+
+  return issues;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CSS contract validation (ColaMD 2.7)
+// ═══════════════════════════════════════════════════════════
+
+/** 2.7 编辑器不再消费的变量：留着只会让人照抄。 */
+const DEAD_VARIABLES = new Set([
+  "--surface-color", "--surface-alt", "--text-dim", "--heading-color",
+  "--accent-color", "--accent-dark", "--accent-light", "--hr-color",
+  "--code-color", "--code-block-color", "--table-border",
+  "--content-width", "--font-size-root", "--font-heading", "--font-code",
+  "--font-mermaid", "--font-size-mermaid",
+]);
+
+/** 前缀匹配的死变量族（Mermaid 20 变量、圆角、字阶、行高、滚动条）。 */
+const DEAD_VARIABLE_PREFIXES = [
+  "--mermaid-", "--radius-", "--font-scale-", "--line-height-", "--scrollbar-thumb",
+];
+
+/** 旧编辑器 DOM 的选择器：在 CodeMirror 6 里命中不到任何元素。 */
+const DEAD_SELECTOR_PATTERNS: Array<{ re: RegExp; label: string; fix: string }> = [
+  { re: /(^|[\s>+~,])#write(?![-\w])/, label: "#write", fix: "改用 #editor .cm-content" },
+  { re: /\.ProseMirror\b/, label: ".ProseMirror", fix: "改用 #editor .cm-content .cm-md-*" },
+  { re: /\.theme-custom\b/, label: "body.theme-custom", fix: "自定义主题变量写在 :root" },
+  { re: /\.mermaid-(block|preview)\b/, label: ".mermaid-*", fix: "图表用 .cm-md-mermaid 与 --pele-*" },
+];
+
+/** 引用块/代码块在 CM6 里一行一个 div，纵向 padding 会按行累加。 */
+function hasVerticalPadding(rule: { block: { children: { forEach: (cb: (node: any) => void) => void } } }): boolean {
+  let found = false;
+  rule.block.children.forEach((node: any) => {
+    if (node.type !== "Declaration" || node.property.startsWith("--")) return;
+    if (node.property === "padding") {
+      const values = generate(node.value).trim().split(/\s+/);
+      // 1~2 个值：第一个是纵向；3 个值：第二个；4 个值：第一个与第三个。
+      const vertical = values.length === 1 ? values[0]
+        : values.length === 2 ? values[0]
+        : values.length === 3 ? values[1] : `${values[0]} ${values[2]}`;
+      if (vertical.split(/\s+/).some((v) => !/^0(px|em|rem|%)?$/.test(v))) found = true;
+    } else if (node.property === "padding-top" || node.property === "padding-bottom") {
+      const value = generate(node.value).trim();
+      if (!/^0(px|em|rem|%)?$/.test(value)) found = true;
+    }
+  });
+  return found;
+}
+
+/** 校验生成的 CSS 是否符合 ColaMD 2.7 契约。 */
+export function validateThemeCss(css: string): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const ast = parse(css, { positions: false });
+  let hasRootBlock = false;
+
+  walk(ast, (node) => {
+    if (node.type === "Declaration" && node.property.startsWith("--")) {
+      const name = node.property;
+      const dead = DEAD_VARIABLES.has(name)
+        || DEAD_VARIABLE_PREFIXES.some((prefix) => name.startsWith(prefix));
+      if (dead) {
+        issues.push({
+          ruleId: "CSS-01",
+          level: "MUST_NOT",
+          message: `变量 ${name} 在 ColaMD 2.7 已不再消费`,
+          fix: "改用活变量清单（--bg-color / --text-secondary / --pele-* 等）",
+        });
+      }
+    }
+
+    if (node.type === "Rule" && node.prelude.type === "SelectorList") {
+      const selector = generate(node.prelude);
+      if (/(^|,)\s*:root\b/.test(selector)) hasRootBlock = true;
+
+      for (const dead of DEAD_SELECTOR_PATTERNS) {
+        if (dead.re.test(selector)) {
+          issues.push({
+            ruleId: "CSS-02",
+            level: "MUST_NOT",
+            message: `选择器 ${dead.label} 在 CodeMirror 6 中命中不到元素（${selector}）`,
+            fix: dead.fix,
+          });
+        }
+      }
+
+      if (/\.cm-md-(blockquote|codeblock)\b/.test(selector) && hasVerticalPadding(node)) {
+        issues.push({
+          ruleId: "CSS-03",
+          level: "MUST_NOT",
+          message: `引用/代码块不能设置纵向 padding（每行一个 div，会按行累加）：${selector}`,
+          fix: "只设 padding-left / padding-right",
+        });
+      }
+
+      walk(node.block, (child) => {
+        if (child.type === "Declaration" && child.value.type === "Value") {
+          walk(child.value, (valueNode) => {
+            if (valueNode.type === "Dimension" && valueNode.unit === "pt") {
+              issues.push({
+                ruleId: "CSS-04",
+                level: "MUST_NOT",
+                message: `使用了 pt 单位：${child.property}: ${generate(child.value)}`,
+                fix: "统一换算为 px（1pt ≈ 1.333px）",
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+
+  if (!hasRootBlock) {
+    issues.push({
+      ruleId: "CSS-05",
+      level: "MUST",
+      message: "缺少 :root 根块，主题变量无法被继承",
+      fix: "把变量块写到 :root 上",
     });
   }
 

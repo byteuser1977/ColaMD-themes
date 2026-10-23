@@ -14,9 +14,9 @@
 ### HTML / PDF 导出
 
 - **`export-html`** — 将 Markdown 渲染为独立 HTML 文档，主题 CSS 内嵌，Mermaid 图表和 KaTeX 公式完整渲染
-- **`export-pdf`** — 通过 Puppeteer（Chromium）将 Markdown 渲染为 PDF，使用 `@media print` 保真主题配色
+- **`export-pdf`** — 通过 Puppeteer（Chromium）将 Markdown 渲染为 PDF，用 `print-color-adjust: exact` 保住主题配色
 - **`export`** — 批量导出多个文件或整个目录为 HTML 或 PDF
-- 底层使用 `@bytechain.cn/colamd/renderer` — 与 ColaMD 应用相同的 Milkdown 编辑器引擎
+- 底层暂用 `@bytechain.cn/colamd/renderer`（1.5.x，Milkdown），等上游 2.x renderer 发布独立库构建后切换；生成的主题已按 2.7 契约编写，切换时无需改动
 
 ### 主题管理
 
@@ -29,7 +29,8 @@
 - **对比度引擎** — WCAG 2.1 相对亮度与对比度计算
 - **范式验证器** — 15+ 条设计约束规则（CR、HR、SL、NT、BD、MP、FP、FS、SH），附带自动修复建议
 - **色彩系统库** — 5 大色系 15 套预定义种子色板（莫兰迪、马卡龙、北欧、复古、薄荷绿）
-- **Mermaid 预设** — 3 套预设（light/dark/elegant），20 个核心变量，根据明度和色相自动选择
+- **2.7 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
+- **Pele 图表配色** — 9 个 `--pele-*` 变量由 `--code-block-bg` / `--code-block-text` / `--link-color` 推导，取代 Mermaid 20 变量
 
 ### 安全与性能 (v0.3.2+)
 
@@ -42,16 +43,14 @@
 
 ### CSS 模板引擎
 
-基于 Handlebars 的模板引擎生成 v3.0 范式 CSS（≤300 行）：
+基于 Handlebars 的模板引擎生成 ColaMD 2.7 契约 CSS（≤300 行）：
 
 | 分区 | 内容 |
 |------|------|
-| 1 | 设计令牌 — 种子色板（11 变量）、字体系统（4 组字体栈）、字号倍率、圆角与间距 |
-| 2 | 语义映射 — 通过 `var(--seed-*)` 从种子色自动推导 |
-| 3 | Mermaid 20 核心变量 — 容器、字体、节点、连线、聚类、标签、标题、人物、偏移 |
-| 4 | 排版微调 |
-| 5 | 选择器级微调 — 标题、代码、引用块、表格、分割线、响应式 |
-| 6 | `@media print` — 屏幕样式镜像 + `!important` + `print-color-adjust: exact` |
+| 1 | 设计令牌 — `:root` 种子色板（11 变量）、14 个语义色、字体与度量、9 个 `--pele-*` |
+| 2 | 编辑器 DOM — `#editor .cm-content` + `.cm-md-*`（标题、行内、引用、代码块、表格、缩进） |
+| 3 | 导出 HTML — `.colamd-document` 语义标签配色层 |
+| 4 | `@media print` — 只补打印保真（屏幕规则原样生效） |
 
 ### 多 Agent Skill 通用支持
 
@@ -155,7 +154,6 @@ cthemes validate themes/我的主题.css
 ```bash
 cthemes list
 cthemes color-systems
-cthemes mermaid-presets
 ```
 
 ### 导出为 HTML
@@ -213,9 +211,8 @@ cthemes set-theme 我的品牌 --remove
 | `from-pdf <file>` | 从 PDF 文档提取主题 |
 | `extract <source>` | 自动检测来源类型并提取主题 |
 | `color-systems` | 列出 15 套内置色彩系统 |
-| `mermaid-presets` | 列出 Mermaid 预设（light/dark/elegant） |
-| `list` | 列出所有已生成主题 |
-| `validate <file>` | 验证主题是否符合 v3.0 范式规则 |
+| `list` | 列出所有生成的主题 |
+| `validate <file>` | 验证主题是否符合 2.7 契约与范式规则 |
 | `set-theme <name>` | 设置、注册或注销导出主题 |
 | `export-html <input>` | 导出 Markdown → 独立 HTML |
 | `export-pdf <input>` | 导出 Markdown → PDF |
@@ -229,8 +226,7 @@ cthemes set-theme 我的品牌 --remove
 | `-o, --output` | 输出 CSS 文件路径 |
 | `-d, --themes-dir` | 主题目录（默认：`themes/`） |
 | `-c, --color-system` | 强制指定色彩系统 |
-| `-m, --mermaid-preset` | 强制指定 Mermaid 预设 |
-| `-A, --auto-match` | 自动匹配色彩系统和 Mermaid 预设 |
+| `-A, --auto-match` | 从提取的色板自动匹配色彩系统 |
 
 ### 导出选项
 
@@ -257,13 +253,12 @@ cthemes set-theme 我的品牌 --remove
            ▼
 ┌─────────────────────┐
 │  色彩系统匹配        │  → 15 套内置色板
-│  Mermaid 预设选择    │  → light/dark/elegant
-│  范式验证            │  → WCAG 对比度 + 设计约束
+│  范式与契约验证      │  → WCAG 对比度 + 设计约束 + 2.7 契约
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────┐
-│  模板引擎            │  Handlebars → v3.0 CSS（≤300 行）
+│  模板引擎            │  Handlebars → 2.7 契约 CSS（≤300 行）
 └──────────┬──────────┘
            │
            ▼
@@ -296,7 +291,7 @@ Markdown 文件
 └─────────────────────────────────────────────┘
 ```
 
-## 设计范式 (v3.0)
+## 设计范式 (2.7 契约)
 
 完整规范文档：[`templates/theme-paradigm.md`](src/templates/theme-paradigm.md)。
 
@@ -306,9 +301,10 @@ Markdown 文件
 |------|------|
 | **变量化优先** | 所有颜色、字体、字号、间距一律通过 CSS 自定义属性定义，选择器中禁止裸值 |
 | **模块化** | 主题 = 变量 + 极少量选择器微调，内置系统自动继承 |
-| **语义化** | `--color-link` 而非 `--color-blue`；`--font-heading` 而非 `--font-sans` |
-| **可推导性** | 完整主题由 5 个种子色 + 3 组字体栈自动推导，AI Agent 只需修改 Section 1 |
-| **打印保真** | `@media print` 是屏幕样式的镜像增强版（同值 + `!important` + `print-color-adjust`） |
+| **语义化** | `--link-color` 而非 `--color-blue`；`--font-body` 而非 `--font-sans` |
+| **可推导性** | 完整主题由 11 个种子令牌 + 3 组字体栈自动推导，AI Agent 只需修改 Section 1 |
+| **打印保真** | 导出直接打印当前窗口，屏幕规则原样生效；`@media print` 只补 `print-color-adjust` |
+| **无死规则** | CodeMirror 6 没有 `#write`、`.ProseMirror`、`<h1>`、`<blockquote>`，只用 `.cm-md-*` 行类 |
 
 ### 对比度要求 (WCAG 2.1)
 
@@ -349,7 +345,6 @@ ColaMD-themes/
 │   ├── contrast.ts                          # WCAG 2.1 亮度与对比度
 │   ├── validators.ts                        # 范式验证引擎
 │   ├── color-systems.ts                     # 15 套预定义种子色板
-│   ├── mermaid-presets.ts                   # Mermaid 20 变量预设
 │   ├── docx-style-paradigm.ts              # 文档样式规范
 │   ├── extractors/
 │   │   ├── base.ts                          # 提取器接口
@@ -358,7 +353,7 @@ ColaMD-themes/
 │   │   └── pdf-extractor.ts                 # PDF → ThemeStyle
 │   └── templates/
 │       ├── template.css                     # 范式配套 CSS 模板
-│       ├── theme-paradigm.md               # v3.0 设计规范
+│       ├── theme-paradigm.md               # v4.0 设计规范（2.7 契约）
 │       └── theme-template.hbs              # Handlebars CSS 模板
 └── tests/
 ```
@@ -369,7 +364,7 @@ ColaMD-themes/
 |------|-----|------|
 | 运行时 | Node.js + TypeScript | ESM 模块，严格类型 |
 | CLI 框架 | Commander.js | 参数解析、子命令分发 |
-| CSS 模板 | Handlebars | v3.0 范式 CSS 生成 |
+| CSS 模板 | Handlebars | 2.7 契约 CSS 生成 |
 | HTML 解析 | Cheerio | URL 提取时的 DOM 遍历 |
 | CSS 解析 | css-tree | CSS 规则 AST 解析 |
 | DOCX 解析 | Mammoth | Word → HTML 转换 |

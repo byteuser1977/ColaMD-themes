@@ -1,8 +1,9 @@
-# ColaMD CSS 主题定义范式 v3.0
+# ColaMD CSS 主题定义范式 v4.0
 
 **适用范围**：ColaMD `themes/*.css` 用户主题文件的编写与 AI 辅助生成  
-**最后更新**：2026-05-23  
-**关联文件**：`themes/template.css`（范式配套模板）
+**契约版本**：ColaMD Extend 2.7（CodeMirror 6 编辑器 + Pele 图表引擎）  
+**最后更新**：2026-10-23  
+**关联文件**：`themes/template.css`（范式配套模板）、`src/templates/theme-template.hbs`（生成器模板）
 
 ---
 
@@ -13,38 +14,42 @@
 | 原则 | 说明 |
 |------|------|
 | **变量化** | 颜色、字体、字号、间距一律通过 CSS 自定义属性定义。选择器规则中禁止出现裸色值（`#xxx`）、裸字号（`12pt`）、裸字体名 |
-| **模块化** | 主题文件只定义变量 + 极小量选择器微调。Mermaid 图表、编辑器排版由内置系统 (`base.css` / `variables.css`) 自动承继 |
+| **模块化** | 主题文件只定义变量 + 极小量选择器微调。图表与编辑器排版由内置系统（`base.css` / `editor-preview.css` / Pele 缺省值）自动承继 |
 | **语义化** | 变量名描述用途而非外观。`--color-link` 而非 `--color-blue`；`--font-heading` 而非 `--font-sans` |
-| **可推导** | 完整主题可由 5 个种子色 + 3 组字体栈自动推导，AI Agent 修改主题只需改动 SECTION 1 |
-| **打印保真** | `@media print` 输出必须与屏幕显示保持视觉一致。打印样式是屏幕样式的**镜像增强版**（同值 + `!important` + `print-color-adjust`），而非独立设计 |
+| **可推导** | 完整主题可由 11 个种子色 + 3 组字体栈自动推导，AI Agent 修改主题只需改动 SECTION 1 |
+| **打印保真** | 2.7 起导出直接对当前窗口 `printToPDF()`，屏幕规则原样生效；`@media print` 只补 `print-color-adjust`，不再重写整份镜像 |
+| **无死规则** | 选择器必须命中真实 DOM。CodeMirror 6 不产出 `#write` / `.ProseMirror` / `<h1>`，这类规则一律禁止 |
 
 ### 1.2 与现有体系的关系
 
 ```
 ┌─────────────────────────────────────────────────┐
 │  themes/template.css        用户主题 (本范式)     │
-│  定义变量值 + 微调选择器                         │
+│  :root 变量 + .cm-md-* 微调                      │
 ├─────────────────────────────────────────────────┤
-│  src/.../base.css           编辑器排版层          │
-│  消费 --bg-color, --text-color 等变量            │
+│  base.css                   主题变量默认值        │
+│  :root, body.theme-light 定义 14 个活变量         │
 ├─────────────────────────────────────────────────┤
-│  src/.../mermaid/variables.css  Mermaid 映射层   │
-│  消费 --mermaid-* 变量，自动映射到 22 种图表      │
+│  editor-preview.css         CM6 排版层            │
+│  消费活变量；.cm-md-* 行类与装饰类                 │
 ├─────────────────────────────────────────────────┤
-│  src/.../mermaid-plugin-custom.css  文本偏移基线  │
-│  提供 --mermaid-label-offset-y 等定位变量         │
+│  Pele 图表引擎（SVG 内嵌 var(--pele-*)）          │
+│  主题覆盖 --pele-* 即可换配色，换装即时生效        │
 ├─────────────────────────────────────────────────┤
-│  src/.../foundation.css     全局 Reset + 默认值   │
+│  document.css               HTML/PDF 导出样式     │
+│  作用域 .colamd-document，消费同一批变量           │
 └─────────────────────────────────────────────────┘
 ```
 
-**关键约束**：主题文件通过 `body.theme-custom` 选择器接入系统。内置 `variables.css` 已预置所有 Mermaid SVG 选择器映射，主题**只需定义变量值**，**无需**重复写 SVG 选择器。
+**关键约束**：主题文件的根块必须是 `:root`。编辑器 DOM 里没有语义元素，标题是带类的一行、引用与代码块是每行一个 `div`，选择器只能使用 `.cm-md-*` 钩子。图表配色通过 `--pele-*` 变量，不写 SVG 选择器。
 
 ---
 
 ## 2. 设计规范 (Design Specification)
 
 本节定义可被 AI Agent 程序化验证的强制性设计约束。每条规则包含唯一 ID、约束级别（MUST / MUST NOT / SHOULD / SHOULD NOT）、验证方法和设计理由。
+
+> 规则中的 `--seed-*` 是**生成器**的输入令牌。手写主题只写语义变量时，按等价关系校验：`--seed-ink` ↔ `--text-color`、`--seed-surface` ↔ `--bg-color`、`--seed-panel` ↔ `--code-bg`、`--seed-ink-muted` ↔ `--text-secondary`、`--seed-accent` ↔ `--link-color`。
 
 ### 2.1 色彩空间规范
 
@@ -107,10 +112,10 @@ contrastRatio(L1, L2) = (max(L1,L2) + 0.05) / (min(L1,L2) + 0.05)
 
 | Rule ID | 级别 | 规则 |
 |---------|------|------|
-| **FP-01** | MUST | 主题使用的字体家族总数 ≤ 4（正文 1、标题 1、等宽 1、Mermaid 1） |
-| **FP-02** | SHOULD | `--font-heading` 与 `--font-body` 须有分类对比：一个无衬线、一个衬线；或同分类但字重/字宽显著不同 |
-| **FP-03** | MUST | `--font-code` 必须是等宽字体（monospace），禁止将比例字体用于代码 |
-| **FP-04** | SHOULD | `--font-mermaid` 应引用 `var(--font-heading)`，保持图表与文档标题字体一致 |
+| **FP-01** | MUST | 主题使用的字体家族总数 ≤ 3（正文 1、标题 1、等宽 1） |
+| **FP-02** | SHOULD | 标题字体（写在 `.cm-md-atxheading*` 上）与 `--font-body` 须有分类对比：一个无衬线、一个衬线；或同分类但字重/字宽显著不同 |
+| **FP-03** | MUST | `--font-mono` 必须是等宽字体（monospace），禁止将比例字体用于代码 |
+| **FP-04** | SHOULD | 图表文字默认继承 `--font-body`，需要等宽时继承 `--font-mono`；不再有 `--font-mermaid` |
 
 #### 2.2.2 字体分类搭配矩阵
 
@@ -238,14 +243,20 @@ contrastRatio(L1, L2) = (max(L1,L2) + 0.05) / (min(L1,L2) + 0.05)
 
 ```
 SECTION 1  设计令牌 (Design Tokens)     ← 用户修改
-SECTION 2  语义映射 (Semantic Mapping)   ← 自动推导
-SECTION 3  Mermaid 图表变量              ← 被内置系统消费
-SECTION 4  排版微调变量                  ← 可选覆盖
+SECTION 2  编辑器 DOM 选择器 (.cm-md-*) ← 可选微调
+SECTION 3  导出 HTML (.colamd-document) ← 导出件配色
+SECTION 4  打印 (media print)           ← 保真补充
 ```
+
+**变量根块必须是 `:root`**，写在 `body.theme-*` 里编辑器继承不到。变量分三层（活 / 死 / 种子）：
+
+- **活变量**：`--bg-color --text-color --text-secondary --text-muted --border-color --link-color --code-bg --code-block-bg --code-block-text --blockquote-border --blockquote-bg --table-header-bg --selection-bg --highlight-bg --font-body --font-mono --editor-font-size --editor-column-width` + `--pele-*`（9 个）。
+- **死变量（禁止写）**：`--surface-color --surface-alt --text-dim --heading-color --accent-color --accent-dark --accent-light --hr-color --code-color --code-block-color --table-border --scrollbar-thumb* --mermaid-* --radius-* --content-width --font-size-root --font-scale-* --line-height-* --font-heading --font-code --font-mermaid --font-size-mermaid`。
+- **种子令牌**：`--seed-*`（生成器输入，手写主题可不写）。
 
 ### 3.2 设计令牌：种子色板
 
-主题的视觉基调由 5 个种子色 + 各自深浅变体决定。
+主题的视觉基调由 11 个种子令牌（4 组颜色 + 3 组文字 + 2 组边框）决定。手写主题可跳过这一层，直接写语义变量。
 
 ```
 --seed-accent         点缀色（链接、强调、Mermaid 高亮）
@@ -275,10 +286,9 @@ SECTION 4  排版微调变量                  ← 可选覆盖
 ### 3.3 设计令牌：字体系统
 
 ```
---font-body      正文字体栈（衬线优先或无衬线）
---font-heading   标题字体栈（与正文形成对比）
---font-code      等宽字体栈（代码/公式）
---font-mermaid   Mermaid 图表字体（默认引用 --font-heading）
+--font-body      正文字体栈（活变量，写在 :root）
+--font-mono      等宽字体栈（活变量，代码/公式/图表）
+标题字体栈       写在 .cm-md-atxheading* 上（--font-heading 已死）
 ```
 
 **字体栈构造规范**：
@@ -288,50 +298,54 @@ SECTION 4  排版微调变量                  ← 可选覆盖
 
 ### 3.4 语义映射规则
 
-设计令牌通过变量引用自动映射到 ColaMD 内置系统消费的语义变量。
+生成器把 11 个种子令牌映射为 2.7 的活变量（语义变量直接引用种子，不引入新色值）：
 
-| 内置变量 | 映射来源 | 消费者 |
-|----------|---------|--------|
-| `--bg-color` | `--seed-surface` | `base.css` 页面背景 |
-| `--text-color` | `--seed-ink` | `base.css` 正文颜色 |
-| `--text-muted` | `--seed-ink-muted` | `base.css` 引用/次要文字 |
-| `--heading-color` | `--seed-ink` | `base.css` 标题颜色 |
-| `--border-color` | `--seed-border` | `base.css` 表格/分割线 |
-| `--link-color` | `--seed-accent` | `base.css` 超链接 |
-| `--code-bg` | `--seed-panel` | `base.css` 内联代码背景 |
-| `--code-block-bg` | `--seed-panel-alt` | `base.css` 代码块背景 |
-| `--blockquote-border` | `--seed-accent` | `base.css` 引用块左侧竖线 |
-| `--table-header-bg` | `--seed-panel` | `base.css` 表头背景 |
-| `--selection-bg` | `accent + 0.15 alpha` | `base.css` 选区高亮 |
+| 活变量 | 映射来源 | 消费者 |
+|--------|---------|--------|
+| `--bg-color` | `--seed-surface` | 页面背景 |
+| `--text-color` | `--seed-ink` | 正文颜色 |
+| `--text-secondary` | `--seed-ink-muted` | 次级文字：引用、标签 |
+| `--text-muted` | `--seed-ink-dim` | 压淡文字：行号、链接地址 |
+| `--border-color` | `--seed-border` | 分隔线、表格边框 |
+| `--link-color` | `--seed-accent` | 超链接、PeLe accent |
+| `--code-bg` | `--seed-panel` | 内联代码背景 |
+| `--code-block-bg` | `--seed-panel-alt` | 代码块背景 / Pele 画布底 |
+| `--code-block-text` | 派生（见下） | 代码块文字 / Pele 前景 |
+| `--blockquote-border` | `--seed-accent` | 引用块左竖线 |
+| `--blockquote-bg` | `--seed-panel` | 引用块背景 |
+| `--table-header-bg` | `--seed-panel` | 表头背景 |
+| `--selection-bg` | `accent + 0.18 alpha` | 选区高亮 |
+| `--highlight-bg` | `accent + 0.18 alpha` | `==高亮==` |
+| `--font-body` | `fontBody` | 正文 |
+| `--font-mono` | `fontCode` | 代码 / 图表 |
+| `--editor-font-size` | `fontSizeRoot` | 编辑字号 |
+| `--editor-column-width` | `contentWidth` | 阅读列宽 |
 
-**映射原则**：语义映射仅做变量引用（`var(--seed-*)`），不引入新色值。如需微调某个语义角色（如让 `--code-bg` 比 `--seed-panel` 略深），在映射处加 `color-mix()` 或微调 alpha 值。
+**`--code-block-text` 派生规则**：从 `--code-block-bg` 出发，在白、浅灰、`--bg-color`、`--text-color` 四档里挑对比度最高者 —— 深色代码块自动拿浅色文字，浅色代码块拿正文色。不得硬编码一套明暗两套的猜测逻辑。
 
-### 3.5 Mermaid 20 核心变量
+**Pele 图表**：`--pele-*` 九个变量全部可省略，缺省值由 `--code-block-bg` / `--code-block-text` / `--link-color` 经 `color-mix()` 推导（对比度是算出来的）。主题只需在 `:root` 覆盖需要的档位。
 
-所有 Mermaid 变量由内置 `variables.css` 自动消费，覆盖 22 种图表类型。
+### 3.5 Pele 图表 9 变量
 
-| 变量 | 作用于 | 映射建议 |
-|------|--------|---------|
-| `--mermaid-background` | 图表容器背景 | `--seed-panel` |
-| `--mermaid-border-color` | 图表容器边框 | `--seed-border` |
-| `--mermaid-font-family` | 图表内所有文字 | `--font-mermaid` |
-| `--mermaid-font-size` | 图表内所有文字大小 | 独立设置（通常 12-14px） |
-| `--mermaid-node-fill` | 节点填充色 | `--seed-panel` |
-| `--mermaid-node-stroke` | 节点描边色 | `--seed-accent` |
-| `--mermaid-node-stroke-width` | 节点描边宽度 | `1.5px`（固定） |
-| `--mermaid-node-text` | 节点内文字色 | `--seed-ink` |
-| `--mermaid-edge-stroke` | 连线颜色 | `--seed-ink-muted` |
-| `--mermaid-edge-stroke-width` | 连线宽度 | `1.5px`（固定） |
-| `--mermaid-cluster-fill` | Subgraph 聚类填充 | `accent + 0.06 alpha` |
-| `--mermaid-cluster-stroke` | Subgraph 聚类边框 | `--seed-accent` |
-| `--mermaid-label-text` | 标签/节点内文本色 | `--seed-ink` |
-| `--mermaid-edge-label-text` | 边标签文字色 | `--seed-ink-muted` |
-| `--mermaid-edge-label-bg` | 边标签背景色 | `--seed-surface` |
-| `--mermaid-title-text` | 图表标题色 | `--seed-ink` |
-| `--mermaid-axis-text` | 坐标轴文字色 | `--seed-ink-muted` |
-| `--mermaid-highlight` | 高亮/标记色 | `--seed-accent` |
-| `--mermaid-person-stroke` | 人物节点描边 | `--seed-ink` |
-| `--mermaid-label-offset-y` | 标签 Y 偏移 | `0px`（无特殊需求时） |
+上游 2.7.7 起图表引擎换成 Pele：SVG 内嵌 `var(--pele-*)`，在图落进的文档里取值，换主题即时生效，不需要重画。`--mermaid-*` 全部失效。
+
+| 变量 | 画的是什么 | 缺省取值 |
+|------|-----------|---------|
+| `--pele-bg` | 画布底色 | `--code-block-bg` |
+| `--pele-fg` | 文字 | `--code-block-text` |
+| `--pele-muted` | 弱化文字 | 文字色与底色 70% 混合 |
+| `--pele-line` | 连线与箭头 | `--code-block-text` |
+| `--pele-surface` | 节点填充 | 文字色 18% 与底色混合 |
+| `--pele-surface-alt` | 次级节点填充 | 文字色 28% 与底色混合 |
+| `--pele-border` | 节点描边 | 文字色 45% 与底色混合 |
+| `--pele-accent` | 强调色 | `--link-color` |
+| `--pele-radius` | 圆角 | `6px` |
+
+**规则**：
+- 声明在 `:root` 上，写进别的选择器等于没写。
+- 不必写齐：每个变量独立生效，缺省值本身从代码块底色与字色推导。
+- 图直接画在代码块背景上：配色贴着 `--code-block-bg` 调。
+- Word 导出不走变量（Pele 变量到不了 `<img>` 的 data URL），会内联一套固定浅色值。
 
 ---
 
@@ -343,9 +357,9 @@ SECTION 4  排版微调变量                  ← 可选覆盖
 
 | 内置文件 | 已处理内容 | 主题禁止 |
 |----------|-----------|---------|
-| `variables.css` | 所有 `body.theme-custom .mermaid-preview svg .*` 选择器 | 写 Mermaid SVG 选择器 |
-| `base.css` | `#editor .ProseMirror` 下的 h1-h6/p/code/pre/table/blockquote/ul/ol/hr/img | 重写已被变量覆盖的排版规则 |
-| `mermaid-plugin-custom.css` | `.label text`, `.nodeLabel`, `.edgeLabel` 的 `transform/display/position` | 在主题层做定位覆盖（参照 guizang 模式） |
+| `base.css` | 活变量默认值（`:root, body.theme-light`） | 在 `body.theme-*` 里重定义主题变量 |
+| `editor-preview.css` | `.cm-content` / `.cm-line` 的字体、字号、行高、列宽、内边距基线 | 重写已被变量覆盖的排版规则；给 `.cm-line` 之外的元素加行内边距 |
+| `document.css` | `.colamd-document` 下 h1/p/ul/pre/table 的结构排版 | 重写导出件的结构规则（只补配色） |
 
 ### 4.2 允许的微调选择器
 
@@ -353,24 +367,28 @@ SECTION 4  排版微调变量                  ← 可选覆盖
 
 | 允许的选择器 | 用途 | 约束 |
 |-------------|------|------|
-| `body.theme-custom h1-h6` | 标题字号/字体（base.css 使用 em 倍率，可覆盖为 pt） | 值必须引用 `var(--font-*)` |
-| `body.theme-custom strong` | 加粗文字颜色 | 引用 `var(--accent-color)` |
-| `body.theme-custom code` | 内联代码字体/背景 | 引用 `var(--font-code)`, `var(--code-bg)` |
-| `body.theme-custom pre` | 代码块字体/背景 | 引用变量 |
-| `body.theme-custom blockquote` | 引用块背景色（base.css 未设背景） | 引用 `var(--blockquote-bg)` |
-| `body.theme-custom table th` | 表头强调（双底线等） | 值引用变量 |
-| `body.theme-custom .mermaid-block + p` | 图表标题居中 | 字体/字号引用变量 |
-| `@media print` | 打印样式 | 用于固定打印色值 |
+| `#editor .cm-content` | 正文字体、行高 | 引用 `var(--font-body)` |
+| `#editor .cm-content .cm-md-atxheading1..6` | 标题字体/颜色/字号/底线 | 字号用 `em`，不得用 `pt` |
+| `#editor .cm-content .cm-md-strong/.cm-md-em/.cm-md-strike/.cm-md-inlinecode/.cm-md-highlight` | 行内样式 | 引用活变量 |
+| `#editor .cm-content .cm-md-link/.cm-md-url` | 链接文字与地址 | 引用 `var(--link-color)` / `var(--text-muted)` |
+| `#editor .cm-content .cm-md-blockquote` | 引用块底色、左竖线 | **只给左右 padding** |
+| `#editor .cm-content .cm-md-codeblock(-first/-last)` | 代码块底色、文字、首末行圆角 | **只给左右 padding** |
+| `#editor .cm-content .cm-md-table-widget th/td` | 表头底色、单元格边框 | 引用活变量 |
+| `#editor .cm-content .cm-md-hr` | 分隔线颜色 | 引用 `var(--border-color)` |
+| `#editor .cm-content .cm-md-li-0..6` | 列表层级样式 | 不得改纵向间距 |
+| `.colamd-document ...` | 导出件配色 | 只补配色，不重写结构 |
+| `@media print` | 打印保真 | 只补 `print-color-adjust`，不写镜像 |
 
 ### 4.3 度量指标
 
 | 指标 | 目标值 | 说明 |
 |------|--------|------|
 | 主题文件总行数 | ≤ 300 行 | 含注释和空行 |
-| 裸色值数量 | 0 | 所有颜色通过 `var(--*)` 引用 |
-| 裸字号数量 | 0 | 所有字号通过 `var(--font-*)` 引用 |
-| Mermaid SVG 选择器 | 0 | 由内置 `variables.css` 处理 |
-| 用户需修改的变量数 | ≤ 20 | 集中在 SECTION 1 |
+| 死选择器数量 | 0 | `#write` / `.ProseMirror` / `body.theme-custom` / `.mermaid-*` 一律禁止 |
+| 死变量数量 | 0 | `--mermaid-*` / `--radius-*` / `--font-size-root` 等一律禁止 |
+| `pt` 单位数量 | 0 | 统一用 `px` / `em` / `rem` |
+| 根块位置 | `:root` | 变量必须写在 `:root` |
+| 用户需修改的变量数 | ≤ 18 | 集中在 SECTION 1 |
 
 ---
 
@@ -379,49 +397,34 @@ SECTION 4  排版微调变量                  ← 可选覆盖
 ### 5.1 必须的 SECTION
 
 ```
-SECTION 1  设计令牌 — 变量定义块（用户编辑区）
-  ├── 1.1 种子色板
-  ├── 1.2 字体系统
-  ├── 1.3 字号倍率
-  └── 1.4 圆角/间距/宽度
+SECTION 1  Design Tokens — :root 活变量（用户编辑区）
+  ├── 1.1 语义色（14 个）
+  ├── 1.2 字体与度量（4 个）
+  └── 1.3 Pele 图表（9 个，可选）
 
-SECTION 2  语义映射 — 令牌 → 内置变量的自动映射
-  ├── 2.1 编辑区表面色
-  ├── 2.2 编辑区文字色
-  ├── 2.3 链接/强调
-  ├── 2.4 边框/分割线
-  ├── 2.5 内联代码
-  ├── 2.6 代码块
-  ├── 2.7 引用块
-  ├── 2.8 表格
-  └── 2.9 滚动条
+SECTION 2  编辑器 DOM — #editor .cm-content + .cm-md-*
+  ├── 2.1 正文与标题
+  ├── 2.2 行内格式
+  ├── 2.3 引用块 / 代码块
+  ├── 2.4 表格 / 分隔线
+  └── 2.5 首行缩进与排除
 
-SECTION 3  Mermaid 图表变量
-  ├── 3.1 容器
-  ├── 3.2 字体
-  ├── 3.3 节点
-  ├── 3.4 连线
-  ├── 3.5 聚类
-  ├── 3.6 标签
-  ├── 3.7 标题/坐标轴
-  ├── 3.8 人物节点
-  └── 3.9 偏移
+SECTION 3  导出 HTML — .colamd-document（只补配色）
 
-SECTION 4  排版微调变量
-
-SECTION 5  选择器级微调
-
-SECTION 6  @media print
+SECTION 4  @media print（只补 print-color-adjust）
 ```
 
 ### 5.2 选择器规则
 
 | 规则 | 说明 |
 |------|------|
-| 根选择器 | 变量定义在 `body.theme-custom { }` 内 |
-| 选择器前缀 | 排版选择器使用 `body.theme-custom <element>` 限定作用域 |
-| `!important` | 仅在 `@media print` 中使用。屏幕样式靠选择器优先级解决 |
+| 根选择器 | 变量定义在 `:root { }` 内 |
+| 编辑器选择器 | 一律 `#editor .cm-content .cm-md-*`（两个类才压得住 CodeMirror baseTheme） |
+| 引用/代码块内边距 | 只允许 `padding-left` / `padding-right`，禁止纵向 padding |
+| `!important` | 禁止使用（`@media print` 里也只用于 `print-color-adjust`） |
+| `pt` 单位 | 禁止使用，统一 `px` / `em` / `rem` |
 | 层叠顺序 | 变量定义块在前，选择器规则块在后 |
+| 导出件 | `.colamd-document` 只补配色；结构排版由 `document.css` 提供 |
 
 ### 5.3 注释规范
 
@@ -439,175 +442,38 @@ SECTION 6  @media print
 
 ### 6.1 核心约束
 
-ColaMD 通过 Electron `printToPDF()` 生成 PDF，底层为 Chromium 打印引擎。Chromium 打印默认**剥离所有背景色和自定义颜色**。因此 `@media print` 必须主动恢复每个被剥离的样式。
+2.7 起 PDF 导出直接对**当前窗口** `printToPDF()`：屏幕上的主题 CSS 原样生效，Chromium 不再拿到一份独立的设计。因此：
 
-**铁律**：`@media print` 是屏幕样式的**镜像增强版**——相同的变量值 + `!important` + `print-color-adjust: exact`。禁止在 print 中创造不同的设计。
+- **不写镜像**：不再把每条屏幕规则复制到 `@media print` 加 `!important`。
+- **不重声明变量**：`@media print` 里重新注入 `--seed-*` 的旧做法已删除。
+- **只补保真**：`@media print` 里保留 `print-color-adjust: exact`，让背景色与自定义颜色进入 PDF。
 
-### 6.2 必须覆盖的元素清单
-
-以下元素在打印时会被 Chromium 剥离样式，**每个都必须**在 `@media print` 中显式声明：
-
-| 元素 | 必须声明 | 原因 |
-|------|---------|------|
-| `html, body` | `background`, `color`, `font-family` | 根元素背景/文字被清除 |
-| `h1-h6` | `color`（尤其是有色标题如 Swiss Red h1） | 非纯黑标题色被清除 |
-| `code` | `background`, `color` | 内联代码背景被清除 |
-| `pre` | `background`, `color`, `border-left`（如有） | 代码块背景/装饰被清除 |
-| `blockquote` | `background`, `border-left` | 引用块背景被清除 |
-| `table th` | `background`, `color`, `border` | 表头底色被清除 |
-| `table td` | `border` | 表格线可能断裂 |
-| `a` | `color`, `border-bottom`（如有） | 链接色被清除 |
-| `.mermaid-block` | `background`, `border` | 图表容器被清除 |
-| `.mermaid-preview svg *` | `print-color-adjust: exact` | SVG 颜色全部被剥离 |
-| `.mermaid-block + p` | `color`, `text-align` | 图题样式丢失 |
-| `strong` | `color`（如使用非默认色） | 强调色被清除 |
-
-### 6.3 打印变量声明块
-
-`@media print` 开头必须先重新声明关键变量。Chromium 打印可能丢失 `body.theme-custom` 中定义的 CSS 自定义属性，因此在 print 作用域内重新注入：
+### 6.2 打印块
 
 ```css
 @media print {
-  body.theme-custom {
-    /* 将 SECTION 1 的种子色重新声明到 print 作用域 */
-    --seed-accent: #e30613;
-    --seed-surface: #ffffff;
-    --seed-ink: #0d0d0d;
-    --seed-panel: #f4f4f4;
-    --seed-panel-alt: #eaeaea;
-    /* ... 以及所有在 print 选择器中引用的变量 */
-  }
-  
-  /* 之后的选择器引用 var(--seed-*) 确保值一致 */
-}
-```
-
-### 6.4 打印选择器编写规则
-
-1. **先变量，后选择器**：先重声明变量块，再写选择器规则
-2. **`!important` 全部**：print 中每个属性都用 `!important`，因为打印引擎的默认样式表优先级极高
-3. **`print-color-adjust: exact` 精确覆盖**：每个有背景色的元素独立声明（不能依赖继承）
-4. **值与屏幕一致**：print 选择器的值引用 `var(--seed-*)`，保证与屏幕端一致
-5. **禁止在 print 中引入新色值**：即使是 `#ffffff` 也应引用变量（如 `var(--seed-surface)`）
-
-### 6.5 完整打印模板
-
-```css
-@media print {
-  @page { margin: 20mm; }
-
-  /* —— 变量重声明（确保 Chromium 打印不丢失） —— */
-  body.theme-custom {
-    --seed-accent:       <同 SECTION 1>;
-    --seed-accent-dark:  <同 SECTION 1>;
-    --seed-surface:      <同 SECTION 1>;
-    --seed-ink:          <同 SECTION 1>;
-    --seed-ink-muted:    <同 SECTION 1>;
-    --seed-panel:        <同 SECTION 1>;
-    --seed-panel-alt:    <同 SECTION 1>;
-    --seed-border:       <同 SECTION 1>;
-  }
-
-  /* —— 根元素 —— */
-  html, body, body.theme-custom {
-    background: var(--seed-surface) !important;
-    color: var(--seed-ink) !important;
-    font-family: var(--font-body) !important;
-  }
-
-  /* —— 标题（尤其是有色标题必须恢复） —— */
-  body.theme-custom h1 {
-    color: var(--seed-accent) !important;  /* 保留页面中的有色标题 */
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* —— 内联代码 —— */
-  body.theme-custom code {
-    background: var(--seed-panel) !important;
-    color: var(--seed-accent-dark) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* —— 代码块 —— */
-  body.theme-custom pre {
-    background: var(--seed-panel-alt) !important;
-    color: var(--seed-ink) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  body.theme-custom pre code {
-    background: transparent !important;
-    color: inherit !important;
-  }
-
-  /* —— 引用块 —— */
-  body.theme-custom blockquote {
-    background: var(--seed-panel) !important;
-    border-left-color: var(--seed-ink) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* —— 表格表头（有色底必须恢复） —— */
-  body.theme-custom table th {
-    background: var(--seed-ink) !important;
-    color: var(--seed-surface) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  body.theme-custom table td {
-    border-color: var(--seed-border) !important;
-  }
-
-  /* —— 链接 —— */
-  body.theme-custom a {
-    color: var(--seed-ink) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* —— 强调文字 —— */
-  body.theme-custom strong {
-    color: var(--seed-accent-dark) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* —— Mermaid 图表容器 —— */
-  body.theme-custom .mermaid-block {
-    background: var(--seed-surface) !important;
-    border-color: var(--seed-border) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  body.theme-custom .mermaid-preview svg * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* —— 图表标题 —— */
-  body.theme-custom .mermaid-block + p {
-    color: var(--seed-ink-muted) !important;
-    text-align: center !important;
+  html,
+  body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 ```
 
-### 6.6 打印验证清单
+语义标签的导出件（`.colamd-document`）由 `document.css` 提供结构，主题只补配色，打印时同样自动生效。
 
-主题开发完成后，逐项确认 PDF 导出效果：
+### 6.3 打印验证清单
 
-- [ ] 页面背景色与屏幕一致（非灰色）
-- [ ] h1 颜色与屏幕一致（尤其是有色标题如 Swiss Red）
-- [ ] 内联代码背景色存在
-- [ ] 代码块背景色存在，左侧装饰线（如有）可见
-- [ ] 引用块背景色和左侧竖线存在
-- [ ] 表格表头底色存在（黑底白字 / 浅灰底等）
-- [ ] Mermaid SVG 颜色与屏幕一致
-- [ ] 图表标题居中且字号正确
-- [ ] 链接文字颜色不为默认蓝
+- [ ] 页面底色与屏幕一致（非灰底）
+- [ ] 标题颜色与屏幕一致
+- [ ] 内联代码、代码块底色存在
+- [ ] 引用块底色与左竖线存在
+- [ ] 表头底色存在
+- [ ] Pele 图表配色与屏幕一致
+- [ ] 链接颜色不是浏览器默认蓝
+- [ ] 导出件中没有 `#write` / `.ProseMirror` 时期的空规则
 
 ---
 
@@ -617,23 +483,26 @@ ColaMD 通过 Electron `printToPDF()` 生成 PDF，底层为 Chromium 打印引�
 
 1. 复制 `themes/template.css` 为基础
 2. 确定配色方向（浅色/深色/暖调/冷调/学术）
-3. 填写 SECTION 1 的 5 个种子色 + 3 组字体栈
-4. 微调 SECTION 5 的选择器（如需）
-5. 保存，导入测试
+3. 填写 SECTION 1 的 14 个语义色 + `--font-body` / `--font-mono`
+4. 需要微调时只改 SECTION 2 的 `.cm-md-*` 规则
+5. 运行 `colamd-themes validate <file>` 确认 `:root`、死选择器、死变量、`pt` 与纵向 padding 全部通过
+6. 保存，导入测试
 
 ### 7.2 修改现有主题
 
-1. 只修改 SECTION 1 中的 `--seed-*` 和 `--font-*` 变量
-2. 其他 SECTION 的映射变量自动跟随
-3. 如某个语义角色需要独立微调，修改对应的 `--var: var(--seed-*)` 映射行
+1. 只修改 `:root` 里的语义变量与 Pele 变量
+2. 选择器层没有对应变量时才加 `.cm-md-*` 规则
+3. 主题文件里出现 `--mermaid-*`、`--font-size-root`、`#write`，一律视为未迁移
 
 ### 7.3 禁止操作
 
-- 在 `body.theme-custom` 块外定义变量
-- 在选择器中使用裸色值（`#xxxxxx`）
-- 重复定义内置 `variables.css` 已有的 Mermaid SVG 选择器
-- 使用 `!important`（`@media print` 除外）
-- 为 mermaid 标签添加 `transform` / `display` / `position` / `top` / `left` 覆盖
+- 在 `:root` 之外定义主题变量
+- 使用死变量（`--surface-color` / `--heading-color` / `--accent-color` / `--hr-color` / `--code-color` / `--font-size-root` / `--content-width` / `--radius-*` / `--mermaid-*` …）
+- 使用死选择器（`#write` / `.ProseMirror` / `body.theme-custom` / `.mermaid-block`）
+- 给 `.cm-md-blockquote` / `.cm-md-codeblock` 加纵向 padding
+- 使用 `pt` 单位
+- 使用 `!important`（`@media print` 的 `print-color-adjust` 除外）
+- 写 Mermaid SVG 选择器或 Pele 内部节点选择器（只覆盖 `--pele-*`）
 
 ---
 
@@ -641,11 +510,10 @@ ColaMD 通过 Electron `printToPDF()` 生成 PDF，底层为 Chromium 打印引�
 
 | 主题 | 行数 | 范式符合度 | 迁移建议 |
 |------|------|-----------|---------|
-| `guizang.css` | ~700 | 中（变量驱动，但选择器冗长） | 可精简至 ~200 行 |
-| `elegant.css` | ~750 | 中 | 可精简至 ~200 行 |
-| `forest-ink.css` | ~750 | 中 | 可精简至 ~200 行 |
-| `pixso-design.css` | ~700 | 中 | 可精简至 ~200 行 |
-| `academic-paper.css` | ~1300 | 低（大量 GB/T 7713 专用选择器） | 适当保留专用规则 |
+| 上游 `resources/templates/themes/*.css`（5 套） | 50~90 | 高（2.7 已移植范例） | 作为写法基准直接对照 |
+| `academic-paper.css` | ~1300 | 低（v3 选择器全量） | 按 SECTION 重写，保留学术排版规则到 `.cm-md-*` |
+| `guizang.css` / `elegant.css` / `forest-ink.css` / `pixso-design.css` | ~700~750 | 低（`#write` / `.ProseMirror`） | 全量迁移至 `.cm-md-*`，目标 ~200 行 |
+| `word-contract.css` | — | 低（v3 契约） | 全量迁移，保留合同专用规则 |
 
 ---
 
@@ -653,6 +521,7 @@ ColaMD 通过 Electron `printToPDF()` 生成 PDF，底层为 Chromium 打印引�
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| v4.0 | 2026-10-23 | 对齐 ColaMD Extend 2.7（CodeMirror 6 + Pele）：根块改 `:root`；活/死变量清单；`.cm-md-*` 选择器取代 `#write`/`.ProseMirror`；Mermaid 20 变量 → Pele 9 变量；新增 `.colamd-document` 导出段；打印改为「不写镜像、只补保真」；新增死选择器/死变量/`pt`/纵向 padding 校验 |
 | v3.2 | 2026-05-23 | 新增 Section 2「设计规范」：色彩空间、字体搭配、表面层次、线条边框的强制性约束（含 Rule ID、WCAG 对比度公式、色彩协调矩阵），支持 AI Agent 程序化验证 |
 | v3.1 | 2026-05-23 | 新增「打印保真」原则与完整 `@media print` 规范（Section 6） |
 | v3.0 | 2026-05-23 | 初始范式定义。提出种子色板 + 语义映射 + 内置继承的三层架构 |

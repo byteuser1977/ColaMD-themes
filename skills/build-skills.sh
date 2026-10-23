@@ -26,7 +26,7 @@ BODY=$(sed -n '/^$/,$ { /^# ColaMD/!p; }' "$SOURCE" | sed '1{/^$/d;}')
 FRONT_CLAUDE='---
 name: colamd-themes
 description: >
-  Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes.
+  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes.
   Extract formatting from URLs, DOCX, or PDF sources; export Markdown to
   standalone HTML/PDF with themes applied; batch export; manage theme
   configuration.
@@ -36,7 +36,7 @@ FRONT_OPENCODE='---
 name: colamd-themes
 version: "1.0.0"
 description: >
-  Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes.
+  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes.
   Extract from URLs/DOCX/PDF; export Markdown to HTML/PDF; batch export.
 user-invocable: true
 allowed-tools:
@@ -52,7 +52,7 @@ FRONT_OPENCLAW='---
 id: colamd-themes
 name: ColaMD Themes
 description: >
-  Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes.
+  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes.
   Extract from URLs/DOCX/PDF; export Markdown to HTML/PDF; batch export.
 version: "1.0.0"
 icon: "\U0001F3A8"
@@ -70,7 +70,7 @@ metadata:
 
 FRONT_HERMES='---
 name: colamd-themes
-description: "Generate, validate, export, and manage ColaMD v3.0 paradigm CSS themes."
+description: "Generate, validate, export, and manage ColaMD 2.7 contract CSS themes."
 version: 1.0.0
 author: bytechain
 license: MIT
