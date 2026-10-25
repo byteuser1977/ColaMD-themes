@@ -1,6 +1,6 @@
 /**
  * Paradigm validation engine — checks SeedPalette against v4.0 design constraints
- * and scans generated CSS for the ColaMD 2.7.7 theme contract.
+ * and scans generated CSS for the ColaMD 2.7.8-rc.1 theme contract.
  * Based on theme-paradigm.md Section 2.
  */
 
@@ -159,7 +159,7 @@ export function validateSeedPalette(palette: SeedPalette): ValidationIssue[] {
 }
 
 // ═══════════════════════════════════════════════════════════
-// CSS contract validation (ColaMD 2.7.7)
+// CSS contract validation (ColaMD 2.7.8-rc.1)
 // ═══════════════════════════════════════════════════════════
 
 /** 2.7 编辑器不再消费的变量：留着只会让人照抄。 */
@@ -204,7 +204,7 @@ function hasVerticalPadding(rule: { block: { children: { forEach: (cb: (node: an
   return found;
 }
 
-/** 校验生成的 CSS 是否符合 ColaMD 2.7.7 契约。 */
+/** 校验生成的 CSS 是否符合 ColaMD 2.7.8-rc.1 契约。 */
 export function validateThemeCss(css: string): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const ast = parse(css, { positions: false });
@@ -219,7 +219,7 @@ export function validateThemeCss(css: string): ValidationIssue[] {
         issues.push({
           ruleId: "CSS-01",
           level: "MUST_NOT",
-          message: `变量 ${name} 在 ColaMD 2.7.7 已不再消费`,
+          message: `变量 ${name} 在 ColaMD 2.7.8-rc.1 契约中已不再消费`,
           fix: "改用活变量清单（--bg-color / --text-secondary / --pele-* 等）",
         });
       }

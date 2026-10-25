@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-10-25
+
+### Changed
+- **导出管线切换到 2.x 库渲染器**：上游 ColaMD-extend 2.7.8-rc.1（69515aa）恢复 `dist/lib/colamd-renderer.js` 库入口（P0），`renderer.ts` 全面改用 2.x——`:root` 契约 CSS 直接消费、标题经 `buildExportHTML({ title })` 传入
+- **移除 1.5.x 兼容层（不向下兼容）**：删除 `bridgeLegacyBodyVars()` body 变量桥接、渲染器版本探测及分支逻辑；依赖由 `^1.5.2` 固定为 `^2.7.8-rc.1`（npm 发布 2.7.8-rc.1 前 `npm install`/`npm ci` 暂不可用，发布后重新解析）
+- 契约版本标注统一为 **2.7.8-rc.1**（`validate` 输出、生成器自检、校验器消息与各文件注释）
+
+### Verified
+- 2.x 真实导出冒烟测试通过：`:root` 恰好 27 个契约活变量、零死变量/`--seed-*` 泄漏、mermaid Pele SVG（`var(--pele-*)` 离线可解析）、块公式完整 KaTeX 输出（P1 验收）
+
+---
+
 ## [0.5.0] - 2026-10-25
 
 ### Added
@@ -308,7 +320,8 @@ User Input → Validation Layer → Processing Layer
 
 ---
 
-[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.1...v0.3.2

@@ -1,6 +1,6 @@
 {
   "name": "@bytechain.cn/colamd-themes",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Theme development & export tool for ColaMD — extract formatting, generate themes, and export Markdown to HTML/PDF",
   "type": "module",
   "main": "dist/index.js",
@@ -32,7 +32,7 @@
     "agent-skill"
   ],
   "dependencies": {
-    "@bytechain.cn/colamd": "^1.5.2",
+    "@bytechain.cn/colamd": "^2.7.8-rc.1",
     "axios": "^1.7",
     "chalk": "^5.3",
     "cheerio": "^1.0",

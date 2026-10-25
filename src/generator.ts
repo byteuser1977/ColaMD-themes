@@ -1,4 +1,4 @@
-/** CSS theme file generator — v4.0 seed palette pipeline (ColaMD 2.7.7 contract). */
+/** CSS theme file generator — v4.0 seed palette pipeline (ColaMD 2.7.8-rc.1 contract). */
 
 import Handlebars from "handlebars";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from "node:fs";
@@ -162,7 +162,7 @@ export function generateCss(style: ThemeStyle): string {
     codeBlockText: pickCodeBlockText(style.seed.panelAlt, style.seed),
   });
 
-  // 6. Self-check the rendered CSS against the 2.7.7 contract
+  // 6. Self-check the rendered CSS against the 2.7.8-rc.1 contract
   const cssIssues = validateThemeCss(css).filter(
     (i) => i.level === "MUST" || i.level === "MUST_NOT"
   );

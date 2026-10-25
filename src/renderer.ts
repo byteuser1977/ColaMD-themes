@@ -1,17 +1,18 @@
 /**
  * Puppeteer-based rendering engine for ColaMD HTML/PDF export.
  *
- * Uses @bytechain.cn/colamd/renderer (1.5.x library build) to create a headless
- * Milkdown editor, apply themes, render mermaid/math, and export standalone
- * HTML or PDF. Theme CSS targets the ColaMD 2.7.7 contract (verified against
- * @bytechain.cn/colamd@2.7.7), so generated themes carry over unchanged.
+ * Uses the @bytechain.cn/colamd 2.x library build (dist/lib/colamd-renderer.js +
+ * colamd.css, requires ≥2.7.8-rc.1) to create a headless editor, apply themes,
+ * render mermaid/math, and export standalone HTML or PDF. Theme CSS targets the
+ * ColaMD 2.7.8-rc.1 contract (machine-readable as themes/contract.json in the
+ * npm package) and is consumed directly as `:root` declarations.
  *
  * Architecture:
  *   Local HTTP server (serves renderer.js + page HTML)
  *     → Puppeteer page (same-origin, no CORS)
  *       → createColaMDEditor()
  *       → applyTheme() + setMarkdown() + ensureAllPluginsRendered()
- *       → buildExportHTML() / page.pdf()
+ *       → buildExportHTML({ title }) / page.pdf()
  */
 
 import puppeteer, { type Browser, type Page } from "puppeteer";
@@ -60,8 +61,8 @@ function findRendererPath(): string {
   for (const p of candidates) {
     if (existsSync(p)) return p;
   }
-  // Detect the npm 2.x distribution: it is the Electron app package and no
-  // longer ships dist/lib/colamd-renderer.js. Give an actionable error.
+  // Detect a 2.x distribution without the library entry (e.g. the 2.7.7 app
+  // package, or a desktop-only build): give an actionable error.
   for (const base of candidates.map((p) => resolve(p, "../../.."))) {
     const pkgJson = join(base, "package.json");
     if (existsSync(pkgJson)) {
@@ -69,40 +70,22 @@ function findRendererPath(): string {
         const version = JSON.parse(readFileSync(pkgJson, "utf-8")).version as string;
         if (version.startsWith("2.")) {
           throw new Error(
-            `@bytechain.cn/colamd ${version} 是 Electron 应用分发，不含 colamd-renderer.js 库入口，` +
-            "无法用于 HTML/PDF 导出。请降级: npm install @bytechain.cn/colamd@^1.5.2"
+            `@bytechain.cn/colamd ${version} 不含 colamd-renderer.js 库入口（2.7.8 起恢复提供）。` +
+            "请升级: npm install @bytechain.cn/colamd@^2.7.8-rc.1"
           );
         }
       } catch (e) {
-        if (e instanceof Error && e.message.includes("Electron")) throw e;
+        if (e instanceof Error && e.message.includes("库入口")) throw e;
       }
     }
   }
   throw new Error(
     "Cannot find @bytechain.cn/colamd renderer. " +
-    "Install it: npm install @bytechain.cn/colamd@^1.5.2"
+    "Install it: npm install @bytechain.cn/colamd@^2.7.8-rc.1"
   );
 }
 
 // ── Local HTTP server ──
-
-/**
- * Bridge for the 1.5.x renderer: its base CSS declares theme variables on
- * `body` (element-level), which overrides `:root` inheritance regardless of
- * style order. Mirror the theme's `:root` declarations onto `body` so exports
- * carry the 2.7.7 palette. Theme files themselves stay `:root`-only (2.7.7
- * contract); this shim lives only in the export pipeline.
- */
-function bridgeLegacyBodyVars(css: string): string {
-  const rootMatch = css.match(/:root\s*\{([^}]*)\}/);
-  if (!rootMatch) return css;
-  return (
-    css +
-    "\n/* 1.5.x bridge: body-level variables override the base defaults */\nbody {\n" +
-    rootMatch[1] +
-    "}\n"
-  );
-}
 
 const SHELL_HTML = `<!DOCTYPE html>
 <html><head>
@@ -214,14 +197,14 @@ export class ColamdRenderer {
     if (!this.ready || !this.page) await this.init();
     const page = this.page!;
 
-    // Apply theme
+    // Apply theme — the 2.x renderer consumes :root contract CSS directly
     if (input.themeName) {
       await page.evaluate(
         (name: string, css: string | undefined) => {
           (window as any).__colamdHandle.applyTheme(name, css || undefined);
         },
         input.themeName,
-        input.customCSS ? bridgeLegacyBodyVars(input.customCSS) : undefined
+        input.customCSS || undefined
       );
     }
 
@@ -238,17 +221,12 @@ export class ColamdRenderer {
     // Additional settle time for complex diagrams
     await new Promise((r) => setTimeout(r, 500));
 
-    // Build export HTML
-    const html = await page.evaluate(() => {
-      return (window as any).__colamdHandle.buildExportHTML();
-    });
+    // Build export HTML (2.x API: title goes through the options object)
+    const html = await page.evaluate((title: string | undefined) => {
+      return (window as any).__colamdHandle.buildExportHTML({ title });
+    }, input.title);
 
-    // Inject custom title if provided
-    const finalHtml = input.title
-      ? html.replace(/<title>[^<]*<\/title>/, `<title>${input.title}</title>`)
-      : html;
-
-    return { html: finalHtml };
+    return { html };
   }
 
   /**

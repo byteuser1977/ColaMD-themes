@@ -1,4 +1,4 @@
-/** Theme style data models — v4.0 Seed Palette paradigm (ColaMD 2.7.7 contract). */
+/** Theme style data models — v4.0 Seed Palette paradigm (ColaMD 2.7.8-rc.1 contract). */
 
 // ═══════════════════════════════════════════════════════════
 // Legacy model (kept for extractor compatibility)
