@@ -12,17 +12,17 @@
 
 :root {
   /* ── 1.1 Seed Palette（暖调） ── */
-  --seed-accent:        #c44b2b;
-  --seed-accent-light:  rgba(196, 75, 43, 0.15);
-  --seed-accent-dark:   #a33d22;
-  --seed-surface:       #f0edea;
-  --seed-panel:         #eae6e1;
-  --seed-panel-alt:     #e8e4df;
+  --seed-accent:        #b0401f;
+  --seed-accent-light:  rgba(176, 64, 31, 0.15);
+  --seed-accent-dark:   #93371a;
+  --seed-surface:       #f1f1f0;
+  --seed-panel:         #eaeae9;
+  --seed-panel-alt:     #e6e6e4;
   --seed-ink:           #2c2c2c;
   --seed-ink-muted:     #555555;
   --seed-ink-dim:       #777777;
-  --seed-border:        #d8d3ce;
-  --seed-border-strong: #c44b2b;
+  --seed-border:        #d4d4d2;
+  --seed-border-strong: #b0401f;
 
   /* ── 1.2 Semantic Colors（活变量） ── */
   --bg-color:         var(--seed-surface);
@@ -40,7 +40,7 @@
   --blockquote-bg:     var(--seed-panel);
   --table-header-bg:   var(--seed-panel);
 
-  --selection-bg: rgba(196, 75, 43, 0.2);
+  --selection-bg: rgba(176, 64, 31, 0.2);
   --highlight-bg: var(--seed-accent-light);
 
   /* ── 1.3 Typography & Metrics（活变量） ── */
@@ -193,7 +193,7 @@
   border-bottom: 2px solid var(--seed-accent);
 }
 #editor .cm-content .cm-md-table-widget tr:hover td {
-  background: rgba(196, 75, 43, 0.04);
+  background: rgba(176, 64, 31, 0.04);
 }
 
 /* ── 2.7 分隔线：浅色细线 ── */

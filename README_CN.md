@@ -22,20 +22,22 @@
 - **`export-html`** — 将 Markdown 渲染为独立 HTML 文档，主题 CSS 内嵌，Mermaid 图表和 KaTeX 公式完整渲染
 - **`export-pdf`** — 通过 Puppeteer（Chromium）将 Markdown 渲染为 PDF，用 `print-color-adjust: exact` 保住主题配色
 - **`export`** — 批量导出多个文件或整个目录为 HTML 或 PDF
-- 底层暂用 `@bytechain.cn/colamd/renderer`（1.5.x，Milkdown），等上游 2.x renderer 发布独立库构建后切换；生成的主题已按 2.7 契约编写，切换时无需改动
+- 底层使用 `@bytechain.cn/colamd/renderer`（1.5.x，Milkdown）—— npm 2.x 包为 Electron 应用分发，不再提供库构建；`renderer.ts` 对 2.x 安装给出明确的降级提示。内置主题名优先解析本仓库的 2.7.7 契约 CSS，并通过 body 变量桥接保证 2.7.7 配色在 1.5.x 渲染器中不丢失（主题文件仍保持 `:root` 契约）。生成的主题按 **2.7.7 契约**编写（已对照 `@bytechain.cn/colamd@2.7.7` 发布包核验），升级应用无需改动主题
 
 ### 主题管理
 
 - **`set-theme`** — 配置默认导出主题、注册自定义 CSS 主题、在内置主题间切换
 - 内置主题：`light`、`dark`、`elegant`、`newsprint`
 - 自定义主题：任意 `.css` 文件注册后按名称引用
+- **在 ColaMD 2.7.7 应用中使用主题** — 通过 *主题 > 导入主题* 或放入 `~/.colamd/themes/`。应用现自带内置 `elegant` 主题；导入我们的 `elegant.css` 前建议改名（如 `elegant-brick.css`）避免重名冲突
 
 ### 验证与色彩系统
 
 - **对比度引擎** — WCAG 2.1 相对亮度与对比度计算
 - **范式验证器** — 15+ 条设计约束规则（CR、HR、SL、NT、BD、MP、FP、FS、SH），附带自动修复建议
 - **色彩系统库** — 5 大色系 15 套预定义种子色板（莫兰迪、马卡龙、北欧、复古、薄荷绿）
-- **2.7 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
+- **2.7.7 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
+- **2.7.7 核验通过** — 全部 16 个主题已对照 npm 发布的 `@bytechain.cn/colamd@2.7.7` 逐项审计：`.cm-md-*` 钩子零漂移，`:root` 活变量与 `--pele-*` 覆盖全部被 2.7.7 渲染器消费
 - **Pele 图表配色** — 9 个 `--pele-*` 变量由 `--code-block-bg` / `--code-block-text` / `--link-color` 推导，取代 Mermaid 20 变量
 
 ### 安全与性能 (v0.4.0+)
@@ -49,7 +51,7 @@
 
 ### CSS 模板引擎
 
-基于 Handlebars 的模板引擎生成 ColaMD 2.7 契约 CSS（≤300 行）：
+基于 Handlebars 的模板引擎生成 ColaMD 2.7.7 契约 CSS（≤300 行）：
 
 | 分区 | 内容 |
 |------|------|
@@ -221,7 +223,7 @@ cthemes set-theme 我的品牌 --remove
 | `extract <source>` | 自动检测来源类型并提取主题 |
 | `color-systems` | 列出 15 套内置色彩系统 |
 | `list` | 列出所有生成的主题 |
-| `validate <file>` | 验证主题是否符合 2.7 契约与范式规则 |
+| `validate <file>` | 验证主题是否符合 2.7.7 契约与范式规则 |
 | `set-theme <name>` | 设置、注册或注销导出主题 |
 | `export-html <input>` | 导出 Markdown → 独立 HTML |
 | `export-pdf <input>` | 导出 Markdown → PDF |
@@ -262,12 +264,12 @@ cthemes set-theme 我的品牌 --remove
            ▼
 ┌─────────────────────┐
 │  色彩系统匹配        │  → 15 套内置色板
-│  范式与契约验证      │  → WCAG 对比度 + 设计约束 + 2.7 契约
+│  范式与契约验证      │  → WCAG 对比度 + 设计约束 + 2.7.7 契约
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────┐
-│  模板引擎            │  Handlebars → 2.7 契约 CSS（≤300 行）
+│  模板引擎            │  Handlebars → 2.7.7 契约 CSS（≤300 行）
 └──────────┬──────────┘
            │
            ▼
@@ -300,7 +302,7 @@ Markdown 文件
 └─────────────────────────────────────────────┘
 ```
 
-## 设计范式 (2.7 契约)
+## 设计范式 (2.7.7 契约)
 
 完整规范文档：[`templates/theme-paradigm.md`](src/templates/theme-paradigm.md)。
 
@@ -362,7 +364,7 @@ ColaMD-themes/
 │   │   └── pdf-extractor.ts                 # PDF → ThemeStyle
 │   └── templates/
 │       ├── template.css                     # 范式配套 CSS 模板
-│       ├── theme-paradigm.md               # v4.0 设计规范（2.7 契约）
+│       ├── theme-paradigm.md               # v4.0 设计规范（2.7.7 契约）
 │       └── theme-template.hbs              # Handlebars CSS 模板
 └── tests/
 ```
@@ -395,7 +397,7 @@ npm run mcp
 |------|-----|------|
 | 运行时 | Node.js + TypeScript | ESM 模块，严格类型 |
 | CLI 框架 | Commander.js | 参数解析、子命令分发 |
-| CSS 模板 | Handlebars | 2.7 契约 CSS 生成 |
+| CSS 模板 | Handlebars | 2.7.7 契约 CSS 生成 |
 | HTML 解析 | Cheerio | URL 提取时的 DOM 遍历 |
 | CSS 解析 | css-tree | CSS 规则 AST 解析 |
 | DOCX 解析 | Mammoth | Word → HTML 转换 |

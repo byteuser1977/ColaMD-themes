@@ -1,8 +1,10 @@
 /**
  * Puppeteer-based rendering engine for ColaMD HTML/PDF export.
  *
- * Uses @bytechain.cn/colamd/renderer to create a headless Milkdown editor,
- * apply themes, render mermaid/math, and export standalone HTML or PDF.
+ * Uses @bytechain.cn/colamd/renderer (1.5.x library build) to create a headless
+ * Milkdown editor, apply themes, render mermaid/math, and export standalone
+ * HTML or PDF. Theme CSS targets the ColaMD 2.7.7 contract (verified against
+ * @bytechain.cn/colamd@2.7.7), so generated themes carry over unchanged.
  *
  * Architecture:
  *   Local HTTP server (serves renderer.js + page HTML)
@@ -58,13 +60,49 @@ function findRendererPath(): string {
   for (const p of candidates) {
     if (existsSync(p)) return p;
   }
+  // Detect the npm 2.x distribution: it is the Electron app package and no
+  // longer ships dist/lib/colamd-renderer.js. Give an actionable error.
+  for (const base of candidates.map((p) => resolve(p, "../../.."))) {
+    const pkgJson = join(base, "package.json");
+    if (existsSync(pkgJson)) {
+      try {
+        const version = JSON.parse(readFileSync(pkgJson, "utf-8")).version as string;
+        if (version.startsWith("2.")) {
+          throw new Error(
+            `@bytechain.cn/colamd ${version} 是 Electron 应用分发，不含 colamd-renderer.js 库入口，` +
+            "无法用于 HTML/PDF 导出。请降级: npm install @bytechain.cn/colamd@^1.5.2"
+          );
+        }
+      } catch (e) {
+        if (e instanceof Error && e.message.includes("Electron")) throw e;
+      }
+    }
+  }
   throw new Error(
     "Cannot find @bytechain.cn/colamd renderer. " +
-    "Install it: npm install @bytechain.cn/colamd"
+    "Install it: npm install @bytechain.cn/colamd@^1.5.2"
   );
 }
 
 // ── Local HTTP server ──
+
+/**
+ * Bridge for the 1.5.x renderer: its base CSS declares theme variables on
+ * `body` (element-level), which overrides `:root` inheritance regardless of
+ * style order. Mirror the theme's `:root` declarations onto `body` so exports
+ * carry the 2.7.7 palette. Theme files themselves stay `:root`-only (2.7.7
+ * contract); this shim lives only in the export pipeline.
+ */
+function bridgeLegacyBodyVars(css: string): string {
+  const rootMatch = css.match(/:root\s*\{([^}]*)\}/);
+  if (!rootMatch) return css;
+  return (
+    css +
+    "\n/* 1.5.x bridge: body-level variables override the base defaults */\nbody {\n" +
+    rootMatch[1] +
+    "}\n"
+  );
+}
 
 const SHELL_HTML = `<!DOCTYPE html>
 <html><head>
@@ -183,7 +221,7 @@ export class ColamdRenderer {
           (window as any).__colamdHandle.applyTheme(name, css || undefined);
         },
         input.themeName,
-        input.customCSS
+        input.customCSS ? bridgeLegacyBodyVars(input.customCSS) : undefined
       );
     }
 

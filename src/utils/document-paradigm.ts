@@ -4,7 +4,8 @@
  * to eliminate code duplication.
  */
 
-import type { ThemeStyle, DocumentStyleParadigm } from "../docx-style-paradigm.js";
+import type { ThemeStyle } from "../models.js";
+import type { DocumentStyleParadigm } from "../docx-style-paradigm.js";
 import {
   ACADEMIC_PAPER_DEFAULTS,
   validateDocumentStyle,

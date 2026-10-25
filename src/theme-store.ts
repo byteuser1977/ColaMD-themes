@@ -8,6 +8,7 @@
 import { mkdir, readFile, writeFile, access, rename } from "node:fs/promises";
 import { statSync, unlink } from "node:fs";
 import { join, basename, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 
 const CONFIG_DIR = join(homedir(), ".colamd-themes");
@@ -147,6 +148,18 @@ export async function resolveTheme(name?: string): Promise<{
 
   // Check if it's a built-in theme
   if (BUILTIN_THEMES.includes(resolved as BuiltinTheme)) {
+    // Prefer our 2.7.7 contract CSS when a local theme file exists: passing
+    // only the name would resolve the 1.5.x renderer's own (pre-2.7) built-in
+    // palette in exports. applyTheme(name, css) takes over completely.
+    for (const base of [process.cwd(), join(dirname(fileURLToPath(import.meta.url)), "..")]) {
+      const cssPath = join(base, "themes", `${resolved}.css`);
+      try {
+        await validateCssFile(cssPath);
+        return { themeName: resolved, customCSS: await readFile(cssPath, "utf-8") };
+      } catch {
+        // No local 2.7.7 file for this built-in — fall back to the renderer's own.
+      }
+    }
     return { themeName: resolved };
   }
 

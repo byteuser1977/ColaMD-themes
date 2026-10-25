@@ -9,17 +9,17 @@
 
 :root {
   /* ── 1.1 Seed Palette ── */
-  --seed-accent:        #6366f1;
-  --seed-accent-light:  #eef2ff;
-  --seed-accent-dark:   #4f46e5;
-  --seed-surface:       #f8f9fb;
-  --seed-panel:         #f4f5f7;
-  --seed-panel-alt:     #eef2ff;
-  --seed-ink:           #2d3436;
-  --seed-ink-muted:     #6b7280;
-  --seed-ink-dim:       #9ca3af;
-  --seed-border:        #e5e7eb;
-  --seed-border-strong: #4f46e5;
+  --seed-accent:        #4f46e5;
+  --seed-accent-light:  #e9eafc;
+  --seed-accent-dark:   #4338ca;
+  --seed-surface:       #f4f4f5;
+  --seed-panel:         #efeff1;
+  --seed-panel-alt:     #ececed;
+  --seed-ink:           #2b3440;
+  --seed-ink-muted:     #656e7a;
+  --seed-ink-dim:       #9ba4b0;
+  --seed-border:        #d6d6d8;
+  --seed-border-strong: #4338ca;
 
   /* ── 1.2 Semantic Colors ── */
   --bg-color:         var(--seed-surface);
@@ -34,8 +34,8 @@
   --blockquote-border: var(--seed-accent);
   --blockquote-bg:     #f8f9ff;
   --table-header-bg:   var(--seed-accent-dark);
-  --selection-bg: rgba(99, 102, 241, 0.18);
-  --highlight-bg: linear-gradient(120deg, rgba(99, 102, 241, 0.14) 0%, rgba(139, 92, 246, 0.14) 100%);
+  --selection-bg: rgba(79, 70, 229, 0.18);
+  --highlight-bg: linear-gradient(120deg, rgba(79, 70, 229, 0.14) 0%, rgba(139, 92, 246, 0.14) 100%);
 
   /* ── 1.3 Typography & Metrics ── */
   --font-body: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -74,7 +74,7 @@
 /* 二级标题的 60% 渐变短线是这套主题的签名。 */
 #editor .cm-content .cm-md-atxheading2 {
   font-size: 1.55em; padding-bottom: 0.25em;
-  background-image: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background-image: linear-gradient(90deg, #4f46e5, #8b5cf6);
   background-size: 60% 3px; background-repeat: no-repeat; background-position: left bottom;
 }
 #editor .cm-content .cm-md-atxheading3 { font-size: 1.28em; color: #283149; }
@@ -91,7 +91,7 @@
 /* 2.3 链接：靛蓝字 + 淡色底边 */
 #editor .cm-content .cm-md-link {
   color: var(--link-color); text-decoration: none;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.35);
+  border-bottom: 1px solid rgba(79, 70, 229, 0.35);
 }
 #editor .cm-content .cm-md-url { color: var(--text-muted); }
 
@@ -100,7 +100,7 @@
   font-family: var(--font-mono); font-size: 0.88em;
   background: var(--code-bg); color: var(--seed-accent);
   padding: 3px 7px; margin: 0 2px; border-radius: 5px;
-  border: 1px solid rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.08);
 }
 
 #editor .cm-content .cm-md-marker,
@@ -119,8 +119,8 @@
 #editor .cm-content .cm-md-codeblock {
   font-family: var(--font-mono); font-size: 0.88em; line-height: 1.68;
   background: var(--code-block-bg); color: var(--code-block-text);
-  border-left: 1px solid rgba(99, 102, 241, 0.15);
-  border-right: 1px solid rgba(99, 102, 241, 0.15);
+  border-left: 1px solid rgba(79, 70, 229, 0.15);
+  border-right: 1px solid rgba(79, 70, 229, 0.15);
   padding-left: 26px; padding-right: 26px;
 }
 #editor .cm-content .cm-md-codeblock-first {
@@ -134,7 +134,7 @@
 #editor .cm-content .cm-md-table-widget th,
 #editor .cm-content .cm-md-table-widget td { border-color: var(--border-color); }
 #editor .cm-content .cm-md-table-widget th {
-  background: linear-gradient(180deg, #4f46e5 0%, #6366f1 50%, #7c3aed 100%);
+  background: linear-gradient(180deg, #4338ca 0%, #4f46e5 50%, #7c3aed 100%);
   color: #ffffff; font-weight: 700; font-size: 0.95em;
   letter-spacing: 0.02em; text-transform: uppercase;
   border-bottom: 3px solid #3730a3;
@@ -205,7 +205,7 @@
 .colamd-document h1 { font-size: 2em; }
 .colamd-document h2 {
   font-size: 1.55em; padding-bottom: 0.25em;
-  background-image: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background-image: linear-gradient(90deg, #4f46e5, #8b5cf6);
   background-size: 60% 3px; background-repeat: no-repeat; background-position: left bottom;
 }
 .colamd-document h3 { font-size: 1.28em; color: #283149; }
@@ -217,21 +217,21 @@
 .colamd-document em { font-style: italic; color: var(--text-secondary); }
 .colamd-document a {
   color: var(--link-color); text-decoration: none;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.35);
+  border-bottom: 1px solid rgba(79, 70, 229, 0.35);
 }
 
 .colamd-document code {
   font-family: var(--font-mono); font-size: 0.88em;
   background: var(--code-bg); color: var(--seed-accent);
   padding: 3px 7px; border-radius: 5px;
-  border: 1px solid rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.08);
 }
 .colamd-document pre {
   font-family: var(--font-mono); font-size: 0.88em; line-height: 1.68;
   background: linear-gradient(145deg, #1e2235 0%, #2a2040 100%);
   color: var(--code-block-text);
   padding: 22px 26px; border-radius: 10px;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(79, 70, 229, 0.15);
 }
 .colamd-document pre code { background: transparent; color: inherit; padding: 0; border: none; }
 
@@ -244,7 +244,7 @@
 .colamd-document mark { background: var(--highlight-bg); color: var(--text-color); }
 
 .colamd-document th {
-  background: linear-gradient(180deg, #4f46e5 0%, #6366f1 50%, #7c3aed 100%);
+  background: linear-gradient(180deg, #4338ca 0%, #4f46e5 50%, #7c3aed 100%);
   color: #ffffff; font-weight: 700; font-size: 0.95em;
   letter-spacing: 0.02em; text-transform: uppercase;
   border-bottom: 3px solid #3730a3;

@@ -1,4 +1,66 @@
 # Release Notes
+## Version 0.5.0 (2026-10-25) — ColaMD 2.7.7 Support 🎨
+
+> **Verified against the published `@bytechain.cn/colamd@2.7.7` npm package**: all 16 themes are fully contract-compatible, and the design quality of 10 themes has been brought to zero paradigm errors.
+
+### 🎨 Theme Quality Overhaul
+
+**10 themes optimized to pass every paradigm rule (0 errors):**
+
+| Theme | Fix |
+|-------|-----|
+| `colly` / `salvator-blog` / `meeting-minutes` | Panel hierarchy inverted → `--seed-panel-alt` deepened for a proper 2-step contrast |
+| `swiss-design` | Border vs panel-alt lightness gap widened to 3 steps |
+| `shimo-theme` | Panels now neutral grey; accent saturation raised to 83% (`#2a6bf2`) |
+| `elegant` | Brick accent saturation 55% → 70% (`#b0401f`); hardcoded rgba values synced |
+| `guizang` | Beige panels moved to neutral warm grey (fixes NT-02 hue drift) |
+| `pixso-design` | Accent saturation 56% → 76% (`#4f46e5`); 6 gradients/borders migrated from `#6366f1` |
+| `trae-blue` | Accent saturation 70% → 85% (`#2563eb`); panels neutralized |
+| `forest-ink` | Accent saturation raised (`#356b44`); text greys re-tinted onto the ink-green hue axis |
+
+Intentional warnings kept: the low-saturation scholarly accents of the academic trio, and meeting-minutes' pure-black accent (Swiss-minimal signature).
+
+**Removed**: the legacy pre-2.7 theme (`body.theme-custom` root block, 58 dead variables, mojibake filename) — it had no effect under 2.7.7.
+
+### ✅ 2.7.7 Compatibility Audit
+
+Audited against the actual published npm package (`@bytechain.cn/colamd@2.7.7`):
+
+- **Class hooks**: zero drift — every `.cm-md-*` class used by our themes exists among the 49 hooks in the 2.7.7 renderer CSS
+- **Live variables**: the 14 core + 4 typography variables and all 9 `--pele-*` overrides are consumed by 2.7.7
+- **Injection**: the 2.7.7 app appends custom theme CSS to `document.head` (`applyTheme`), so `:root` declarations cascade correctly
+- **Contract version references** across the CLI, validators, and generator unified to 2.7.7
+
+### 🛡️ Export Pipeline Guard
+
+The npm `@bytechain.cn/colamd@2.7.7` package is the **Electron app distribution** — it no longer ships `dist/lib/colamd-renderer.js`, the library entry our HTML/PDF export pipeline needs. The CLI therefore keeps `@bytechain.cn/colamd@^1.5.2`, and `renderer.ts` now detects a 2.x install and fails with a clear downgrade instruction instead of a generic "Cannot find renderer" error.
+
+Two related export fixes verified by smoke test:
+
+- **Built-in theme resolution** — `-t elegant` previously let the 1.5.x renderer apply its own pre-2.7 built-in palette (`#c44b2b`); it now loads our `themes/elegant.css` (2.7.7 contract) first. Registered custom themes and direct `.css` paths were already correct.
+- **Body-variable bridge** — the 1.5.x base CSS declares theme variables on `body`, overriding `:root` inheritance; the pipeline mirrors the theme's `:root` declarations onto `body` at injection time. Theme files themselves remain `:root`-only per the 2.7.7 contract.
+
+> Theme files need no changes for the 2.7.7 app — import them via **Theme > Import Theme** or drop them into `~/.colamd/themes/`.
+> Note: the app now ships its own built-in `elegant` theme; if you import our `elegant.css` into the app, consider renaming the file (e.g. `elegant-brick.css`) to avoid a name clash.
+
+### 🔧 Housekeeping
+
+- Fixed `package-lock.json` root manifest drift (`^2.0.0` → `^1.5.2`, matching `package.json`)
+- Version bumped to **0.5.0**
+
+### 📦 Upgrade
+
+No breaking changes. Pull and rebuild:
+
+```bash
+git pull
+npm install
+npm run build
+```
+
+---
+
+
 ## Version 0.4.0 (2026-08-17) — DeepSeek Harness Integration 🤖
 
 > **Multi-agent ecosystem update**: added DeepSeek Harness skill support and formalized 6-agent coverage.
@@ -476,4 +538,4 @@ open preview.html
 
 ---
 
-*Last updated: 2026-06-01*
+*Last updated: 2026-10-25*

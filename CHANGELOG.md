@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-10-25
+
+### Added
+- **ColaMD 2.7.7 兼容性核对**：以 npm 发布的 `@bytechain.cn/colamd@2.7.7` 为基准，逐项验证主题 CSS 契约 —— `.cm-md-*` 类钩子零漂移（渲染器共 49 个钩子）、`:root` 活变量（14 核心 + 4 排版 + 9 `--pele-*`）全部被 2.7.7 消费
+- **导出管线 2.x 包守卫**：`renderer.ts` 检测到安装的 `@bytechain.cn/colamd` 为 2.x（Electron 应用分发，不含 `colamd-renderer.js` 库入口）时给出明确的降级指引，替代原先笼统的 "Cannot find renderer" 报错
+- **导出主题解析修复**：内置主题（如 `elegant`）现优先加载本仓库的 2.7.7 契约 CSS（`themes/<name>.css`）再传给渲染器，修复导出 HTML/PDF 实际使用 1.5.x 旧内置配色的问题；注入时将 `:root` 变量镜像到 `body` 作用域，绕过 1.5.x 基础 CSS 的元素级变量声明（主题文件保持 `:root` 契约不变，桥接逻辑仅存在于导出管线）
+- 代码与文档中的契约版本引用统一为 **2.7.7**（`validate` 输出、生成器自检、校验器注释）
+
+### Changed
+- **10 个主题的设计质量优化**（paradigm 检查 0 错误）：
+  - `colly` / `salvator-blog` / `meeting-minutes`：修正 panel 层级颠倒（`--seed-panel-alt` 加深至对比 2 级）
+  - `swiss-design`：边框与 panel-alt 明度差扩大至 3 级
+  - `shimo-theme`：面板改纯中性灰，accent 提饱和至 `#2a6bf2`（S 83%）
+  - `elegant`：砖红 accent 饱和度 55% → 70%（`#b0401f`），选区等硬编码色同步
+  - `guizang`：米黄面板改中性暖灰，消除中性灰偏离（NT-02）
+  - `pixso-design`：accent 饱和度 56% → 76%（`#4f46e5`），6 处渐变/边框 rgba 迁移
+  - `trae-blue`：accent 饱和度 70% → 85%（`#2563eb`），panel 换中性灰
+  - `forest-ink`：accent 饱和度提升（`#356b44`），文字灰阶改绿灰回归墨绿主轴
+- 保留 4 条有意的警告：academic 系列低饱和学术点缀、meeting-minutes 黑色极简点缀
+
+### Removed
+- 移除遗留的 pre-2.7 旧结构主题（`body.theme-custom` 根块 + 58 个死变量，文件名为 mojibake 的"我的主题.css"）—— 该主题在 2.7.7 下完全无效
+
+### Fixed
+- `package-lock.json` 根 manifest 依赖误标为 `^2.0.0`，恢复与 `package.json` 一致的 `^1.5.2`（npm 2.7.7 为应用分发，CLI 导出必须使用 1.5.x 库渲染器）
+
+---
+
 ## [Unreleased]
 
 *No unreleased changes for this snapshot.*
@@ -280,7 +308,8 @@ User Input → Validation Layer → Processing Layer
 
 ---
 
-[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.0...v0.3.1
