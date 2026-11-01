@@ -22,7 +22,7 @@
 - **`export-html`** — 将 Markdown 渲染为独立 HTML 文档，主题 CSS 内嵌，Mermaid 图表和 KaTeX 公式完整渲染
 - **`export-pdf`** — 通过 Puppeteer（Chromium）将 Markdown 渲染为 PDF，用 `print-color-adjust: exact` 保住主题配色
 - **`export`** — 批量导出多个文件或整个目录为 HTML 或 PDF
-- 底层使用 `@bytechain.cn/colamd/renderer`（2.x 库构建，依赖 `@bytechain.cn/colamd@^2.7.8-rc.1`）——与应用同一个 CM6 编辑器经 Puppeteer 无头运行。主题 CSS 以 `:root` 声明直接消费，`buildExportHTML({ title })` 只序列化契约活变量，mermaid 图（Pele SVG）与 KaTeX 公式离线打开仍完整呈现。内置主题名优先解析本仓库的契约 CSS。生成的主题按 **2.7.8-rc.1 契约**编写，升级应用无需改动主题
+- 底层使用 `@bytechain.cn/colamd/renderer`（2.x 库构建，依赖 `@bytechain.cn/colamd@^2.7.8-rc.2`）——与应用同一个 CM6 编辑器经 Puppeteer 无头运行。主题 CSS 以 `:root` 声明直接消费，`buildExportHTML({ title })` 只序列化契约活变量，mermaid 图（Pele SVG）与 KaTeX 公式离线打开仍完整呈现。内置主题名优先解析本仓库的契约 CSS。生成的主题按 **2.7.8-rc.2 契约**编写，升级应用无需改动主题
 
 ### 主题管理
 
@@ -36,8 +36,8 @@
 - **对比度引擎** — WCAG 2.1 相对亮度与对比度计算
 - **范式验证器** — 15+ 条设计约束规则（CR、HR、SL、NT、BD、MP、FP、FS、SH），附带自动修复建议
 - **色彩系统库** — 5 大色系 15 套预定义种子色板（莫兰迪、马卡龙、北欧、复古、薄荷绿）
-- **2.7.8-rc.1 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
-- **2.7.8-rc.1 核验通过** — 全部 16 个主题已对照 `@bytechain.cn/colamd@2.7.7` 逐项审计（契约至 2.7.8-rc.1 保持不变），并在 2.7.8-rc.1 导出管线上实测通过：`.cm-md-*` 钩子零漂移，`:root` 活变量与 `--pele-*` 覆盖全部被渲染器消费，导出 `:root` 恰好携带 27 个契约活变量
+- **2.7.8-rc.2 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
+- **2.7.8-rc.2 核验通过** — 全部 16 个主题已对照 `@bytechain.cn/colamd@2.7.7` 逐项审计（契约至 2.7.8-rc.2 保持不变），并在 2.7.8-rc.2 导出管线上实测通过：`.cm-md-*` 钩子零漂移，`:root` 活变量与 `--pele-*` 覆盖全部被渲染器消费，导出 `:root` 恰好携带 27 个契约活变量
 - **Pele 图表配色** — 9 个 `--pele-*` 变量由 `--code-block-bg` / `--code-block-text` / `--link-color` 推导，取代 Mermaid 20 变量
 
 ### 安全与性能 (v0.4.0+)
@@ -51,7 +51,7 @@
 
 ### CSS 模板引擎
 
-基于 Handlebars 的模板引擎生成 ColaMD 2.7.8-rc.1 契约 CSS（≤300 行）：
+基于 Handlebars 的模板引擎生成 ColaMD 2.7.8-rc.2 契约 CSS（≤300 行）：
 
 | 分区 | 内容 |
 |------|------|
@@ -105,6 +105,18 @@ bash skills/build-skills.sh dsh
 ```
 
 自定义 Skill 内容：编辑 `skills/colamd-themes/SKILL.md`，然后运行 `npm run build:skills`
+
+### DSH 插件 (dsh-market)
+
+本包同时是可从 dsh-market 安装的 **DSH（DeepSeek Harness）插件 bundle**：
+
+- **插件契约** — `package.json` 声明 `dsh.bundle.patch`，指向 [`cordis.patch.yml`](cordis.patch.yml)，向 Profile 组合树插入 `colamd-themes` Cordis Entry
+- **宿主入口** — [`src/dsh-plugin.ts`](src/dsh-plugin.ts) 导出 Cordis 协议（`name` / `inject: ["skills"]` / `apply`），经 `ctx.skills.registerProvider` 把捆绑的 `skills/colamd-themes/SKILL.md` 注册到 Harness `skills` 服务（与内置 dsh-ppt 插件同一 provider 协议）
+- **CLI 命令** — `colamd-themes` / `cthemes` 随包分发，安装后 Profile 内 Agent 可直接调用
+- **运行时兼容** — `@deepseek-ai/dsh-skill` 声明为 *optional* peer（`^0.1.5-rc.1`）：market 按 DSH 运行时版本校验，独立 `npm install` 不受影响
+- **Bundle 内容** — `dist/`（CLI + 宿主入口）、`themes/`（16 个契约 CSS 主题）、`skills/`（捆绑 skill）、`cordis.patch.yml`
+
+从 DSH Profile 安装（npm 发布后）：在 dsh-market 界面添加 `@bytechain.cn/colamd-themes`，或执行 `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`。
 
 ## 安装
 
@@ -223,7 +235,7 @@ cthemes set-theme 我的品牌 --remove
 | `extract <source>` | 自动检测来源类型并提取主题 |
 | `color-systems` | 列出 15 套内置色彩系统 |
 | `list` | 列出所有生成的主题 |
-| `validate <file>` | 验证主题是否符合 2.7.8-rc.1 契约与范式规则 |
+| `validate <file>` | 验证主题是否符合 2.7.8-rc.2 契约与范式规则 |
 | `set-theme <name>` | 设置、注册或注销导出主题 |
 | `export-html <input>` | 导出 Markdown → 独立 HTML |
 | `export-pdf <input>` | 导出 Markdown → PDF |
@@ -264,12 +276,12 @@ cthemes set-theme 我的品牌 --remove
            ▼
 ┌─────────────────────┐
 │  色彩系统匹配        │  → 15 套内置色板
-│  范式与契约验证      │  → WCAG 对比度 + 设计约束 + 2.7.8-rc.1 契约
+│  范式与契约验证      │  → WCAG 对比度 + 设计约束 + 2.7.8-rc.2 契约
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────┐
-│  模板引擎            │  Handlebars → 2.7.8-rc.1 契约 CSS（≤300 行）
+│  模板引擎            │  Handlebars → 2.7.8-rc.2 契约 CSS（≤300 行）
 └──────────┬──────────┘
            │
            ▼
@@ -302,7 +314,7 @@ Markdown 文件
 └─────────────────────────────────────────────┘
 ```
 
-## 设计范式 (2.7.8-rc.1 契约)
+## 设计范式 (2.7.8-rc.2 契约)
 
 完整规范文档：[`templates/theme-paradigm.md`](src/templates/theme-paradigm.md)。
 
@@ -339,6 +351,7 @@ ColaMD-themes/
 ├── .openclaw/skills/colamd-themes/SKILL.md # OpenClaw Skill
 ├── .hermes/skills/tools/colamd-themes/     # Hermes Skill
 ├── .trae/rules/colamd-themes.md           # Trae 规则
+├── cordis.patch.yml                        # DSH 插件 bundle patch（dsh-market）
 ├── package.json
 ├── tsconfig.json
 ├── themes/                                  # 生成的 CSS 主题
@@ -350,6 +363,7 @@ ColaMD-themes/
 │   ├── renderer.ts                          # Puppeteer HTML/PDF 导出引擎
 │   ├── export-cli.ts                        # 导出 CLI 命令
 │   ├── theme-store.ts                       # 主题配置持久化（异步 API）
+│   ├── dsh-plugin.ts                        # DSH 宿主入口（Cordis skill provider）
 │   ├── utils/
 │   │   └── cli-utils.ts                     # 公共工具函数与错误处理
 │   ├── color-utils.ts                       # 颜色操作工具
@@ -364,7 +378,7 @@ ColaMD-themes/
 │   │   └── pdf-extractor.ts                 # PDF → ThemeStyle
 │   └── templates/
 │       ├── template.css                     # 范式配套 CSS 模板
-│       ├── theme-paradigm.md               # v4.0 设计规范（2.7.8-rc.1 契约）
+│       ├── theme-paradigm.md               # v4.0 设计规范（2.7.8-rc.2 契约）
 │       └── theme-template.hbs              # Handlebars CSS 模板
 └── tests/
 ```
@@ -397,14 +411,14 @@ npm run mcp
 |------|-----|------|
 | 运行时 | Node.js + TypeScript | ESM 模块，严格类型 |
 | CLI 框架 | Commander.js | 参数解析、子命令分发 |
-| CSS 模板 | Handlebars | 2.7.8-rc.1 契约 CSS 生成 |
+| CSS 模板 | Handlebars | 2.7.8-rc.2 契约 CSS 生成 |
 | HTML 解析 | Cheerio | URL 提取时的 DOM 遍历 |
 | CSS 解析 | css-tree | CSS 规则 AST 解析 |
 | DOCX 解析 | Mammoth | Word → HTML 转换 |
 | PDF 解析 | pdf-parse | PDF 文本提取 |
 | HTTP 客户端 | Axios | 网页抓取 |
 | 浏览器引擎 | Puppeteer | 无头 Chromium，HTML/PDF 导出 |
-| 编辑器引擎 | @bytechain.cn/colamd | 基于 CM6 的 Markdown 渲染器（2.7.8-rc.1 契约） |
+| 编辑器引擎 | @bytechain.cn/colamd | 基于 CM6 的 Markdown 渲染器（2.7.8-rc.2 契约） |
 | 终端输出 | Chalk + Ora | 彩色文本 + 加载动画 |
 
 ## License

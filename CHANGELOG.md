@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-11-01
+
+### Added
+- **dsh-market 插件支持**：本包现符合 DSH 插件 bundle 契约 —— `package.json` 声明 `dsh.bundle.patch`（指向新增的 `cordis.patch.yml`，插入 `colamd-themes` Cordis Entry），新增宿主入口 `src/dsh-plugin.ts`（`name/inject: ["skills"]/apply`，经 `ctx.skills.registerProvider` 注册捆绑的 `skills/colamd-themes/SKILL.md` 为 bundled skill，协议对齐 dsh-ppt 插件）；`peerDependencies` 声明 `@deepseek-ai/dsh-skill`（optional，market 运行时兼容性检查按 DSH `^0.1.5-rc.1` 校验，独立安装不受影响）；`files` 收录 `dist/themes/skills/cordis.patch.yml`，keywords 增加 `dsh-plugin`
+
+### Changed
+- 依赖升级 `@bytechain.cn/colamd` `^2.7.8-rc.1` → `^2.7.8-rc.2`（npm 已发布）。rc.2 为上游 Word 导出与图片排版修复（a4f4cc4），主题契约保持不变（`themes/contract.json` 仅 `contractVersion` 更新为 2.7.8-rc.2，仍为 27 活变量 / 18 死变量）
+- 版本号升至 0.5.2
+
+### Verified
+- rc.2 真实导出冒烟测试通过：标题经 `buildExportHTML({ title })` 写入、`.colamd-document` 结构、`:root` 契约活变量、零 `--seed-*` 泄漏、mermaid Pele SVG、块公式完整 KaTeX
+
+---
+
 ## [0.5.1] - 2026-10-25
 
 ### Changed

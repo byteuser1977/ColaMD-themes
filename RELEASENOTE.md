@@ -1,4 +1,49 @@
 # Release Notes
+## Version 0.5.2 (2026-11-01) — DSH Plugin & rc.2 🧩
+
+### 🧩 dsh-market Plugin Support
+
+The package is now a first-class **DSH (DeepSeek Harness) plugin bundle**:
+
+- `package.json` declares `dsh.bundle.patch` → `cordis.patch.yml`, inserting the `colamd-themes` Cordis entry into the profile composition
+- New host entry `src/dsh-plugin.ts` (`name` / `inject: ["skills"]` / `apply`) registers the bundled `skills/colamd-themes/SKILL.md` with the Harness `skills` service via `ctx.skills.registerProvider` — the same provider protocol as the built-in dsh-ppt plugin
+- `colamd-themes` / `cthemes` CLI bins ship with the bundle and become available to profile agents after install
+- `@deepseek-ai/dsh-skill` declared as an **optional peer** (`^0.1.5-rc.1`): dsh-market validates it against the DSH runtime version, standalone `npm install` is unaffected
+- `files` whitelist (`dist` / `themes` / `skills` / `cordis.patch.yml`) keeps the published bundle lean; `dsh-plugin` keyword added
+
+Verified: build passes, host-entry protocol simulated (`apply` → `list`/`get` return the bundled skill with valid locator), `npm pack --dry-run` bundle contents complete.
+
+### 📦 Dependency
+
+- `@bytechain.cn/colamd` upgraded to `^2.7.8-rc.2` (published on npm). rc.2 is the upstream Word-export & image-layout release; the theme contract is unchanged (27 live / 18 dead variables, `contractVersion` bump only). A real-export smoke test on rc.2 passed (`:root` carries exactly the 27 contract live variables, mermaid Pele SVG + KaTeX intact).
+- All contract version labels across code, docs, and the six generated agent skills unified to **2.7.8-rc.2**.
+
+### 📦 Upgrade
+
+```bash
+git pull && npm install && npm run build
+```
+
+---
+
+## Version 0.5.1 (2026-10-25) — 2.x Renderer Switch
+
+### ⚡ Export Pipeline on the 2.x Library Renderer
+
+Upstream ColaMD-extend 2.7.8-rc.1 restored the `dist/lib/colamd-renderer.js` library entry (the P0 gap from the 2.7.7 audit). `renderer.ts` now runs fully on 2.x:
+
+- Theme CSS is consumed directly as `:root` declarations — the 1.5.x `bridgeLegacyBodyVars()` body bridge, version detection, and branch logic are **removed (no backward compatibility with 1.5.x)**
+- Titles pass through `buildExportHTML({ title })`; the regex fallback was deleted
+- Dependency pinned to `^2.7.8-rc.1`
+
+Verified by dual smoke tests: exports carry exactly the 27 contract live variables with zero dead-variable / `--seed-*` leakage, mermaid renders as Pele SVG with offline-resolvable `var(--pele-*)`, and block math exports as full KaTeX.
+
+### 📦 Upgrade
+
+`npm install` resolves the new dependency; theme files need no changes.
+
+---
+
 ## Version 0.5.0 (2026-10-25) — ColaMD 2.7.7 Support 🎨
 
 > **Verified against the published `@bytechain.cn/colamd@2.7.7` npm package**: all 16 themes are fully contract-compatible, and the design quality of 10 themes has been brought to zero paradigm errors.

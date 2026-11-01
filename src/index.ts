@@ -27,3 +27,6 @@ export type {
   PrintOptimization,
   StyleValidationIssue,
 } from "./docx-style-paradigm.js";
+
+// DSH (dsh-market) plugin protocol exports — consumed by the Harness runtime.
+export { apply, inject, name } from "./dsh-plugin.js";

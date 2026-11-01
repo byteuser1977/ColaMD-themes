@@ -22,7 +22,7 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 - **`export-html`** — render Markdown to a standalone HTML document with theme CSS embedded, Mermaid diagrams and KaTeX math fully rendered
 - **`export-pdf`** — render Markdown to PDF via Puppeteer (Chromium); theme colors are preserved with `print-color-adjust: exact`
 - **`export`** — batch export multiple files or entire directories to HTML or PDF
-- Powered by `@bytechain.cn/colamd/renderer` (2.x library build, requires `@bytechain.cn/colamd@^2.7.8-rc.1`) — the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations, `buildExportHTML({ title })` serializes only contract live variables, and mermaid diagrams (Pele SVG) / KaTeX math stay fully rendered offline. Built-in theme names resolve their local contract CSS first. Generated themes target the **2.7.8-rc.1 contract**, so they carry over unchanged.
+- Powered by `@bytechain.cn/colamd/renderer` (2.x library build, requires `@bytechain.cn/colamd@^2.7.8-rc.2`) — the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations, `buildExportHTML({ title })` serializes only contract live variables, and mermaid diagrams (Pele SVG) / KaTeX math stay fully rendered offline. Built-in theme names resolve their local contract CSS first. Generated themes target the **2.7.8-rc.2 contract**, so they carry over unchanged.
 
 ### Theme Management
 
@@ -36,8 +36,8 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 - **Contrast Engine** — WCAG 2.1 relative luminance & contrast ratio calculations
 - **Paradigm Validator** — 15+ design constraint rules (CR, HR, SL, NT, BD, MP, FP, FS, SH) with auto-fix suggestions
 - **Color System Library** — 15 predefined seed palettes across 5 families (Morandi, Macaron, Nordic, Vintage, Mint)
-- **2.7.8-rc.1 CSS Contract Validator** — flags dead selectors (`#write`, `.ProseMirror`, `body.theme-custom`), dead variables (`--mermaid-*`, `--radius-*`, `--font-size-root`…), `pt` units, and vertical padding on quote/code lines
-- **2.7.8-rc.1 Verified** — all 16 shipped themes audited against `@bytechain.cn/colamd@2.7.7` (contract unchanged through 2.7.8-rc.1) and smoke-tested on the 2.7.8-rc.1 export pipeline: zero `.cm-md-*` hook drift, all `:root` live variables and `--pele-*` overrides consumed, exports carry exactly the 27 contract live variables
+- **2.7.8-rc.2 CSS Contract Validator** — flags dead selectors (`#write`, `.ProseMirror`, `body.theme-custom`), dead variables (`--mermaid-*`, `--radius-*`, `--font-size-root`…), `pt` units, and vertical padding on quote/code lines
+- **2.7.8-rc.2 Verified** — all 16 shipped themes audited against `@bytechain.cn/colamd@2.7.7` (contract unchanged through 2.7.8-rc.2) and smoke-tested on the 2.7.8-rc.2 export pipeline: zero `.cm-md-*` hook drift, all `:root` live variables and `--pele-*` overrides consumed, exports carry exactly the 27 contract live variables
 - **Pele Diagram Colors** — 9 `--pele-*` variables derived from `--code-block-bg` / `--code-block-text` / `--link-color`, replacing the 20 Mermaid variables
 
 ### Security & Performance (v0.4.0+)
@@ -51,7 +51,7 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 
 ### CSS Template Engine
 
-Handlebars-powered template produces ColaMD 2.7.8-rc.1 contract CSS (≤300 lines):
+Handlebars-powered template produces ColaMD 2.7.8-rc.2 contract CSS (≤300 lines):
 
 | Section | Content |
 |---------|---------|
@@ -129,6 +129,18 @@ bash skills/build-skills.sh dsh
 ```
 
 To customize: edit `skills/colamd-themes/SKILL.md`, then run `npm run build:skills`.
+
+### DSH Plugin (dsh-market)
+
+The package is also a **DSH (DeepSeek Harness) plugin bundle** installable from dsh-market:
+
+- **Plugin contract** — `package.json` declares `dsh.bundle.patch` pointing to [`cordis.patch.yml`](cordis.patch.yml), which inserts the `colamd-themes` Cordis entry into the profile's composition
+- **Host entry** — [`src/dsh-plugin.ts`](src/dsh-plugin.ts) exports the Cordis protocol (`name` / `inject: ["skills"]` / `apply`) and registers the bundled `skills/colamd-themes/SKILL.md` with the Harness `skills` service via `ctx.skills.registerProvider` (same provider protocol as the bundled dsh-ppt plugin)
+- **CLI bins** — `colamd-themes` / `cthemes` ship with the package and become available to profile agents after install
+- **Runtime compatibility** — `@deepseek-ai/dsh-skill` is declared as an *optional* peer (`^0.1.5-rc.1`): the market checks it against the DSH runtime version, while standalone `npm install` is unaffected
+- **Bundle contents** — `dist/` (CLI + host entry), `themes/` (16 contract CSS themes), `skills/` (bundled skill), `cordis.patch.yml`
+
+Install from a DSH profile (once published to npm): add `@bytechain.cn/colamd-themes` through the dsh-market UI or `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`.
 
 ## Installation
 
@@ -247,7 +259,7 @@ cthemes set-theme my-brand --remove
 | `extract <source>` | Auto-detect source type and extract theme |
 | `color-systems` | List 15 built-in color systems |
 | `list` | List all generated themes |
-| `validate <file>` | Validate a theme against the 2.7.8-rc.1 contract and paradigm rules |
+| `validate <file>` | Validate a theme against the 2.7.8-rc.2 contract and paradigm rules |
 | `set-theme <name>` | Set, register, or remove export themes |
 | `export-html <input>` | Export Markdown → standalone HTML |
 | `export-pdf <input>` | Export Markdown → PDF |
@@ -288,12 +300,12 @@ Source (URL / .docx / .pdf)
            ▼
 ┌─────────────────────┐
 │  Color System       │  Match → 15 built-in palettes
-│  Validators         │  WCAG contrast + paradigm + 2.7.8-rc.1 contract
+│  Validators         │  WCAG contrast + paradigm + 2.7.8-rc.2 contract
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────┐
-│  Template Engine    │  Handlebars → 2.7.8-rc.1 CSS (≤300 lines)
+│  Template Engine    │  Handlebars → 2.7.8-rc.2 CSS (≤300 lines)
 └──────────┬──────────┘
            │
            ▼
@@ -326,7 +338,7 @@ Markdown file
 └─────────────────────────────────────────────┘
 ```
 
-## Design Paradigm (2.7.8-rc.1 contract)
+## Design Paradigm (2.7.8-rc.2 contract)
 
 Full specification: [`templates/theme-paradigm.md`](src/templates/theme-paradigm.md).
 
@@ -363,6 +375,7 @@ ColaMD-themes/
 ├── .openclaw/skills/colamd-themes/SKILL.md # OpenClaw skill
 ├── .hermes/skills/tools/colamd-themes/     # Hermes skill
 ├── .trae/rules/colamd-themes.md           # Trae rules
+├── cordis.patch.yml                        # DSH plugin bundle patch (dsh-market)
 ├── package.json
 ├── tsconfig.json
 ├── themes/                                  # Generated CSS themes
@@ -374,6 +387,7 @@ ColaMD-themes/
 │   ├── renderer.ts                          # Puppeteer HTML/PDF export engine
 │   ├── export-cli.ts                        # Export CLI commands
 │   ├── theme-store.ts                       # Theme config persistence (async API)
+│   ├── dsh-plugin.ts                        # DSH host entry (Cordis skill provider)
 │   ├── utils/
 │   │   └── cli-utils.ts                     # Shared utilities & error handling
 │   ├── color-utils.ts                       # Color manipulation utilities
@@ -388,7 +402,7 @@ ColaMD-themes/
 │   │   └── pdf-extractor.ts                 # PDF → ThemeStyle
 │   └── templates/
 │       ├── template.css                     # Paradigm companion CSS
-│       ├── theme-paradigm.md               # v4.0 design specification (2.7.8-rc.1 contract)
+│       ├── theme-paradigm.md               # v4.0 design specification (2.7.8-rc.2 contract)
 │       └── theme-template.hbs              # Handlebars CSS template
 └── tests/
 ```
@@ -399,14 +413,14 @@ ColaMD-themes/
 |-----------|---------|---------|
 | Runtime | Node.js + TypeScript | ESM modules, strict typing |
 | CLI framework | Commander.js | Argument parsing, subcommands |
-| CSS templating | Handlebars | 2.7.8-rc.1 contract CSS generation |
+| CSS templating | Handlebars | 2.7.8-rc.2 contract CSS generation |
 | HTML parsing | Cheerio | DOM traversal for URL extraction |
 | CSS parsing | css-tree | CSS rule AST parsing |
 | DOCX parsing | Mammoth | Word → HTML conversion |
 | PDF parsing | pdf-parse | PDF text extraction |
 | HTTP client | Axios | Web page fetching |
 | Browser engine | Puppeteer | Headless Chromium for HTML/PDF export |
-| Editor engine | @bytechain.cn/colamd | CM6-based Markdown renderer (2.7.8-rc.1 contract) |
+| Editor engine | @bytechain.cn/colamd | CM6-based Markdown renderer (2.7.8-rc.2 contract) |
 | Terminal output | Chalk + Ora | Colored text + spinners |
 
 ## License

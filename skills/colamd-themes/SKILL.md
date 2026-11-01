@@ -1,6 +1,6 @@
 # ColaMD Themes — Universal AI Agent Skill
 
-Generate, validate, export, and manage ColaMD **2.7.7 contract** CSS themes. Extract formatting from URLs, DOCX, or PDF sources; export Markdown to standalone HTML/PDF with themes applied; batch export; manage theme configuration.
+Generate, validate, export, and manage ColaMD **2.7.8-rc.2 contract** CSS themes. Extract formatting from URLs, DOCX, or PDF sources; export Markdown to standalone HTML/PDF with themes applied; batch export; manage theme configuration.
 
 ## Prerequisites
 
@@ -121,14 +121,14 @@ Export uses Puppeteer (headless Chromium) with `@bytechain.cn/colamd/renderer`:
 
 1. Local HTTP server serves renderer ESM bundle (avoids CORS)
 2. Puppeteer navigates to server page (same-origin)
-3. `createColaMDEditor({ editable: false })` initializes Milkdown editor
+3. `createColaMDEditor({ editable: false })` initializes the CM6 editor
 4. `applyTheme(name, customCSS?)` sets theme
 5. `setMarkdown(content)` loads document
 6. `ensureAllPluginsRendered()` waits for mermaid/KaTeX
 7. `buildExportHTML()` → standalone HTML with embedded CSS
 8. For PDF: `emulateMediaType('screen')` + `page.pdf()`
 
-## 2.7.7 Contract Constraints
+## 2.7.8-rc.2 Contract Constraints
 
 - Variables live in `:root`; anything in `body.theme-*` is ignored
 - Live variables only: `--bg-color --text-color --text-secondary --text-muted --border-color --link-color --code-bg --code-block-bg --code-block-text --blockquote-border --blockquote-bg --table-header-bg --selection-bg --highlight-bg --font-body --font-mono --editor-font-size --editor-column-width` + `--pele-*`
@@ -172,9 +172,9 @@ Export uses Puppeteer (headless Chromium) with `@bytechain.cn/colamd/renderer`:
 ## Architecture
 
 ```
-Source → Extractor → ThemeStyle → Color System + Pele + Validators → CSS (2.7.7 contract)
+Source → Extractor → ThemeStyle → Color System + Pele + Validators → CSS (2.7.8-rc.2 contract)
 
 Markdown → Puppeteer + ColaMD renderer → HTML / PDF
 ```
 
-> Export runs the 1.5.x Milkdown renderer library; the npm 2.x package (`@bytechain.cn/colamd@2.7.7`) is the Electron app distribution and no longer ships `dist/lib/colamd-renderer.js` — `renderer.ts` detects a 2.x install and asks for `@^1.5.2`. Generated CSS targets 2.7.7 (verified against the published 2.7.7 package), so it carries over unchanged.
+> Export runs the ColaMD 2.x library renderer (`@bytechain.cn/colamd@^2.7.8-rc.2` ships `dist/lib/colamd-renderer.js` + `colamd.css`); the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations and `buildExportHTML({ title })` serializes only contract live variables. Generated CSS targets the 2.7.8-rc.2 contract (unchanged since 2.7.7, machine-readable as `themes/contract.json` in the npm package), so it carries over unchanged.

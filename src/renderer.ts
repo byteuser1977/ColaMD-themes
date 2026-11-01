@@ -2,9 +2,9 @@
  * Puppeteer-based rendering engine for ColaMD HTML/PDF export.
  *
  * Uses the @bytechain.cn/colamd 2.x library build (dist/lib/colamd-renderer.js +
- * colamd.css, requires ≥2.7.8-rc.1) to create a headless editor, apply themes,
+ * colamd.css, requires ≥2.7.8-rc.2) to create a headless editor, apply themes,
  * render mermaid/math, and export standalone HTML or PDF. Theme CSS targets the
- * ColaMD 2.7.8-rc.1 contract (machine-readable as themes/contract.json in the
+ * ColaMD 2.7.8-rc.2 contract (machine-readable as themes/contract.json in the
  * npm package) and is consumed directly as `:root` declarations.
  *
  * Architecture:
@@ -71,7 +71,7 @@ function findRendererPath(): string {
         if (version.startsWith("2.")) {
           throw new Error(
             `@bytechain.cn/colamd ${version} 不含 colamd-renderer.js 库入口（2.7.8 起恢复提供）。` +
-            "请升级: npm install @bytechain.cn/colamd@^2.7.8-rc.1"
+            "请升级: npm install @bytechain.cn/colamd@^2.7.8-rc.2"
           );
         }
       } catch (e) {
