@@ -17,6 +17,7 @@ import { validateSeedPalette, validateThemeCss, summarizeIssues } from "./valida
 import type { ThemeStyle } from "./models.js";
 import { registerExportCommands } from "./export-cli.js";
 import { BUILTIN_THEMES } from "./theme-store.js";
+import { getColamdCompat, formatColamdCompat } from "./compat.js";
 
 /**
  * Dynamically read version from package.json to avoid hardcoding.
@@ -47,8 +48,9 @@ const THEME_FONTS: Record<string, string[]> = getBuiltinFontStacks();
 
 /** Find the path to @bytechain.cn/colamd/dist/lib/colamd.css */
 function findColamdCssPath(): string {
+  const moduleDir = fileURLToPath(new URL("../node_modules/@bytechain.cn/colamd/dist/lib", import.meta.url));
   const candidates = [
-    resolve(dirname(new URL(import.meta.url).pathname), "../node_modules/@bytechain.cn/colamd/dist/lib/colamd.css"),
+    resolve(moduleDir, "colamd.css"),
     resolve(process.cwd(), "node_modules/@bytechain.cn/colamd/dist/lib/colamd.css"),
   ];
   for (const p of candidates) {
@@ -354,6 +356,17 @@ program
     const cssIssues = validateThemeCss(css);
     console.log(cssIssues.length === 0 ? chalk.green("  ✔ :root 根块与选择器契约通过") : summarizeIssues(cssIssues));
 
+    // Platform compatibility report — surfaces the installed
+    // @bytechain.cn/colamd version and contract drift before paradigm checks,
+    // so a platform upgrade that changes the CSS contract is diagnosed here
+    // instead of as broken colors at export time.
+    const compat = getColamdCompat();
+    const compatLine = formatColamdCompat(compat);
+    if (compat.status === "exact") {
+      console.log(chalk.dim(`  平台兼容: ${compatLine}`));
+    } else {
+      console.log(chalk.yellow(`  平台兼容: ${compatLine}`));
+    }
     if (!seed.accent) {
       console.log(chalk.yellow("\nNot a seed-palette theme (no --seed-* found); seed checks skipped."));
       if (cssIssues.some((i) => i.level === "MUST" || i.level === "MUST_NOT")) process.exit(1);

@@ -39,6 +39,7 @@
 - **2.7.8-rc.2 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
 - **2.7.8-rc.2 核验通过** — 全部 16 个主题已对照 `@bytechain.cn/colamd@2.7.7` 逐项审计（契约至 2.7.8-rc.2 保持不变），并在 2.7.8-rc.2 导出管线上实测通过：`.cm-md-*` 钩子零漂移，`:root` 活变量与 `--pele-*` 覆盖全部被渲染器消费，导出 `:root` 恰好携带 27 个契约活变量
 - **Pele 图表配色** — 9 个 `--pele-*` 变量由 `--code-block-bg` / `--code-block-text` / `--link-color` 推导，取代 Mermaid 20 变量
+- **平台向后兼容 (v0.5.3+)** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移；`validate` 输出「平台兼容」报告行，导出前校验渲染器 API 面（`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`）。平台升级导致的契约/API 变化给出含版本号与修复命令的明确诊断，而非渲染中途的神秘报错
 
 ### 安全与性能 (v0.4.0+)
 
@@ -113,7 +114,9 @@ bash skills/build-skills.sh dsh
 - **插件契约** — `package.json` 声明 `dsh.bundle.patch`，指向 [`cordis.patch.yml`](cordis.patch.yml)，向 Profile 组合树插入 `colamd-themes` Cordis Entry
 - **宿主入口** — [`src/dsh-plugin.ts`](src/dsh-plugin.ts) 导出 Cordis 协议（`name` / `inject: ["skills"]` / `apply`），经 `ctx.skills.registerProvider` 把捆绑的 `skills/colamd-themes/SKILL.md` 注册到 Harness `skills` 服务（与内置 dsh-ppt 插件同一 provider 协议）
 - **CLI 命令** — `colamd-themes` / `cthemes` 随包分发，安装后 Profile 内 Agent 可直接调用
-- **运行时兼容** — `@deepseek-ai/dsh-skill` 声明为 *optional* peer（`^0.1.5-rc.1`）：market 按 DSH 运行时版本校验，独立 `npm install` 不受影响
+- **运行时兼容** — `@deepseek-ai/dsh-skill` 声明为 *optional* peer（`^0.1.5-rc.1 || ^0.2.0-rc || ^0.2.1-rc || ^0.3.0-rc || ^0.4.0-rc`，semver 预发布规则按 patch 线枚举，新 rc 线发布时追加）：market 按 DSH 运行时版本校验，独立 `npm install` 不受影响
+- **向后兼容** — 运行时只消费 dsh-skill 的稳定常量 `BUNDLED_SKILL_RANK`，宿主入口 `apply()` 对 skills 服务协议漂移容错（降级为警告，不阻塞 Profile 加载）
+- **平台兼容层** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移，渲染器初始化时校验导出 API 面；平台升级导致的契约/API 变化在 `cthemes validate` 与导出阶段给出明确诊断，而非神秘报错
 - **Bundle 内容** — `dist/`（CLI + 宿主入口）、`themes/`（16 个契约 CSS 主题）、`skills/`（捆绑 skill）、`cordis.patch.yml`
 
 从 DSH Profile 安装（npm 发布后）：在 dsh-market 界面添加 `@bytechain.cn/colamd-themes`，或执行 `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`。
@@ -235,7 +238,7 @@ cthemes set-theme 我的品牌 --remove
 | `extract <source>` | 自动检测来源类型并提取主题 |
 | `color-systems` | 列出 15 套内置色彩系统 |
 | `list` | 列出所有生成的主题 |
-| `validate <file>` | 验证主题是否符合 2.7.8-rc.2 契约与范式规则 |
+| `validate <file>` | 验证主题是否符合 2.7.8-rc.2 契约与范式规则（含平台兼容报告） |
 | `set-theme <name>` | 设置、注册或注销导出主题 |
 | `export-html <input>` | 导出 Markdown → 独立 HTML |
 | `export-pdf <input>` | 导出 Markdown → PDF |
@@ -364,6 +367,7 @@ ColaMD-themes/
 │   ├── export-cli.ts                        # 导出 CLI 命令
 │   ├── theme-store.ts                       # 主题配置持久化（异步 API）
 │   ├── dsh-plugin.ts                        # DSH 宿主入口（Cordis skill provider）
+│   ├── compat.ts                            # 平台兼容层（契约漂移 + 渲染器 API 探测）
 │   ├── utils/
 │   │   └── cli-utils.ts                     # 公共工具函数与错误处理
 │   ├── color-utils.ts                       # 颜色操作工具

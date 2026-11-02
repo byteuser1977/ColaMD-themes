@@ -1,4 +1,32 @@
 # Release Notes
+## Version 0.5.3 (2026-11-02) — Platform Backward-Compatibility Hardening 🔧
+
+### 🔧 Fixed
+
+- **DSH 0.2.1-rc.5 compatibility** — the optional peer range for `@deepseek-ai/dsh-skill` is widened from `^0.1.5-rc.1` to `^0.1.5-rc.1 || ^0.2.0-rc || ^0.2.1-rc || ^0.3.0-rc || ^0.4.0-rc`. The 0.5.2 range could not match the dsh-skill shipped with the DSH 0.2.1-rc.5 runtime, so dsh-market's compatibility check rejected the plugin (advising uninstall/reinstall). Note: semver's prerelease rule forces per-patch enumeration, so new rc patch lines (e.g. 0.3.1-rc.x) need an appended comparator at release time
+- **Windows path resolution bug** — `renderer.ts` (`findRendererPath`) and `cli.ts` (`findColamdCssPath`) built node_modules lookups from `new URL(import.meta.url).pathname`, which yields `/d:/...` on Windows so the module-relative candidate never matched. Both now use `fileURLToPath`
+- **build-skills.sh CRLF truncation (0.5.2 regression)** — after the canonical `SKILL.md` gained CRLF line endings, `sed /^$/` could not match `\r` lines, so the extracted body was empty and all six generated agent skill files were silently truncated to bare frontmatter (~330 bytes) and shipped in 0.5.2. The script now strips CR before extraction and hard-fails on an empty body; all six files were regenerated, and the stale rendering-pipeline description in `SKILL.md` (PDF export must NOT use `emulateMediaType('screen')`) was corrected
+
+### 🛡️ Added — Platform Compatibility Layer (`src/compat.ts`)
+
+Upgrades to the ColaMD platform or the DSH runtime no longer surface as cryptic mid-render crashes or broken profile loads:
+
+- **Contract drift detection** — reads the installed `@bytechain.cn/colamd` version and its machine-readable `themes/contract.json`, compares against the theme anchor contract (2.7.8-rc.2, 27 live variables), and reports missing live variables. Fully null-safe, never throws
+- **Renderer API capability probe** — after editor init, the 4 methods the export pipeline calls (`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`) are verified; a future API drift fails fast with an error naming the installed version and the fix command
+- **Non-fatal drift warnings** — export continues with a warning when the platform `contractVersion` differs; `cthemes validate` now prints a "平台兼容" report line so drift is caught at validation time
+- **DSH host-entry fault tolerance** — `apply()` catches registration failures and degrades to a warning instead of crashing profile composition when the DSH skills service shape changes; the CLI bins are unaffected
+
+### 📦 Compatibility policy
+
+- `@bytechain.cn/colamd` stays `^2.7.8-rc.2`: caret auto-follows stable 2.x lines; pure prerelease lines (e.g. 2.8.0-rc.x) are opt-in. Drift after an upgrade is diagnosed by the compat layer at `validate`/export time
+- `@deepseek-ai/dsh-skill` is an optional peer whose runtime surface is one stable constant (`BUNDLED_SKILL_RANK`) — worst case of a range mismatch is a market notice, never broken functionality
+
+### 📦 Upgrade
+
+Uninstall 0.5.2 from dsh-market, then reinstall `@bytechain.cn/colamd-themes@0.5.3` (or `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`). Standalone `npm install` is unaffected.
+
+---
+
 ## Version 0.5.2 (2026-11-01) — DSH Plugin & rc.2 🧩
 
 ### 🧩 dsh-market Plugin Support

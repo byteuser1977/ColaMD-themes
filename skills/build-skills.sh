@@ -18,8 +18,15 @@ if [[ ! -f "$SOURCE" ]]; then
   exit 1
 fi
 
-# Read the body (everything after the first blank line following the heading)
-BODY=$(sed -n '/^$/,$ { /^# ColaMD/!p; }' "$SOURCE" | sed '1{/^$/d;}')
+# Read the body (everything after the first blank line following the heading).
+# Strip CR first: on Windows checkouts the source may use CRLF, and sed's
+# `/^$/` cannot match a "\r" line — silently producing an empty BODY and
+# truncated skill files (regression shipped in 0.5.2).
+BODY=$(sed 's/\r$//' "$SOURCE" | sed -n '/^$/,$ { /^# ColaMD/!p; }' | sed '1{/^$/d;}')
+if [[ -z "$BODY" ]]; then
+  echo "Error: extracted body from $SOURCE is empty (line-ending issue?)" >&2
+  exit 1
+fi
 
 # ── Frontmatter templates ──
 

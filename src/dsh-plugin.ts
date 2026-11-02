@@ -93,8 +93,19 @@ function registerSkill(ctx: DshPluginContext, skillRoot: string, rank: number): 
 
 /** Compose the plugin: register the bundled skill provider. */
 async function apply(ctx: DshPluginContext): Promise<void> {
-  const skillRoot = fileURLToPath(new URL("../skills/colamd-themes", import.meta.url));
-  registerSkill(ctx, skillRoot, await bundledSkillRank());
+  // Fault tolerance across DSH runtime upgrades: if the host's skills service
+  // shape ever drifts (renamed registerProvider, changed inject contract),
+  // degrade to a warning instead of crashing profile composition — the CLI
+  // bins keep working regardless, and a later runtime can re-register.
+  try {
+    const skillRoot = fileURLToPath(new URL("../skills/colamd-themes", import.meta.url));
+    registerSkill(ctx, skillRoot, await bundledSkillRank());
+  } catch (e) {
+    console.warn(
+      `[colamd-themes] bundled skill registration failed (runtime may have changed its skills service): ` +
+      `${e instanceof Error ? e.message : String(e)}`
+    );
+  }
 }
 
 export { apply, inject, name };

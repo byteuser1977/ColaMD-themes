@@ -19,6 +19,8 @@ import puppeteer, { type Browser, type Page } from "puppeteer";
 import { createServer, type Server } from "node:http";
 import { readFileSync, existsSync, createReadStream } from "node:fs";
 import { resolve, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { formatColamdCompat, getColamdCompat, MIN_RENDERER_VERSION, REQUIRED_RENDERER_API } from "./compat.js";
 
 // ── Types ──
 
@@ -54,8 +56,9 @@ export interface PDFExportOptions {
 
 /** Locate the ColaMD renderer ESM bundle in node_modules. */
 function findRendererPath(): string {
+  const moduleDir = fileURLToPath(new URL("../node_modules/@bytechain.cn/colamd/dist/lib", import.meta.url));
   const candidates = [
-    resolve(dirname(new URL(import.meta.url).pathname), "../node_modules/@bytechain.cn/colamd/dist/lib/colamd-renderer.js"),
+    resolve(moduleDir, "colamd-renderer.js"),
     resolve(process.cwd(), "node_modules/@bytechain.cn/colamd/dist/lib/colamd-renderer.js"),
   ];
   for (const p of candidates) {
@@ -71,7 +74,7 @@ function findRendererPath(): string {
         if (version.startsWith("2.")) {
           throw new Error(
             `@bytechain.cn/colamd ${version} 不含 colamd-renderer.js 库入口（2.7.8 起恢复提供）。` +
-            "请升级: npm install @bytechain.cn/colamd@^2.7.8-rc.2"
+            `请升级: npm install @bytechain.cn/colamd@^${MIN_RENDERER_VERSION}`
           );
         }
       } catch (e) {
@@ -81,7 +84,7 @@ function findRendererPath(): string {
   }
   throw new Error(
     "Cannot find @bytechain.cn/colamd renderer. " +
-    "Install it: npm install @bytechain.cn/colamd@^2.7.8-rc.1"
+    `Install it: npm install @bytechain.cn/colamd@^${MIN_RENDERER_VERSION}`
   );
 }
 
@@ -186,6 +189,35 @@ export class ColamdRenderer {
 
     const error = await this.page.evaluate(() => (window as any).__colamdError);
     if (error) throw new Error(`Editor init failed: ${error}`);
+
+    // Capability probe: verify the editor handle exposes the API surface the
+    // export pipeline calls, so future platform API drift produces an
+    // actionable error (with the installed version) instead of an
+    // "undefined is not a function" mid-render.
+    const missingApi = await this.page.evaluate(
+      (methods: string[]) => {
+        const handle = (window as any).__colamdHandle;
+        if (!handle || typeof handle !== "object") return methods;
+        return methods.filter((m) => typeof handle[m] !== "function");
+      },
+      [...REQUIRED_RENDERER_API]
+    );
+    if (missingApi.length > 0) {
+      const { version } = getColamdCompat();
+      throw new Error(
+        `Renderer API 不兼容：@bytechain.cn/colamd ${version ?? "(未知版本)"} 缺少导出管线所需的方法 ` +
+        `[${missingApi.join(", ")}]。平台可能已升级 API，` +
+        `请安装经核验的版本: npm install @bytechain.cn/colamd@^${MIN_RENDERER_VERSION}`
+      );
+    }
+
+    // Contract drift warning — non-fatal: the platform still renders, but our
+    // :root variables may no longer be fully consumed.
+    const compat = getColamdCompat();
+    if (compat.status === "drift") {
+      console.warn(`[colamd-themes] 平台契约漂移: ${formatColamdCompat(compat)}`);
+      console.warn(`[colamd-themes] 导出仍将继续；如配色异常请核对平台 changelog 或安装 @bytechain.cn/colamd@^${MIN_RENDERER_VERSION}`);
+    }
 
     this.ready = true;
   }

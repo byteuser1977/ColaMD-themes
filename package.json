@@ -1,6 +1,6 @@
 {
   "name": "@bytechain.cn/colamd-themes",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Theme development & export tool for ColaMD — extract formatting, generate themes, and export Markdown to HTML/PDF",
   "type": "module",
   "main": "dist/index.js",
@@ -44,7 +44,7 @@
     }
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-skill": "^0.1.5-rc.1"
+    "@deepseek-ai/dsh-skill": "^0.1.5-rc.1 || ^0.2.0-rc || ^0.2.1-rc || ^0.3.0-rc || ^0.4.0-rc"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/dsh-skill": {

@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] - 2026-11-02
+
+### Fixed
+- **DSH 0.2.1-rc.5 兼容性**：`@deepseek-ai/dsh-skill` optional peer 由 `^0.1.5-rc.1` 拓宽为 `^0.1.5-rc.1 || ^0.2.0-rc || ^0.2.1-rc || ^0.3.0-rc || ^0.4.0-rc`。0.5.2 的 peer 范围无法匹配 DSH 0.2.1-rc.5 运行时携带的 dsh-skill，dsh-market 校验报不兼容（提示卸载重装）。semver 预发布规则要求按 patch 线枚举 rc 比较器，故新线（0.3.1-rc.x 等）发布时需追加对应项；宿主入口仅消费稳定的 `BUNDLED_SKILL_RANK` 导出，无需代码改动
+- **Windows 路径解析 bug**：`renderer.ts`（`findRendererPath`）与 `cli.ts`（`findColamdCssPath`）用 `new URL(import.meta.url).pathname` 拼路径，Windows 下生成 `/d:/...` 导致模块相对查找永远落空（此前仅靠 cwd 候选侥幸工作）。两处均改用 `fileURLToPath`
+- **build-skills.sh CRLF 截断（0.5.2 回归）**：源 `SKILL.md` 行尾变为 CRLF 后，`sed /^$/` 匹配不到 `\r` 空行，BODY 提取为空，6 个 Agent 生成文件被静默截断为只剩 frontmatter（约 330 字节）并随 0.5.2 提交。脚本现先剥离 CR 再提取，BODY 为空时报错退出；已重新生成全部 6 个文件并修复 `SKILL.md` 中与实现相悖的渲染管线描述（PDF 导出不使用 `emulateMediaType('screen')`）
+
+### Added
+- **平台兼容层（`src/compat.ts`）**：运行时读取已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json`，与主题锚定契约（2.7.8-rc.2，27 活变量）比对，输出契约漂移报告（`getColamdCompat` / `formatColamdCompat`），全部空值安全、不抛异常
+- **渲染器 API 能力探测**：编辑器初始化后校验导出管线调用的 4 个方法（`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`）是否存在，缺失时给出含已安装版本号与修复命令的明确报错——未来平台 API 漂移不再以 "undefined is not a function" 的形式在渲染中途爆掉
+- **契约漂移警告**：导出时平台 `contractVersion` 与主题契约不一致仅告警不中断（活变量缺失明细一并输出）；`cthemes validate` 新增「平台兼容」报告行，契约漂移在验证阶段即可发现
+- **DSH 宿主入口容错**：`apply()` 内部 try/catch——未来 DSH 运行时 skills 服务协议漂移时降级为警告，不再让 Profile 组合树加载崩溃；CLI bins 不受影响
+- 版本号升至 0.5.3
+
+### 兼容策略
+- `@bytechain.cn/colamd` 依赖保持 `^2.7.8-rc.2`：caret 自动跟随 2.x 稳定线升级，纯预发布线（如 2.8.0-rc.x）默认不自动引入，需显式 `npm install @bytechain.cn/colamd@<version>`；升级后的契约/API 漂移由兼容层在 `validate` 与导出阶段给出诊断
+- `@deepseek-ai/dsh-skill` peer 为 optional 且运行时只消费 `BUNDLED_SKILL_RANK` 常量，范围不匹配的最坏结果是 market 提示，插件功能不受影响
+
+### Upgrade
+- 在 dsh-market 卸载 0.5.2 后重新安装 `@bytechain.cn/colamd-themes@0.5.3`（或 `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`）
+
+---
+
 ## [0.5.2] - 2026-11-01
 
 ### Added

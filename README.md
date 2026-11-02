@@ -39,6 +39,7 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 - **2.7.8-rc.2 CSS Contract Validator** — flags dead selectors (`#write`, `.ProseMirror`, `body.theme-custom`), dead variables (`--mermaid-*`, `--radius-*`, `--font-size-root`…), `pt` units, and vertical padding on quote/code lines
 - **2.7.8-rc.2 Verified** — all 16 shipped themes audited against `@bytechain.cn/colamd@2.7.7` (contract unchanged through 2.7.8-rc.2) and smoke-tested on the 2.7.8-rc.2 export pipeline: zero `.cm-md-*` hook drift, all `:root` live variables and `--pele-*` overrides consumed, exports carry exactly the 27 contract live variables
 - **Pele Diagram Colors** — 9 `--pele-*` variables derived from `--code-block-bg` / `--code-block-text` / `--link-color`, replacing the 20 Mermaid variables
+- **Platform backward compatibility (v0.5.3+)** — [`src/compat.ts`](src/compat.ts) probes the installed `@bytechain.cn/colamd` version and its `themes/contract.json` for contract drift; `validate` prints a "平台兼容" report line and the renderer verifies the export API surface (`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`) before rendering. Platform upgrades produce actionable diagnostics (version + fix command) instead of cryptic mid-render failures
 
 ### Security & Performance (v0.4.0+)
 
@@ -137,7 +138,9 @@ The package is also a **DSH (DeepSeek Harness) plugin bundle** installable from 
 - **Plugin contract** — `package.json` declares `dsh.bundle.patch` pointing to [`cordis.patch.yml`](cordis.patch.yml), which inserts the `colamd-themes` Cordis entry into the profile's composition
 - **Host entry** — [`src/dsh-plugin.ts`](src/dsh-plugin.ts) exports the Cordis protocol (`name` / `inject: ["skills"]` / `apply`) and registers the bundled `skills/colamd-themes/SKILL.md` with the Harness `skills` service via `ctx.skills.registerProvider` (same provider protocol as the bundled dsh-ppt plugin)
 - **CLI bins** — `colamd-themes` / `cthemes` ship with the package and become available to profile agents after install
-- **Runtime compatibility** — `@deepseek-ai/dsh-skill` is declared as an *optional* peer (`^0.1.5-rc.1`): the market checks it against the DSH runtime version, while standalone `npm install` is unaffected
+- **Runtime compatibility** — `@deepseek-ai/dsh-skill` is declared as an *optional* peer (`^0.1.5-rc.1 || ^0.2.0-rc || ^0.2.1-rc || ^0.3.0-rc || ^0.4.0-rc`; semver's prerelease rule forces per-patch enumeration — append a comparator when a new rc line ships): the market checks it against the DSH runtime version, while standalone `npm install` is unaffected
+- **Backward compatibility** — the runtime consumes only the stable `BUNDLED_SKILL_RANK` constant, and the host entry's `apply()` tolerates skills-service protocol drift (warning instead of a broken profile load)
+- **Platform compat layer** — [`src/compat.ts`](src/compat.ts) probes the installed `@bytechain.cn/colamd` version and its `themes/contract.json` for contract drift, and the renderer verifies the export API surface at init; platform upgrades are diagnosed clearly at `cthemes validate`/export time instead of failing cryptically
 - **Bundle contents** — `dist/` (CLI + host entry), `themes/` (16 contract CSS themes), `skills/` (bundled skill), `cordis.patch.yml`
 
 Install from a DSH profile (once published to npm): add `@bytechain.cn/colamd-themes` through the dsh-market UI or `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`.
@@ -259,7 +262,7 @@ cthemes set-theme my-brand --remove
 | `extract <source>` | Auto-detect source type and extract theme |
 | `color-systems` | List 15 built-in color systems |
 | `list` | List all generated themes |
-| `validate <file>` | Validate a theme against the 2.7.8-rc.2 contract and paradigm rules |
+| `validate <file>` | Validate a theme against the 2.7.8-rc.2 contract and paradigm rules (with a platform compat report) |
 | `set-theme <name>` | Set, register, or remove export themes |
 | `export-html <input>` | Export Markdown → standalone HTML |
 | `export-pdf <input>` | Export Markdown → PDF |
@@ -388,6 +391,7 @@ ColaMD-themes/
 │   ├── export-cli.ts                        # Export CLI commands
 │   ├── theme-store.ts                       # Theme config persistence (async API)
 │   ├── dsh-plugin.ts                        # DSH host entry (Cordis skill provider)
+│   ├── compat.ts                            # Platform compat layer (contract drift + renderer API probe)
 │   ├── utils/
 │   │   └── cli-utils.ts                     # Shared utilities & error handling
 │   ├── color-utils.ts                       # Color manipulation utilities

@@ -28,5 +28,16 @@ export type {
   StyleValidationIssue,
 } from "./docx-style-paradigm.js";
 
+// Platform compatibility layer — runtime probes for @bytechain.cn/colamd
+// version / contract drift and the renderer API surface.
+export {
+  SUPPORTED_CONTRACT,
+  MIN_RENDERER_VERSION,
+  REQUIRED_RENDERER_API,
+  getColamdCompat,
+  formatColamdCompat,
+} from "./compat.js";
+export type { ColamdCompat, ColamdContract, CompatStatus } from "./compat.js";
+
 // DSH (dsh-market) plugin protocol exports — consumed by the Harness runtime.
 export { apply, inject, name } from "./dsh-plugin.js";

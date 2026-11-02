@@ -44,6 +44,8 @@ colamd-themes list [-d <dir>]
 colamd-themes validate <file.css>
 ```
 
+`validate` prints a **platform compat line** ("平台兼容") — it reports the installed `@bytechain.cn/colamd` version and whether its `themes/contract.json` matches the 2.7.8-rc.2 theme contract. On drift it lists missing live variables; treat that as a signal to check the platform changelog or pin `@bytechain.cn/colamd@^2.7.8-rc.2`.
+
 ## Options
 
 ### Extract options
@@ -122,11 +124,12 @@ Export uses Puppeteer (headless Chromium) with `@bytechain.cn/colamd/renderer`:
 1. Local HTTP server serves renderer ESM bundle (avoids CORS)
 2. Puppeteer navigates to server page (same-origin)
 3. `createColaMDEditor({ editable: false })` initializes the CM6 editor
-4. `applyTheme(name, customCSS?)` sets theme
-5. `setMarkdown(content)` loads document
-6. `ensureAllPluginsRendered()` waits for mermaid/KaTeX
-7. `buildExportHTML()` → standalone HTML with embedded CSS
-8. For PDF: `emulateMediaType('screen')` + `page.pdf()`
+4. Capability probe verifies the export API surface (`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`); drift fails fast with the installed version and a fix command
+5. `applyTheme(name, customCSS?)` sets theme
+6. `setMarkdown(content)` loads document
+7. `ensureAllPluginsRendered()` waits for mermaid/KaTeX
+8. `buildExportHTML()` → standalone HTML with embedded CSS
+9. For PDF: load the export HTML in a fresh page + `page.pdf()` — do NOT `emulateMediaType('screen')`, the theme's `@media print` rules (with `print-color-adjust: exact`) must apply
 
 ## 2.7.8-rc.2 Contract Constraints
 
@@ -177,4 +180,4 @@ Source → Extractor → ThemeStyle → Color System + Pele + Validators → CSS
 Markdown → Puppeteer + ColaMD renderer → HTML / PDF
 ```
 
-> Export runs the ColaMD 2.x library renderer (`@bytechain.cn/colamd@^2.7.8-rc.2` ships `dist/lib/colamd-renderer.js` + `colamd.css`); the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations and `buildExportHTML({ title })` serializes only contract live variables. Generated CSS targets the 2.7.8-rc.2 contract (unchanged since 2.7.7, machine-readable as `themes/contract.json` in the npm package), so it carries over unchanged.
+> Export runs the ColaMD 2.x library renderer (`@bytechain.cn/colamd@^2.7.8-rc.2` ships `dist/lib/colamd-renderer.js` + `colamd.css`); the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations and `buildExportHTML({ title })` serializes only contract live variables. Generated CSS targets the 2.7.8-rc.2 contract (unchanged since 2.7.7, machine-readable as `themes/contract.json` in the npm package), so it carries over unchanged. Platform upgrades are handled by a compat layer (`src/compat.ts`): contract drift is reported by `validate` and non-fatally at export, and the renderer API surface is probed at init — upgrades produce actionable diagnostics, not crashes.
