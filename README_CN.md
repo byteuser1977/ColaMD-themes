@@ -63,7 +63,7 @@
 
 ### 多 Agent Skill 通用支持
 
-从单一源文件自动生成 6 个 AI 编码代理的 Skill 定义：
+从单一源文件自动生成 6 个 AI 编码代理的 Skill 定义（共 7 份输出——Trae 同时生成工作区规则与项目级 Skill）：
 
 | Agent | Skill 路径 | 前置元数据 |
 |-------|-----------|-----------|
@@ -71,7 +71,8 @@
 | **OpenCode** | `.opencode/skills/colamd-themes/SKILL.md` | `name`, `version`, `user-invocable`, `allowed-tools`, `hooks` |
 | **OpenClaw** | `.openclaw/skills/colamd-themes/SKILL.md` | `id`, `name`, `version`, `icon`, `author`, `homepage`, `metadata.openclaw.os` |
 | **Hermes** | `.hermes/skills/tools/colamd-themes/SKILL.md` | `name`, `version`, `author`, `license`, `metadata.hermes.tags`, `prerequisites` |
-| **Trae** | `.trae/rules/colamd-themes.md` | 纯 Markdown（无前置元数据） |
+| **Trae（规则）** | `.trae/rules/colamd-themes.md` | 纯 Markdown（无前置元数据） |
+| **Trae（Skill）** | `.trae/skills/colamd-themes/SKILL.md` | `name`, `description`（单行 plain scalar） |
 | **DeepSeek Harness** | `.dsh/skills/colamd-themes/SKILL.md` | `name`, `version`, `description`, `metadata.dsh.tags`, `prerequisites` |
 
 **架构：**
@@ -87,6 +88,7 @@ skills/build-skills.sh              ← 构建脚本（bash）
         ├──→ .openclaw/skills/colamd-themes/SKILL.md
         ├──→ .hermes/skills/tools/colamd-themes/SKILL.md
         ├──→ .trae/rules/colamd-themes.md
+        ├──→ .trae/skills/colamd-themes/SKILL.md
         └──→ .dsh/skills/colamd-themes/SKILL.md
 ```
 
@@ -102,6 +104,7 @@ bash skills/build-skills.sh opencode
 bash skills/build-skills.sh openclaw
 bash skills/build-skills.sh hermes
 bash skills/build-skills.sh trae
+bash skills/build-skills.sh trae-skill
 bash skills/build-skills.sh dsh
 ```
 
@@ -354,6 +357,7 @@ ColaMD-themes/
 ├── .openclaw/skills/colamd-themes/SKILL.md # OpenClaw Skill
 ├── .hermes/skills/tools/colamd-themes/     # Hermes Skill
 ├── .trae/rules/colamd-themes.md           # Trae 规则
+├── .trae/skills/colamd-themes/            # Trae 项目级 Skill
 ├── cordis.patch.yml                        # DSH 插件 bundle patch（dsh-market）
 ├── package.json
 ├── tsconfig.json

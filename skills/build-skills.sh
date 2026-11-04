@@ -101,6 +101,13 @@ prerequisites:
   commands: [node, npm]
 ---'
 
+# Trae project skill constraints: description is a single-line plain scalar,
+# unquoted, with no ": ", "<", or ">" (router-visible trigger text).
+FRONT_TRAE_SKILL='---
+name: colamd-themes
+description: Generate, validate, and export ColaMD contract CSS themes — extract from URLs, DOCX or PDF, export Markdown to HTML or PDF. Use when the user asks to create, validate, export, or manage ColaMD themes.
+---'
+
 # ── Generator functions ──
 
 generate_claude() {
@@ -166,6 +173,16 @@ generate_trae() {
   echo "  → $file"
 }
 
+generate_trae_skill() {
+  local dir=".trae/skills/colamd-themes"
+  mkdir -p "$dir"
+  local file="$dir/SKILL.md"
+  echo "$FRONT_TRAE_SKILL" > "$file"
+  echo "" >> "$file"
+  echo "$BODY" >> "$file"
+  echo "  → $file"
+}
+
 # ── Main ──
 
 TARGET="${1:-all}"
@@ -173,23 +190,25 @@ echo "Building skill files from: $SOURCE"
 echo ""
 
 case "$TARGET" in
-  claude)   generate_claude ;;
-  opencode) generate_opencode ;;
-  openclaw) generate_openclaw ;;
-  hermes)   generate_hermes ;;
-  trae)     generate_trae ;;
-  dsh)      generate_dsh ;;
+  claude)     generate_claude ;;
+  opencode)   generate_opencode ;;
+  openclaw)   generate_openclaw ;;
+  hermes)     generate_hermes ;;
+  trae)       generate_trae ;;
+  trae-skill) generate_trae_skill ;;
+  dsh)        generate_dsh ;;
   all)
     generate_claude
     generate_opencode
     generate_openclaw
     generate_hermes
     generate_trae
+    generate_trae_skill
     generate_dsh
     ;;
   *)
     echo "Unknown agent: $TARGET" >&2
-    echo "Usage: $0 [claude|opencode|openclaw|hermes|trae|dsh|all]" >&2
+    echo "Usage: $0 [claude|opencode|openclaw|hermes|trae|trae-skill|dsh|all]" >&2
     exit 1
     ;;
 esac

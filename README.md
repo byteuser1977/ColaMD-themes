@@ -87,7 +87,7 @@ Full MCP server for AI-native integration — connect ColaMD-themes to Chatbox, 
 
 ### Multi-Agent Skill
 
-Universal skill definitions for 6 AI coding agents, auto-generated from a single source:
+Universal skill definitions for 6 AI coding agents (7 outputs — Trae gets both workspace rules and a project skill), auto-generated from a single source:
 
 | Agent | Skill Path | Frontmatter |
 |-------|-----------|-------------|
@@ -95,7 +95,8 @@ Universal skill definitions for 6 AI coding agents, auto-generated from a single
 | **OpenCode** | `.opencode/skills/colamd-themes/SKILL.md` | `name`, `version`, `user-invocable`, `allowed-tools`, `hooks` |
 | **OpenClaw** | `.openclaw/skills/colamd-themes/SKILL.md` | `id`, `name`, `version`, `icon`, `author`, `homepage`, `metadata.openclaw.os` |
 | **Hermes** | `.hermes/skills/tools/colamd-themes/SKILL.md` | `name`, `version`, `author`, `license`, `metadata.hermes.tags`, `prerequisites` |
-| **Trae** | `.trae/rules/colamd-themes.md` | Plain Markdown (no frontmatter) |
+| **Trae (rules)** | `.trae/rules/colamd-themes.md` | Plain Markdown (no frontmatter) |
+| **Trae (skill)** | `.trae/skills/colamd-themes/SKILL.md` | `name`, `description` (single-line plain scalar) |
 | **DeepSeek Harness** | `.dsh/skills/colamd-themes/SKILL.md` | `name`, `version`, `description`, `metadata.dsh.tags`, `prerequisites` |
 
 **Architecture:**
@@ -111,6 +112,7 @@ skills/build-skills.sh              ← Build script (bash)
         ├──→ .openclaw/skills/colamd-themes/SKILL.md
         ├──→ .hermes/skills/tools/colamd-themes/SKILL.md
         ├──→ .trae/rules/colamd-themes.md
+        ├──→ .trae/skills/colamd-themes/SKILL.md
         └──→ .dsh/skills/colamd-themes/SKILL.md
 ```
 
@@ -126,6 +128,7 @@ bash skills/build-skills.sh opencode
 bash skills/build-skills.sh openclaw
 bash skills/build-skills.sh hermes
 bash skills/build-skills.sh trae
+bash skills/build-skills.sh trae-skill
 bash skills/build-skills.sh dsh
 ```
 
@@ -378,6 +381,7 @@ ColaMD-themes/
 ├── .openclaw/skills/colamd-themes/SKILL.md # OpenClaw skill
 ├── .hermes/skills/tools/colamd-themes/     # Hermes skill
 ├── .trae/rules/colamd-themes.md           # Trae rules
+├── .trae/skills/colamd-themes/            # Trae project skill
 ├── cordis.patch.yml                        # DSH plugin bundle patch (dsh-market)
 ├── package.json
 ├── tsconfig.json

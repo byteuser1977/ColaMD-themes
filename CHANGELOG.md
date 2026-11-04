@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] - 2026-11-05
+
+### Added
+- **Trae Skill 构建目标**：`skills/build-skills.sh` 新增 `trae-skill` 目标（并纳入 `all`），从同一规范源生成 `.trae/skills/colamd-themes/SKILL.md`——frontmatter 遵循 Trae 项目级 skill 约束（`name` 与目录同名、`description` 为单行无引号 plain scalar，不含 `: ` 与尖括号）；原 `trae` 目标（`.trae/rules/colamd-themes.md` 工作区规则）保留不变，二者互补
+- 版本号升至 0.5.4
+
+---
+
 ## [0.5.3] - 2026-11-02
 
 ### Fixed

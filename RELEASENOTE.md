@@ -1,4 +1,12 @@
 # Release Notes
+## Version 0.5.4 (2026-11-05) — Trae Skill Target 🎯
+
+### 🎯 Added
+
+- **Trae skill build target** — `skills/build-skills.sh` gains a `trae-skill` target (included in `all`) that generates `.trae/skills/colamd-themes/SKILL.md` from the same canonical source. The frontmatter follows Trae's project-skill constraints: `name` matches the directory name, and `description` is a single-line unquoted plain scalar with no `: ` or angle brackets (the router-visible trigger text). The existing `trae` target (`.trae/rules/colamd-themes.md` workspace rules) is unchanged — the two complement each other
+
+---
+
 ## Version 0.5.3 (2026-11-02) — Platform Backward-Compatibility Hardening 🔧
 
 ### 🔧 Fixed
