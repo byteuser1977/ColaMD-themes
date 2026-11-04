@@ -15,7 +15,7 @@
  * - 层级3：DocxStyleParadigm 标准参考值 fallback
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { basename } from "node:path";
 import type { Extractor } from "./base.js";
 import {
@@ -71,6 +71,12 @@ export class PdfExtractor implements Extractor {
   async extract(source: string): Promise<ThemeStyle> {
     const name = basename(source).replace(/\.pdf$/i, "");
     const theme = makeThemeStyle(name, "pdf", source);
+
+    const MAX_PDF_BYTES = 50 * 1024 * 1024;
+    const stats = statSync(source);
+    if (stats.size > MAX_PDF_BYTES) {
+      throw new Error(`PDF file too large (${(stats.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed: 50 MB.`);
+    }
 
     try {
       const pdfParse = (await import("pdf-parse")).default;

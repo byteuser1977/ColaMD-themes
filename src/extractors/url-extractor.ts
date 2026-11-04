@@ -28,12 +28,10 @@ import {
 import { normalizeThemeStyle } from "../color-utils.js";
 import {
   ACADEMIC_PAPER_DEFAULTS,
-  BUSINESS_REPORT_DEFAULTS,
-  TECHNICAL_DOC_DEFAULTS,
   getRecommendedPreset,
   validateDocumentStyle,
-  type DocumentStyleParadigm,
 } from "../docx-style-paradigm.js";
+import { themeToParadigm, logExtractorWarnings } from "../utils/document-paradigm.js";
 
 /** 解析后的 CSS 规则集合 */
 type CssRuleMap = Map<string, Map<string, string>>;
@@ -78,28 +76,18 @@ export class UrlExtractor implements Extractor {
     const hostname = parsed.hostname.toLowerCase();
     const isPrivate =
       hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
+      hostname === "0.0.0.0" ||
+      /^127\./.test(hostname) ||
       hostname === "::1" ||
       hostname === "[::1]" ||
-      hostname.startsWith("10.") ||
-      hostname.startsWith("172.16.") ||
-      hostname.startsWith("172.17.") ||
-      hostname.startsWith("172.18.") ||
-      hostname.startsWith("172.19.") ||
-      hostname.startsWith("172.20.") ||
-      hostname.startsWith("172.21.") ||
-      hostname.startsWith("172.22.") ||
-      hostname.startsWith("172.23.") ||
-      hostname.startsWith("172.24.") ||
-      hostname.startsWith("172.25.") ||
-      hostname.startsWith("172.26.") ||
-      hostname.startsWith("172.27.") ||
-      hostname.startsWith("172.28.") ||
-      hostname.startsWith("172.29.") ||
-      hostname.startsWith("172.30.") ||
-      hostname.startsWith("172.31.") ||
-      hostname.startsWith("192.168.") ||
-      hostname.startsWith("169.254.");
+      hostname === "::" ||
+      /^10\./.test(hostname) ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
+      /^192\.168\./.test(hostname) ||
+      /^169\.254\./.test(hostname) ||
+      /^100\.(6[4-9]|7\d|8\d|9\d|1[01]\d|12[0-7])\./.test(hostname) ||
+      /^\[?fc/.test(hostname) ||
+      /^fe[89ab]/.test(hostname);
 
     if (isPrivate) {
       throw new Error(`Private network access denied: ${hostname}. Only public URLs are allowed for security reasons.`);
@@ -614,131 +602,8 @@ export class UrlExtractor implements Extractor {
     if (st.fontScaleH3 < st.fontScaleH2 * 0.85)
       st.fontScaleH3 = preset.headings.h3.fontSize / 16;
 
-    const issues = validateDocumentStyle(this.themeToParadigm(theme));
-    for (const issue of issues) {
-      if (issue.level === "error") {
-        console.warn(`[UrlExtractor] ${issue.element}: ${issue.message}`);
-      }
-    }
-  }
-
-  /**
-   * 将 ThemeStyle 转换为 DocumentStyleParadigm 用于 WCAG 验证
-   */
-  private themeToParadigm(theme: ThemeStyle): DocumentStyleParadigm {
-    return {
-      pageBackground: theme.palette.bgColor,
-      headings: {
-        h1: {
-          fontFamily: theme.seedTypography.fontHeading,
-          fontSize: 16 * theme.seedTypography.fontScaleH1,
-          fontWeight: theme.typography.headingWeight,
-          color: theme.palette.headingColor,
-          lineHeight: theme.seedTypography.lineHeightHeading,
-        },
-        h2: {
-          fontFamily: theme.seedTypography.fontHeading,
-          fontSize: 16 * theme.seedTypography.fontScaleH2,
-          fontWeight: Math.max(600, theme.typography.headingWeight - 100),
-          color: theme.palette.headingColor,
-          lineHeight: theme.seedTypography.lineHeightHeading,
-        },
-        h3: {
-          fontFamily: theme.seedTypography.fontHeading,
-          fontSize: 16 * theme.seedTypography.fontScaleH3,
-          fontWeight: 600,
-          color: theme.palette.headingColor,
-          lineHeight: theme.seedTypography.lineHeightHeading + 0.05,
-        },
-        h4: {
-          fontFamily: theme.seedTypography.fontHeading,
-          fontSize: 16 * theme.seedTypography.fontScaleH4,
-          fontWeight: 600,
-          color: theme.palette.textMuted,
-          lineHeight: theme.seedTypography.lineHeightHeading + 0.05,
-        },
-        h5: {
-          fontFamily: theme.seedTypography.fontHeading,
-          fontSize: 16 * theme.seedTypography.fontScaleH5,
-          fontWeight: 500,
-          color: theme.palette.textMuted,
-          lineHeight: theme.seedTypography.lineHeightBody - 0.25,
-        },
-        h6: {
-          fontFamily: theme.seedTypography.fontHeading,
-          fontSize: 16 * theme.seedTypography.fontScaleH6,
-          fontWeight: 500,
-          color: theme.palette.textMuted,
-          lineHeight: theme.seedTypography.lineHeightBody - 0.2,
-        },
-      },
-      body: {
-        fontFamily: theme.seedTypography.fontBody,
-        fontSize: parseInt(theme.typography.baseFontSize) || 16,
-        fontWeight: 400,
-        color: theme.palette.textColor,
-        lineHeight: theme.typography.baseLineHeight,
-      },
-      blockquote: {
-        fontFamily: theme.seedTypography.fontBody,
-        fontSize: Math.max(
-          13,
-          (parseInt(theme.typography.baseFontSize) || 16) - 2
-        ),
-        fontWeight: 400,
-        color: theme.palette.textMuted,
-        lineHeight: theme.typography.baseLineHeight - 0.15,
-        borderLeftColor: theme.palette.blockquoteBorder,
-        bgColor: theme.palette.blockquoteBg,
-      },
-      codeBlock: {
-        fontFamily: theme.typography.codeFontFamily,
-        fontSize: Math.max(
-          12,
-          (parseInt(theme.typography.baseFontSize) || 16) - 3
-        ),
-        fontWeight: 400,
-        color:
-          theme.palette.codeBlockText || theme.palette.textColor,
-        lineHeight: theme.seedTypography.lineHeightCode,
-        bgColor: theme.palette.codeBlockBg,
-      },
-      inlineCode: {
-        fontSize: Math.max(
-          12,
-          (parseInt(theme.typography.baseFontSize) || 16) - 3
-        ),
-        color: theme.palette.accentColor,
-        bgColor: theme.palette.codeBg,
-      },
-      table: {
-        headerFontFamily: theme.seedTypography.fontHeading,
-        headerFontSize: Math.max(
-          12,
-          (parseInt(theme.typography.baseFontSize) || 16) - 3
-        ),
-        headerFontWeight: 700,
-        headerColor: "#ffffff",
-        headerBgColor: theme.palette.tableHeaderBg,
-        headerLineHeight: 1.4,
-
-        cellFontFamily: theme.seedTypography.fontBody,
-        cellFontSize: Math.max(
-          11,
-          (parseInt(theme.typography.baseFontSize) || 16) - 4
-        ),
-        cellColor: theme.palette.textColor,
-        cellBgColor: theme.palette.bgColor,
-        cellLineHeight: 1.5,
-        cellPadding: "8px 12px",
-        borderColor: theme.palette.borderColor,
-        borderWidth: "1px",
-      },
-
-      accentColor: theme.palette.accentColor,
-      mutedTextColor: theme.palette.textMuted,
-      selectionBg: theme.palette.selectionBg,
-    };
+    const issues = validateDocumentStyle(themeToParadigm(theme));
+    logExtractorWarnings("UrlExtractor", issues.filter((i) => i.level === "error"));
   }
 
   // ═══════════════════════════════════════════════════════════

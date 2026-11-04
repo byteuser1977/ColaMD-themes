@@ -18,15 +18,22 @@ if [[ ! -f "$SOURCE" ]]; then
   exit 1
 fi
 
-# Read the body (everything after the first blank line following the heading)
-BODY=$(sed -n '/^$/,$ { /^# ColaMD/!p; }' "$SOURCE" | sed '1{/^$/d;}')
+# Read the body (everything after the first blank line following the heading).
+# Strip CR first: on Windows checkouts the source may use CRLF, and sed's
+# `/^$/` cannot match a "\r" line — silently producing an empty BODY and
+# truncated skill files (regression shipped in 0.5.2).
+BODY=$(sed 's/\r$//' "$SOURCE" | sed -n '/^$/,$ { /^# ColaMD/!p; }' | sed '1{/^$/d;}')
+if [[ -z "$BODY" ]]; then
+  echo "Error: extracted body from $SOURCE is empty (line-ending issue?)" >&2
+  exit 1
+fi
 
 # ── Frontmatter templates ──
 
 FRONT_CLAUDE='---
 name: colamd-themes
 description: >
-  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes.
+  Generate, validate, export, and manage ColaMD 2.7.8-rc.2 contract CSS themes.
   Extract formatting from URLs, DOCX, or PDF sources; export Markdown to
   standalone HTML/PDF with themes applied; batch export; manage theme
   configuration.
@@ -36,7 +43,7 @@ FRONT_OPENCODE='---
 name: colamd-themes
 version: "1.0.0"
 description: >
-  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes.
+  Generate, validate, export, and manage ColaMD 2.7.8-rc.2 contract CSS themes.
   Extract from URLs/DOCX/PDF; export Markdown to HTML/PDF; batch export.
 user-invocable: true
 allowed-tools:
@@ -52,7 +59,7 @@ FRONT_OPENCLAW='---
 id: colamd-themes
 name: ColaMD Themes
 description: >
-  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes.
+  Generate, validate, export, and manage ColaMD 2.7.8-rc.2 contract CSS themes.
   Extract from URLs/DOCX/PDF; export Markdown to HTML/PDF; batch export.
 version: "1.0.0"
 icon: "\U0001F3A8"
@@ -70,7 +77,7 @@ metadata:
 
 FRONT_HERMES='---
 name: colamd-themes
-description: "Generate, validate, export, and manage ColaMD 2.7 contract CSS themes."
+description: "Generate, validate, export, and manage ColaMD 2.7.8-rc.2 contract CSS themes."
 version: 1.0.0
 author: bytechain
 license: MIT
@@ -85,7 +92,7 @@ FRONT_DSH='---
 name: colamd-themes
 version: "1.0.0"
 description: >
-  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes.
+  Generate, validate, export, and manage ColaMD 2.7.8-rc.2 contract CSS themes.
   Extract from URLs/DOCX/PDF; export Markdown to HTML/PDF; batch export.
 metadata:
   dsh:

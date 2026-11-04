@@ -1,0 +1,9 @@
+# ColaMD Themes — dsh-market plugin bundle.
+# Inserts the host entry that registers the bundled agent skill with the
+# Harness `skills` service. The CLI bins (colamd-themes / cthemes) ship with
+# the package itself and need no entry.
+- insert:
+    - id: colamd-themes
+      name: '@bytechain.cn/colamd-themes'
+      config:
+        enabled: true

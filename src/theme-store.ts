@@ -5,9 +5,10 @@
  * Uses async file I/O to avoid blocking the event loop.
  */
 
-import { mkdir, readFile, writeFile, access } from "node:fs/promises";
-import { statSync } from "node:fs";
-import { join, basename } from "node:path";
+import { mkdir, readFile, writeFile, access, rename } from "node:fs/promises";
+import { statSync, unlink } from "node:fs";
+import { join, basename, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 
 const CONFIG_DIR = join(homedir(), ".colamd-themes");
@@ -43,7 +44,9 @@ async function writeConfig(config: ThemeConfig): Promise<void> {
   } catch {
     await mkdir(CONFIG_DIR, { recursive: true });
   }
-  await writeFile(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
+  const tmpPath = `${CONFIG_FILE}.${process.pid}.${Date.now()}.tmp`;
+  await writeFile(tmpPath, JSON.stringify(config, null, 2), "utf-8");
+  await rename(tmpPath, CONFIG_FILE);
 }
 
 /** Get the full config. */
@@ -145,6 +148,18 @@ export async function resolveTheme(name?: string): Promise<{
 
   // Check if it's a built-in theme
   if (BUILTIN_THEMES.includes(resolved as BuiltinTheme)) {
+    // Prefer our 2.7.8-rc.1 contract CSS when a local theme file exists — our
+    // variant of a built-in name (e.g. elegant) wins over the renderer's own
+    // palette. applyTheme(name, css) takes over completely.
+    for (const base of [process.cwd(), join(dirname(fileURLToPath(import.meta.url)), "..")]) {
+      const cssPath = join(base, "themes", `${resolved}.css`);
+      try {
+        await validateCssFile(cssPath);
+        return { themeName: resolved, customCSS: await readFile(cssPath, "utf-8") };
+      } catch {
+        // No local contract CSS file for this built-in — fall back to the renderer's own.
+      }
+    }
     return { themeName: resolved };
   }
 

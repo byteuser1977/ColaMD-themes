@@ -1,21 +1,26 @@
 /**
  * Puppeteer-based rendering engine for ColaMD HTML/PDF export.
  *
- * Uses @bytechain.cn/colamd/renderer to create a headless Milkdown editor,
- * apply themes, render mermaid/math, and export standalone HTML or PDF.
+ * Uses the @bytechain.cn/colamd 2.x library build (dist/lib/colamd-renderer.js +
+ * colamd.css, requires ≥2.7.8-rc.2) to create a headless editor, apply themes,
+ * render mermaid/math, and export standalone HTML or PDF. Theme CSS targets the
+ * ColaMD 2.7.8-rc.2 contract (machine-readable as themes/contract.json in the
+ * npm package) and is consumed directly as `:root` declarations.
  *
  * Architecture:
  *   Local HTTP server (serves renderer.js + page HTML)
  *     → Puppeteer page (same-origin, no CORS)
  *       → createColaMDEditor()
  *       → applyTheme() + setMarkdown() + ensureAllPluginsRendered()
- *       → buildExportHTML() / page.pdf()
+ *       → buildExportHTML({ title }) / page.pdf()
  */
 
 import puppeteer, { type Browser, type Page } from "puppeteer";
 import { createServer, type Server } from "node:http";
 import { readFileSync, existsSync, createReadStream } from "node:fs";
 import { resolve, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { formatColamdCompat, getColamdCompat, MIN_RENDERER_VERSION, REQUIRED_RENDERER_API } from "./compat.js";
 
 // ── Types ──
 
@@ -51,16 +56,35 @@ export interface PDFExportOptions {
 
 /** Locate the ColaMD renderer ESM bundle in node_modules. */
 function findRendererPath(): string {
+  const moduleDir = fileURLToPath(new URL("../node_modules/@bytechain.cn/colamd/dist/lib", import.meta.url));
   const candidates = [
-    resolve(dirname(new URL(import.meta.url).pathname), "../node_modules/@bytechain.cn/colamd/dist/lib/colamd-renderer.js"),
+    resolve(moduleDir, "colamd-renderer.js"),
     resolve(process.cwd(), "node_modules/@bytechain.cn/colamd/dist/lib/colamd-renderer.js"),
   ];
   for (const p of candidates) {
     if (existsSync(p)) return p;
   }
+  // Detect a 2.x distribution without the library entry (e.g. the 2.7.7 app
+  // package, or a desktop-only build): give an actionable error.
+  for (const base of candidates.map((p) => resolve(p, "../../.."))) {
+    const pkgJson = join(base, "package.json");
+    if (existsSync(pkgJson)) {
+      try {
+        const version = JSON.parse(readFileSync(pkgJson, "utf-8")).version as string;
+        if (version.startsWith("2.")) {
+          throw new Error(
+            `@bytechain.cn/colamd ${version} 不含 colamd-renderer.js 库入口（2.7.8 起恢复提供）。` +
+            `请升级: npm install @bytechain.cn/colamd@^${MIN_RENDERER_VERSION}`
+          );
+        }
+      } catch (e) {
+        if (e instanceof Error && e.message.includes("库入口")) throw e;
+      }
+    }
+  }
   throw new Error(
     "Cannot find @bytechain.cn/colamd renderer. " +
-    "Install it: npm install @bytechain.cn/colamd"
+    `Install it: npm install @bytechain.cn/colamd@^${MIN_RENDERER_VERSION}`
   );
 }
 
@@ -166,6 +190,35 @@ export class ColamdRenderer {
     const error = await this.page.evaluate(() => (window as any).__colamdError);
     if (error) throw new Error(`Editor init failed: ${error}`);
 
+    // Capability probe: verify the editor handle exposes the API surface the
+    // export pipeline calls, so future platform API drift produces an
+    // actionable error (with the installed version) instead of an
+    // "undefined is not a function" mid-render.
+    const missingApi = await this.page.evaluate(
+      (methods: string[]) => {
+        const handle = (window as any).__colamdHandle;
+        if (!handle || typeof handle !== "object") return methods;
+        return methods.filter((m) => typeof handle[m] !== "function");
+      },
+      [...REQUIRED_RENDERER_API]
+    );
+    if (missingApi.length > 0) {
+      const { version } = getColamdCompat();
+      throw new Error(
+        `Renderer API 不兼容：@bytechain.cn/colamd ${version ?? "(未知版本)"} 缺少导出管线所需的方法 ` +
+        `[${missingApi.join(", ")}]。平台可能已升级 API，` +
+        `请安装经核验的版本: npm install @bytechain.cn/colamd@^${MIN_RENDERER_VERSION}`
+      );
+    }
+
+    // Contract drift warning — non-fatal: the platform still renders, but our
+    // :root variables may no longer be fully consumed.
+    const compat = getColamdCompat();
+    if (compat.status === "drift") {
+      console.warn(`[colamd-themes] 平台契约漂移: ${formatColamdCompat(compat)}`);
+      console.warn(`[colamd-themes] 导出仍将继续；如配色异常请核对平台 changelog 或安装 @bytechain.cn/colamd@^${MIN_RENDERER_VERSION}`);
+    }
+
     this.ready = true;
   }
 
@@ -176,14 +229,14 @@ export class ColamdRenderer {
     if (!this.ready || !this.page) await this.init();
     const page = this.page!;
 
-    // Apply theme
+    // Apply theme — the 2.x renderer consumes :root contract CSS directly
     if (input.themeName) {
       await page.evaluate(
         (name: string, css: string | undefined) => {
           (window as any).__colamdHandle.applyTheme(name, css || undefined);
         },
         input.themeName,
-        input.customCSS
+        input.customCSS || undefined
       );
     }
 
@@ -200,17 +253,12 @@ export class ColamdRenderer {
     // Additional settle time for complex diagrams
     await new Promise((r) => setTimeout(r, 500));
 
-    // Build export HTML
-    const html = await page.evaluate(() => {
-      return (window as any).__colamdHandle.buildExportHTML();
-    });
+    // Build export HTML (2.x API: title goes through the options object)
+    const html = await page.evaluate((title: string | undefined) => {
+      return (window as any).__colamdHandle.buildExportHTML({ title });
+    }, input.title);
 
-    // Inject custom title if provided
-    const finalHtml = input.title
-      ? html.replace(/<title>[^<]*<\/title>/, `<title>${input.title}</title>`)
-      : html;
-
-    return { html: finalHtml };
+    return { html };
   }
 
   /**

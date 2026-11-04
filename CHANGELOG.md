@@ -5,6 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3] - 2026-11-02
+
+### Fixed
+- **DSH 0.2.1-rc.5 兼容性**：`@deepseek-ai/dsh-skill` optional peer 由 `^0.1.5-rc.1` 拓宽为 `^0.1.5-rc.1 || ^0.2.0-rc || ^0.2.1-rc || ^0.3.0-rc || ^0.4.0-rc`。0.5.2 的 peer 范围无法匹配 DSH 0.2.1-rc.5 运行时携带的 dsh-skill，dsh-market 校验报不兼容（提示卸载重装）。semver 预发布规则要求按 patch 线枚举 rc 比较器，故新线（0.3.1-rc.x 等）发布时需追加对应项；宿主入口仅消费稳定的 `BUNDLED_SKILL_RANK` 导出，无需代码改动
+- **Windows 路径解析 bug**：`renderer.ts`（`findRendererPath`）与 `cli.ts`（`findColamdCssPath`）用 `new URL(import.meta.url).pathname` 拼路径，Windows 下生成 `/d:/...` 导致模块相对查找永远落空（此前仅靠 cwd 候选侥幸工作）。两处均改用 `fileURLToPath`
+- **build-skills.sh CRLF 截断（0.5.2 回归）**：源 `SKILL.md` 行尾变为 CRLF 后，`sed /^$/` 匹配不到 `\r` 空行，BODY 提取为空，6 个 Agent 生成文件被静默截断为只剩 frontmatter（约 330 字节）并随 0.5.2 提交。脚本现先剥离 CR 再提取，BODY 为空时报错退出；已重新生成全部 6 个文件并修复 `SKILL.md` 中与实现相悖的渲染管线描述（PDF 导出不使用 `emulateMediaType('screen')`）
+
+### Added
+- **平台兼容层（`src/compat.ts`）**：运行时读取已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json`，与主题锚定契约（2.7.8-rc.2，27 活变量）比对，输出契约漂移报告（`getColamdCompat` / `formatColamdCompat`），全部空值安全、不抛异常
+- **渲染器 API 能力探测**：编辑器初始化后校验导出管线调用的 4 个方法（`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`）是否存在，缺失时给出含已安装版本号与修复命令的明确报错——未来平台 API 漂移不再以 "undefined is not a function" 的形式在渲染中途爆掉
+- **契约漂移警告**：导出时平台 `contractVersion` 与主题契约不一致仅告警不中断（活变量缺失明细一并输出）；`cthemes validate` 新增「平台兼容」报告行，契约漂移在验证阶段即可发现
+- **DSH 宿主入口容错**：`apply()` 内部 try/catch——未来 DSH 运行时 skills 服务协议漂移时降级为警告，不再让 Profile 组合树加载崩溃；CLI bins 不受影响
+- 版本号升至 0.5.3
+
+### 兼容策略
+- `@bytechain.cn/colamd` 依赖保持 `^2.7.8-rc.2`：caret 自动跟随 2.x 稳定线升级，纯预发布线（如 2.8.0-rc.x）默认不自动引入，需显式 `npm install @bytechain.cn/colamd@<version>`；升级后的契约/API 漂移由兼容层在 `validate` 与导出阶段给出诊断
+- `@deepseek-ai/dsh-skill` peer 为 optional 且运行时只消费 `BUNDLED_SKILL_RANK` 常量，范围不匹配的最坏结果是 market 提示，插件功能不受影响
+
+### Upgrade
+- 在 dsh-market 卸载 0.5.2 后重新安装 `@bytechain.cn/colamd-themes@0.5.3`（或 `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`）
+
+---
+
+## [0.5.2] - 2026-11-01
+
+### Added
+- **dsh-market 插件支持**：本包现符合 DSH 插件 bundle 契约 —— `package.json` 声明 `dsh.bundle.patch`（指向新增的 `cordis.patch.yml`，插入 `colamd-themes` Cordis Entry），新增宿主入口 `src/dsh-plugin.ts`（`name/inject: ["skills"]/apply`，经 `ctx.skills.registerProvider` 注册捆绑的 `skills/colamd-themes/SKILL.md` 为 bundled skill，协议对齐 dsh-ppt 插件）；`peerDependencies` 声明 `@deepseek-ai/dsh-skill`（optional，market 运行时兼容性检查按 DSH `^0.1.5-rc.1` 校验，独立安装不受影响）；`files` 收录 `dist/themes/skills/cordis.patch.yml`，keywords 增加 `dsh-plugin`
+
+### Changed
+- 依赖升级 `@bytechain.cn/colamd` `^2.7.8-rc.1` → `^2.7.8-rc.2`（npm 已发布）。rc.2 为上游 Word 导出与图片排版修复（a4f4cc4），主题契约保持不变（`themes/contract.json` 仅 `contractVersion` 更新为 2.7.8-rc.2，仍为 27 活变量 / 18 死变量）
+- 版本号升至 0.5.2
+
+### Verified
+- rc.2 真实导出冒烟测试通过：标题经 `buildExportHTML({ title })` 写入、`.colamd-document` 结构、`:root` 契约活变量、零 `--seed-*` 泄漏、mermaid Pele SVG、块公式完整 KaTeX
+
+---
+
+## [0.5.1] - 2026-10-25
+
+### Changed
+- **导出管线切换到 2.x 库渲染器**：上游 ColaMD-extend 2.7.8-rc.1（69515aa）恢复 `dist/lib/colamd-renderer.js` 库入口（P0），`renderer.ts` 全面改用 2.x——`:root` 契约 CSS 直接消费、标题经 `buildExportHTML({ title })` 传入
+- **移除 1.5.x 兼容层（不向下兼容）**：删除 `bridgeLegacyBodyVars()` body 变量桥接、渲染器版本探测及分支逻辑；依赖由 `^1.5.2` 固定为 `^2.7.8-rc.1`（npm 发布 2.7.8-rc.1 前 `npm install`/`npm ci` 暂不可用，发布后重新解析）
+- 契约版本标注统一为 **2.7.8-rc.1**（`validate` 输出、生成器自检、校验器消息与各文件注释）
+
+### Verified
+- 2.x 真实导出冒烟测试通过：`:root` 恰好 27 个契约活变量、零死变量/`--seed-*` 泄漏、mermaid Pele SVG（`var(--pele-*)` 离线可解析）、块公式完整 KaTeX 输出（P1 验收）
+
+---
+
+## [0.5.0] - 2026-10-25
+
+### Added
+- **ColaMD 2.7.7 兼容性核对**：以 npm 发布的 `@bytechain.cn/colamd@2.7.7` 为基准，逐项验证主题 CSS 契约 —— `.cm-md-*` 类钩子零漂移（渲染器共 49 个钩子）、`:root` 活变量（14 核心 + 4 排版 + 9 `--pele-*`）全部被 2.7.7 消费
+- **导出管线 2.x 包守卫**：`renderer.ts` 检测到安装的 `@bytechain.cn/colamd` 为 2.x（Electron 应用分发，不含 `colamd-renderer.js` 库入口）时给出明确的降级指引，替代原先笼统的 "Cannot find renderer" 报错
+- **导出主题解析修复**：内置主题（如 `elegant`）现优先加载本仓库的 2.7.7 契约 CSS（`themes/<name>.css`）再传给渲染器，修复导出 HTML/PDF 实际使用 1.5.x 旧内置配色的问题；注入时将 `:root` 变量镜像到 `body` 作用域，绕过 1.5.x 基础 CSS 的元素级变量声明（主题文件保持 `:root` 契约不变，桥接逻辑仅存在于导出管线）
+- 代码与文档中的契约版本引用统一为 **2.7.7**（`validate` 输出、生成器自检、校验器注释）
+
+### Changed
+- **10 个主题的设计质量优化**（paradigm 检查 0 错误）：
+  - `colly` / `salvator-blog` / `meeting-minutes`：修正 panel 层级颠倒（`--seed-panel-alt` 加深至对比 2 级）
+  - `swiss-design`：边框与 panel-alt 明度差扩大至 3 级
+  - `shimo-theme`：面板改纯中性灰，accent 提饱和至 `#2a6bf2`（S 83%）
+  - `elegant`：砖红 accent 饱和度 55% → 70%（`#b0401f`），选区等硬编码色同步
+  - `guizang`：米黄面板改中性暖灰，消除中性灰偏离（NT-02）
+  - `pixso-design`：accent 饱和度 56% → 76%（`#4f46e5`），6 处渐变/边框 rgba 迁移
+  - `trae-blue`：accent 饱和度 70% → 85%（`#2563eb`），panel 换中性灰
+  - `forest-ink`：accent 饱和度提升（`#356b44`），文字灰阶改绿灰回归墨绿主轴
+- 保留 4 条有意的警告：academic 系列低饱和学术点缀、meeting-minutes 黑色极简点缀
+
+### Removed
+- 移除遗留的 pre-2.7 旧结构主题（`body.theme-custom` 根块 + 58 个死变量，文件名为 mojibake 的"我的主题.css"）—— 该主题在 2.7.7 下完全无效
+
+### Fixed
+- `package-lock.json` 根 manifest 依赖误标为 `^2.0.0`，恢复与 `package.json` 一致的 `^1.5.2`（npm 2.7.7 为应用分发，CLI 导出必须使用 1.5.x 库渲染器）
+
+---
+
 ## [Unreleased]
 
 *No unreleased changes for this snapshot.*
@@ -34,6 +111,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/mermaid-presets.ts`（Mermaid 预设链路）
 - `ThemeStyle.mermaidPresetId`
 - 误跟踪的 `.DS_Store` 文件
+
+---
+
+## [0.3.3] - 2026-08-26
+
+### Added
+- **MCP Server**: Full MCP (Model Context Protocol) server in `mcp-server/` directory with 14 tools covering theme extraction, HTML/PDF export, validation, color systems, and theme management. Compatible with Chatbox, Cursor, Claude Desktop, Continue, and all MCP-capable clients.
+- **Chinese Theme Name Support**: Fixed non-ASCII (Chinese/CJK) theme names being stripped during extraction. MCP server auto-detects non-ASCII names and constructs full output paths via `-o` flag.
+- **Multi-Agent Skill Definitions**: Added AI agent skill files for 5 coding assistants — Claude Code, OpenCode, OpenClaw, Hermes, Trae — auto-generated from `skills/colamd-themes/SKILL.md`.
+- New MCP binary entry: `colamd-themes-mcp`
+- New scripts: `build:mcp`, `build:all`, `mcp`
+
+### Changed
+- Package version bumped from 0.3.2 to 0.3.3
+- MCP server versioned independently at 0.2.0
 
 ---
 
@@ -265,7 +357,9 @@ User Input → Validation Layer → Processing Layer
 
 ---
 
-[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/byteuser1977/ColaMD-themes/compare/v0.3.0...v0.3.1

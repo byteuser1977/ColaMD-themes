@@ -1,0 +1,24 @@
+{
+  "name": "@bytechain.cn/colamd-themes-mcp",
+  "version": "0.2.0",
+  "description": "MCP Server for ColaMD-themes — expose theme extraction, export, and validation as MCP tools",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "colamd-themes-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0",
+    "tsx": "^4.0",
+    "typescript": "^5.5"
+  }
+}

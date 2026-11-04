@@ -1,4 +1,139 @@
 # Release Notes
+## Version 0.5.3 (2026-11-02) — Platform Backward-Compatibility Hardening 🔧
+
+### 🔧 Fixed
+
+- **DSH 0.2.1-rc.5 compatibility** — the optional peer range for `@deepseek-ai/dsh-skill` is widened from `^0.1.5-rc.1` to `^0.1.5-rc.1 || ^0.2.0-rc || ^0.2.1-rc || ^0.3.0-rc || ^0.4.0-rc`. The 0.5.2 range could not match the dsh-skill shipped with the DSH 0.2.1-rc.5 runtime, so dsh-market's compatibility check rejected the plugin (advising uninstall/reinstall). Note: semver's prerelease rule forces per-patch enumeration, so new rc patch lines (e.g. 0.3.1-rc.x) need an appended comparator at release time
+- **Windows path resolution bug** — `renderer.ts` (`findRendererPath`) and `cli.ts` (`findColamdCssPath`) built node_modules lookups from `new URL(import.meta.url).pathname`, which yields `/d:/...` on Windows so the module-relative candidate never matched. Both now use `fileURLToPath`
+- **build-skills.sh CRLF truncation (0.5.2 regression)** — after the canonical `SKILL.md` gained CRLF line endings, `sed /^$/` could not match `\r` lines, so the extracted body was empty and all six generated agent skill files were silently truncated to bare frontmatter (~330 bytes) and shipped in 0.5.2. The script now strips CR before extraction and hard-fails on an empty body; all six files were regenerated, and the stale rendering-pipeline description in `SKILL.md` (PDF export must NOT use `emulateMediaType('screen')`) was corrected
+
+### 🛡️ Added — Platform Compatibility Layer (`src/compat.ts`)
+
+Upgrades to the ColaMD platform or the DSH runtime no longer surface as cryptic mid-render crashes or broken profile loads:
+
+- **Contract drift detection** — reads the installed `@bytechain.cn/colamd` version and its machine-readable `themes/contract.json`, compares against the theme anchor contract (2.7.8-rc.2, 27 live variables), and reports missing live variables. Fully null-safe, never throws
+- **Renderer API capability probe** — after editor init, the 4 methods the export pipeline calls (`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`) are verified; a future API drift fails fast with an error naming the installed version and the fix command
+- **Non-fatal drift warnings** — export continues with a warning when the platform `contractVersion` differs; `cthemes validate` now prints a "平台兼容" report line so drift is caught at validation time
+- **DSH host-entry fault tolerance** — `apply()` catches registration failures and degrades to a warning instead of crashing profile composition when the DSH skills service shape changes; the CLI bins are unaffected
+
+### 📦 Compatibility policy
+
+- `@bytechain.cn/colamd` stays `^2.7.8-rc.2`: caret auto-follows stable 2.x lines; pure prerelease lines (e.g. 2.8.0-rc.x) are opt-in. Drift after an upgrade is diagnosed by the compat layer at `validate`/export time
+- `@deepseek-ai/dsh-skill` is an optional peer whose runtime surface is one stable constant (`BUNDLED_SKILL_RANK`) — worst case of a range mismatch is a market notice, never broken functionality
+
+### 📦 Upgrade
+
+Uninstall 0.5.2 from dsh-market, then reinstall `@bytechain.cn/colamd-themes@0.5.3` (or `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`). Standalone `npm install` is unaffected.
+
+---
+
+## Version 0.5.2 (2026-11-01) — DSH Plugin & rc.2 🧩
+
+### 🧩 dsh-market Plugin Support
+
+The package is now a first-class **DSH (DeepSeek Harness) plugin bundle**:
+
+- `package.json` declares `dsh.bundle.patch` → `cordis.patch.yml`, inserting the `colamd-themes` Cordis entry into the profile composition
+- New host entry `src/dsh-plugin.ts` (`name` / `inject: ["skills"]` / `apply`) registers the bundled `skills/colamd-themes/SKILL.md` with the Harness `skills` service via `ctx.skills.registerProvider` — the same provider protocol as the built-in dsh-ppt plugin
+- `colamd-themes` / `cthemes` CLI bins ship with the bundle and become available to profile agents after install
+- `@deepseek-ai/dsh-skill` declared as an **optional peer** (`^0.1.5-rc.1`): dsh-market validates it against the DSH runtime version, standalone `npm install` is unaffected
+- `files` whitelist (`dist` / `themes` / `skills` / `cordis.patch.yml`) keeps the published bundle lean; `dsh-plugin` keyword added
+
+Verified: build passes, host-entry protocol simulated (`apply` → `list`/`get` return the bundled skill with valid locator), `npm pack --dry-run` bundle contents complete.
+
+### 📦 Dependency
+
+- `@bytechain.cn/colamd` upgraded to `^2.7.8-rc.2` (published on npm). rc.2 is the upstream Word-export & image-layout release; the theme contract is unchanged (27 live / 18 dead variables, `contractVersion` bump only). A real-export smoke test on rc.2 passed (`:root` carries exactly the 27 contract live variables, mermaid Pele SVG + KaTeX intact).
+- All contract version labels across code, docs, and the six generated agent skills unified to **2.7.8-rc.2**.
+
+### 📦 Upgrade
+
+```bash
+git pull && npm install && npm run build
+```
+
+---
+
+## Version 0.5.1 (2026-10-25) — 2.x Renderer Switch
+
+### ⚡ Export Pipeline on the 2.x Library Renderer
+
+Upstream ColaMD-extend 2.7.8-rc.1 restored the `dist/lib/colamd-renderer.js` library entry (the P0 gap from the 2.7.7 audit). `renderer.ts` now runs fully on 2.x:
+
+- Theme CSS is consumed directly as `:root` declarations — the 1.5.x `bridgeLegacyBodyVars()` body bridge, version detection, and branch logic are **removed (no backward compatibility with 1.5.x)**
+- Titles pass through `buildExportHTML({ title })`; the regex fallback was deleted
+- Dependency pinned to `^2.7.8-rc.1`
+
+Verified by dual smoke tests: exports carry exactly the 27 contract live variables with zero dead-variable / `--seed-*` leakage, mermaid renders as Pele SVG with offline-resolvable `var(--pele-*)`, and block math exports as full KaTeX.
+
+### 📦 Upgrade
+
+`npm install` resolves the new dependency; theme files need no changes.
+
+---
+
+## Version 0.5.0 (2026-10-25) — ColaMD 2.7.7 Support 🎨
+
+> **Verified against the published `@bytechain.cn/colamd@2.7.7` npm package**: all 16 themes are fully contract-compatible, and the design quality of 10 themes has been brought to zero paradigm errors.
+
+### 🎨 Theme Quality Overhaul
+
+**10 themes optimized to pass every paradigm rule (0 errors):**
+
+| Theme | Fix |
+|-------|-----|
+| `colly` / `salvator-blog` / `meeting-minutes` | Panel hierarchy inverted → `--seed-panel-alt` deepened for a proper 2-step contrast |
+| `swiss-design` | Border vs panel-alt lightness gap widened to 3 steps |
+| `shimo-theme` | Panels now neutral grey; accent saturation raised to 83% (`#2a6bf2`) |
+| `elegant` | Brick accent saturation 55% → 70% (`#b0401f`); hardcoded rgba values synced |
+| `guizang` | Beige panels moved to neutral warm grey (fixes NT-02 hue drift) |
+| `pixso-design` | Accent saturation 56% → 76% (`#4f46e5`); 6 gradients/borders migrated from `#6366f1` |
+| `trae-blue` | Accent saturation 70% → 85% (`#2563eb`); panels neutralized |
+| `forest-ink` | Accent saturation raised (`#356b44`); text greys re-tinted onto the ink-green hue axis |
+
+Intentional warnings kept: the low-saturation scholarly accents of the academic trio, and meeting-minutes' pure-black accent (Swiss-minimal signature).
+
+**Removed**: the legacy pre-2.7 theme (`body.theme-custom` root block, 58 dead variables, mojibake filename) — it had no effect under 2.7.7.
+
+### ✅ 2.7.7 Compatibility Audit
+
+Audited against the actual published npm package (`@bytechain.cn/colamd@2.7.7`):
+
+- **Class hooks**: zero drift — every `.cm-md-*` class used by our themes exists among the 49 hooks in the 2.7.7 renderer CSS
+- **Live variables**: the 14 core + 4 typography variables and all 9 `--pele-*` overrides are consumed by 2.7.7
+- **Injection**: the 2.7.7 app appends custom theme CSS to `document.head` (`applyTheme`), so `:root` declarations cascade correctly
+- **Contract version references** across the CLI, validators, and generator unified to 2.7.7
+
+### 🛡️ Export Pipeline Guard
+
+The npm `@bytechain.cn/colamd@2.7.7` package is the **Electron app distribution** — it no longer ships `dist/lib/colamd-renderer.js`, the library entry our HTML/PDF export pipeline needs. The CLI therefore keeps `@bytechain.cn/colamd@^1.5.2`, and `renderer.ts` now detects a 2.x install and fails with a clear downgrade instruction instead of a generic "Cannot find renderer" error.
+
+Two related export fixes verified by smoke test:
+
+- **Built-in theme resolution** — `-t elegant` previously let the 1.5.x renderer apply its own pre-2.7 built-in palette (`#c44b2b`); it now loads our `themes/elegant.css` (2.7.7 contract) first. Registered custom themes and direct `.css` paths were already correct.
+- **Body-variable bridge** — the 1.5.x base CSS declares theme variables on `body`, overriding `:root` inheritance; the pipeline mirrors the theme's `:root` declarations onto `body` at injection time. Theme files themselves remain `:root`-only per the 2.7.7 contract.
+
+> Theme files need no changes for the 2.7.7 app — import them via **Theme > Import Theme** or drop them into `~/.colamd/themes/`.
+> Note: the app now ships its own built-in `elegant` theme; if you import our `elegant.css` into the app, consider renaming the file (e.g. `elegant-brick.css`) to avoid a name clash.
+
+### 🔧 Housekeeping
+
+- Fixed `package-lock.json` root manifest drift (`^2.0.0` → `^1.5.2`, matching `package.json`)
+- Version bumped to **0.5.0**
+
+### 📦 Upgrade
+
+No breaking changes. Pull and rebuild:
+
+```bash
+git pull
+npm install
+npm run build
+```
+
+---
+
+
 ## Version 0.4.0 (2026-08-17) — DeepSeek Harness Integration 🤖
 
 > **Multi-agent ecosystem update**: added DeepSeek Harness skill support and formalized 6-agent coverage.
@@ -17,6 +152,78 @@
 
 ---
 
+
+## Version 0.3.3 (2026-08-26) — MCP Server & AI Agent Integration 🤖
+
+> **AI ecosystem integration**: ColaMD-themes now connects to AI coding assistants via MCP protocol.
+> **Chinese theme names now fully supported** — no more ASCII-only restriction.
+
+### ✨ New Features
+
+**MCP Server (Model Context Protocol)**
+- Full MCP server implementation in `mcp-server/` directory
+- 14 tools covering theme extraction, export, validation, and management
+- Works with Chatbox, Cursor, Claude Desktop, Continue, and all MCP-compatible clients
+- Quick setup via `npm run mcp` or configure in your MCP client settings
+
+**Multi-Agent Skill Definitions**
+- Added skill files for 5 AI coding agents:
+  - Claude Code, OpenCode, OpenClaw, Hermes, Trae
+- Auto-generated from `skills/colamd-themes/SKILL.md` via `build-skills.sh`
+
+**Chinese Theme Name Support**
+- Fixed CLI ASCII-only filter that stripped non-ASCII characters from theme names
+- MCP server detects non-ASCII names and bypasses the filter using `-o` flag
+- Tested with: `"我的主题"` -> `themes/我的主题.css` ✅
+
+### 📦 Quick Start (MCP)
+
+**Chatbox Configuration:**
+```json
+{
+  "mcpServers": {
+    "colamd-themes": {
+      "command": "node",
+      "args": ["D:/path/to/ColaMD-themes/mcp-server/dist/index.js"],
+      "cwd": "D:/path/to/ColaMD-themes"
+    }
+  }
+}
+```
+
+**Then in your chat:**
+> "Extract a theme from https://example.com named 'My Theme'"
+
+### 🛠️ MCP Tools Reference
+
+| Category | Tool | Description |
+|----------|------|-------------|
+| Extraction | `extract_from_url` | Theme from web page |
+| | `extract_from_docx` | Theme from Word doc |
+| | `extract_from_pdf` | Theme from PDF |
+| | `extract_auto` | Auto-detect source |
+| Management | `list_themes` | List all themes |
+| | `validate_theme` | Validate theme rules |
+| | `check_fonts` | Check font availability |
+| | `set_theme` | Register custom theme |
+| Color | `list_color_systems` | 15 built-in palettes |
+| | `list_mermaid_presets` | 3 Mermaid presets |
+| Export | `export_html` | Markdown to HTML |
+| | `export_pdf` | Markdown to PDF |
+| | `export_batch` | Batch export |
+
+### 🔧 Migration
+
+**No breaking changes** — fully backward compatible.
+
+**New scripts available:**
+```bash
+npm run build:mcp    # Build MCP server only
+npm run build:all    # Build CLI + MCP server
+npm run mcp          # Start MCP server
+```
+
+---
 
 ## Version 0.3.2 (2026-05-29) — Theme Authoring Guide 📝
 
@@ -404,4 +611,4 @@ open preview.html
 
 ---
 
-*Last updated: 2026-06-01*
+*Last updated: 2026-10-25*
