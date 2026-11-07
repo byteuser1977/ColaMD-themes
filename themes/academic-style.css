@@ -163,7 +163,6 @@
 
 /* ── 2.4 引用块：浅灰底 + 左侧黑竖线（每行一个 div，禁纵向 padding） ── */
 #editor .cm-content .cm-md-blockquote {
-  background: var(--blockquote-bg);
   color: var(--text-secondary);
   border-left: 3px solid var(--blockquote-border);
   padding-left: 22px;
@@ -295,6 +294,8 @@
   font-family: var(--font-mono);
   border-radius: 0;
 }
+/* Pele SVG 不自绘背景，导出后需补回代码块底色 */
+.colamd-document svg.pele { background: var(--pele-bg); border-radius: var(--pele-radius); }
 .colamd-document pre {
   background: var(--code-block-bg);
   border-left: 3px solid var(--seed-ink);

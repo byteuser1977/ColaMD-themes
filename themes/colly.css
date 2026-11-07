@@ -131,7 +131,6 @@
 
 /* ── 2.3 Blockquote / Code Block（每行一个 div，禁用纵向 padding）── */
 #editor .cm-content .cm-md-blockquote {
-  background: var(--blockquote-bg);
   color: var(--text-secondary);
   border-left: 3px solid var(--blockquote-border);
   padding-left: 16px;
@@ -218,6 +217,8 @@
   color: var(--text-color);
   font-family: var(--font-mono);
 }
+/* Pele SVG 不自绘背景，导出后需补回代码块底色 */
+.colamd-document svg.pele { background: var(--pele-bg); border-radius: var(--pele-radius); }
 .colamd-document pre { background: var(--code-block-bg); }
 .colamd-document pre code { color: var(--code-block-text); }
 .colamd-document blockquote {

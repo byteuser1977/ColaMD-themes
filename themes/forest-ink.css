@@ -98,7 +98,7 @@
 
 /* 2.4 引用块：四像素墨绿左线 + 浅纸底 */
 #editor .cm-content .cm-md-blockquote {
-  background: var(--blockquote-bg); color: var(--text-secondary);
+  color: var(--text-secondary);
   border-left: 4px solid var(--blockquote-border);
   padding-left: 25px; padding-right: 20px;
 }
@@ -197,6 +197,8 @@
   background: var(--code-bg); color: var(--seed-accent);
   padding: 2px 6px; border-radius: 3px;
 }
+/* Pele SVG 不自绘背景，导出后需补回代码块底色 */
+.colamd-document svg.pele { background: var(--pele-bg); border-radius: var(--pele-radius); }
 .colamd-document pre {
   font-family: var(--font-mono); font-size: 0.88em; line-height: 1.6;
   background: var(--code-block-bg); color: var(--code-block-text);

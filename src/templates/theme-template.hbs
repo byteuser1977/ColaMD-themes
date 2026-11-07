@@ -129,9 +129,10 @@
   color: var(--text-muted);
 }
 
-/* ── 2.3 Blockquote / Code Block（每行一个 div，禁用纵向 padding）── */
+/* ── 2.3 Blockquote / Code Block（每行一个 div，禁用纵向 padding）──
+   引用底色由编辑器按 --blockquote-bg 画在选区下方，这里不要写 background，
+   否则引用里的代码行会盖住代码块底色。 */
 #editor .cm-content .cm-md-blockquote {
-  background: var(--blockquote-bg);
   color: var(--text-secondary);
   border-left: 3px solid var(--blockquote-border);
   padding-left: 16px;
@@ -218,6 +219,8 @@
   color: var(--text-color);
   font-family: var(--font-mono);
 }
+/* Pele SVG 不自绘背景，编辑器里浮在代码块行上；导出后无类名 div 托底，需补回 */
+.colamd-document svg.pele { background: var(--pele-bg); border-radius: var(--pele-radius); }
 .colamd-document pre { background: var(--code-block-bg); }
 .colamd-document pre code { color: var(--code-block-text); }
 .colamd-document blockquote {

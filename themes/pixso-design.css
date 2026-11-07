@@ -109,7 +109,6 @@
 
 /* 2.5 引用块：淡紫渐变底 + 靛蓝左条 */
 #editor .cm-content .cm-md-blockquote {
-  background: linear-gradient(135deg, #f8f9ff 0%, #fdf4ff 100%);
   color: var(--text-secondary);
   border-left: 4px solid var(--blockquote-border);
   padding-left: 28px; padding-right: 24px;
@@ -226,6 +225,8 @@
   padding: 3px 7px; border-radius: 5px;
   border: 1px solid rgba(79, 70, 229, 0.08);
 }
+/* Pele SVG 不自绘背景，导出后需补回代码块底色 */
+.colamd-document svg.pele { background: var(--pele-bg); border-radius: var(--pele-radius); }
 .colamd-document pre {
   font-family: var(--font-mono); font-size: 0.88em; line-height: 1.68;
   background: linear-gradient(145deg, #1e2235 0%, #2a2040 100%);

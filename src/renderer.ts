@@ -4,7 +4,7 @@
  * Uses the @bytechain.cn/colamd 2.x library build (dist/lib/colamd-renderer.js +
  * colamd.css, requires ≥2.7.8-rc.2) to create a headless editor, apply themes,
  * render mermaid/math, and export standalone HTML or PDF. Theme CSS targets the
- * ColaMD 2.7.8-rc.2 contract (machine-readable as themes/contract.json in the
+ * ColaMD 2.7.11 contract (machine-readable as themes/contract.json in the
  * npm package) and is consumed directly as `:root` declarations.
  *
  * Architecture:
@@ -20,7 +20,7 @@ import { createServer, type Server } from "node:http";
 import { readFileSync, existsSync, createReadStream } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { formatColamdCompat, getColamdCompat, MIN_RENDERER_VERSION, REQUIRED_RENDERER_API } from "./compat.js";
+import { formatColamdCompat, getColamdCompat, MIN_RENDERER_VERSION, REQUIRED_RENDERER_API, SUPPORTED_CONTRACT } from "./compat.js";
 
 // ── Types ──
 
@@ -207,7 +207,7 @@ export class ColamdRenderer {
       throw new Error(
         `Renderer API 不兼容：@bytechain.cn/colamd ${version ?? "(未知版本)"} 缺少导出管线所需的方法 ` +
         `[${missingApi.join(", ")}]。平台可能已升级 API，` +
-        `请安装经核验的版本: npm install @bytechain.cn/colamd@^${MIN_RENDERER_VERSION}`
+        `请安装经核验的版本: npm install @bytechain.cn/colamd@^${SUPPORTED_CONTRACT}`
       );
     }
 
@@ -216,7 +216,7 @@ export class ColamdRenderer {
     const compat = getColamdCompat();
     if (compat.status === "drift") {
       console.warn(`[colamd-themes] 平台契约漂移: ${formatColamdCompat(compat)}`);
-      console.warn(`[colamd-themes] 导出仍将继续；如配色异常请核对平台 changelog 或安装 @bytechain.cn/colamd@^${MIN_RENDERER_VERSION}`);
+      console.warn(`[colamd-themes] 导出仍将继续；如配色异常请核对平台 changelog 或安装 @bytechain.cn/colamd@^${SUPPORTED_CONTRACT}`);
     }
 
     this.ready = true;
@@ -258,7 +258,22 @@ export class ColamdRenderer {
       return (window as any).__colamdHandle.buildExportHTML({ title });
     }, input.title);
 
-    return { html };
+    // The platform's print stylesheet hides `body > :not(#editor-region)` (it
+    // targets the live app shell). Our standalone export puts the document in
+    // `<article class="colamd-document">` directly under <body>, so give it an
+    // id and override with matching specificity — without it the exported HTML
+    // and PDF print blank.
+    const printableHtml = html
+      .replace(
+        /<article\s+class="([^"]*colamd-document[^"]*)"/,
+        '<article id="colamd-export-document" class="$1"'
+      )
+      .replace(
+        "</head>",
+        '<style>@media print { body > #colamd-export-document { display: block !important; } }</style></head>'
+      );
+
+    return { html: printableHtml };
   }
 
   /**

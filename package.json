@@ -52,7 +52,7 @@
     }
   },
   "dependencies": {
-    "@bytechain.cn/colamd": "^2.7.8",
+    "@bytechain.cn/colamd": "^2.7.11",
     "axios": "^1.7",
     "chalk": "^5.3",
     "cheerio": "^1.0",

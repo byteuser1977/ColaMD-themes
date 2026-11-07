@@ -155,7 +155,6 @@
 
 /* ── 2.4 引用块：米色底 + 朱砂红左竖线（每行一个 div，禁纵向 padding） ── */
 #editor .cm-content .cm-md-blockquote {
-  background: var(--blockquote-bg);
   color: var(--text-secondary);
   border-left: 4px solid var(--blockquote-border);
   padding-left: 24px;
@@ -247,6 +246,11 @@
   color: var(--seed-accent);
   font-family: var(--font-mono);
   border-radius: 3px;
+}
+/* Pele SVG 不自绘背景，编辑器里浮在代码块行上；导出后无类名 div 托底，需补回 */
+.colamd-document svg.pele {
+  background: var(--pele-bg);
+  border-radius: var(--pele-radius);
 }
 .colamd-document pre {
   background: var(--code-block-bg);

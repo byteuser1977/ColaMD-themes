@@ -2,7 +2,7 @@
  * Platform compatibility layer — decouples this package from the exact
  * @bytechain.cn/colamd (ColaMD-extend) version installed at runtime.
  *
- * The theme pipeline targets the 2.7.8-rc.2 contract, but the platform keeps
+ * The theme pipeline targets the 2.7.11 contract, but the platform keeps
  * moving (2.7.x stable lines auto-upgrade through the caret range; future
  * minor/prerelease lines may rename APIs or evolve the CSS contract). This
  * module answers two questions at runtime instead of failing cryptically:
@@ -23,7 +23,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /** Contract version this package's themes and validators are written against. */
-export const SUPPORTED_CONTRACT = "2.7.8-rc.2";
+export const SUPPORTED_CONTRACT = "2.7.11";
 
 /** Minimum renderer entry (dist/lib/colamd-renderer.js) with the 2.x API. */
 export const MIN_RENDERER_VERSION = "2.7.8-rc.2";
@@ -53,7 +53,7 @@ export interface ColamdCompat {
   missingLiveVariables: string[];
 }
 
-/** Live variables our themes must be able to set (frozen 2.7.8-rc.2 anchor). */
+/** Live variables our themes must be able to set (frozen 2.7.11 anchor). */
 const SUPPORTED_LIVE_VARIABLES: readonly string[] = Object.freeze([
   "--bg-color", "--text-color", "--text-secondary", "--text-muted",
   "--border-color", "--link-color", "--code-bg", "--code-block-bg",

@@ -2,7 +2,7 @@
 
 When the user asks to create, validate, export, or manage ColaMD themes, use the following CLI tool:
 
-Generate, validate, export, and manage ColaMD **2.7.8-rc.2 contract** CSS themes. Extract formatting from URLs, DOCX, or PDF sources; export Markdown to standalone HTML/PDF with themes applied; batch export; manage theme configuration.
+Generate, validate, export, and manage ColaMD **2.7.11 contract** CSS themes. Extract formatting from URLs, DOCX, or PDF sources; export Markdown to standalone HTML/PDF with themes applied; batch export; manage theme configuration.
 
 ## Prerequisites
 
@@ -46,7 +46,7 @@ colamd-themes list [-d <dir>]
 colamd-themes validate <file.css>
 ```
 
-`validate` prints a **platform compat line** ("平台兼容") — it reports the installed `@bytechain.cn/colamd` version and whether its `themes/contract.json` matches the 2.7.8-rc.2 theme contract. On drift it lists missing live variables; treat that as a signal to check the platform changelog or pin `@bytechain.cn/colamd@^2.7.8-rc.2`.
+`validate` prints a **platform compat line** ("平台兼容") — it reports the installed `@bytechain.cn/colamd` version and whether its `themes/contract.json` matches the 2.7.11 theme contract. On drift it lists missing live variables; treat that as a signal to check the platform changelog or pin `@bytechain.cn/colamd@^2.7.11`.
 
 ## Options
 
@@ -133,7 +133,7 @@ Export uses Puppeteer (headless Chromium) with `@bytechain.cn/colamd/renderer`:
 8. `buildExportHTML()` → standalone HTML with embedded CSS
 9. For PDF: load the export HTML in a fresh page + `page.pdf()` — do NOT `emulateMediaType('screen')`, the theme's `@media print` rules (with `print-color-adjust: exact`) must apply
 
-## 2.7.8-rc.2 Contract Constraints
+## 2.7.11 Contract Constraints
 
 - Variables live in `:root`; anything in `body.theme-*` is ignored
 - Live variables only: `--bg-color --text-color --text-secondary --text-muted --border-color --link-color --code-bg --code-block-bg --code-block-text --blockquote-border --blockquote-bg --table-header-bg --selection-bg --highlight-bg --font-body --font-mono --editor-font-size --editor-column-width` + `--pele-*`
@@ -177,9 +177,9 @@ Export uses Puppeteer (headless Chromium) with `@bytechain.cn/colamd/renderer`:
 ## Architecture
 
 ```
-Source → Extractor → ThemeStyle → Color System + Pele + Validators → CSS (2.7.8-rc.2 contract)
+Source → Extractor → ThemeStyle → Color System + Pele + Validators → CSS (2.7.11 contract)
 
 Markdown → Puppeteer + ColaMD renderer → HTML / PDF
 ```
 
-> Export runs the ColaMD 2.x library renderer (`@bytechain.cn/colamd@^2.7.8-rc.2` ships `dist/lib/colamd-renderer.js` + `colamd.css`); the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations and `buildExportHTML({ title })` serializes only contract live variables. Generated CSS targets the 2.7.8-rc.2 contract (unchanged since 2.7.7, machine-readable as `themes/contract.json` in the npm package), so it carries over unchanged. Platform upgrades are handled by a compat layer (`src/compat.ts`): contract drift is reported by `validate` and non-fatally at export, and the renderer API surface is probed at init — upgrades produce actionable diagnostics, not crashes.
+> Export runs the ColaMD 2.x library renderer (`@bytechain.cn/colamd@^2.7.11` ships `dist/lib/colamd-renderer.js` + `colamd.css`); the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations and `buildExportHTML({ title })` serializes only contract live variables. Generated CSS targets the 2.7.11 contract (unchanged since 2.7.7, machine-readable as `themes/contract.json` in the npm package), so it carries over unchanged. Platform upgrades are handled by a compat layer (`src/compat.ts`): contract drift is reported by `validate` and non-fatally at export, and the renderer API surface is probed at init — upgrades produce actionable diagnostics, not crashes.
