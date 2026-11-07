@@ -1,4 +1,28 @@
 # Release Notes
+## Version 0.5.5 (2026-11-07) — ColaMD 2.7.11 & Export Fixes 🚀
+
+### 🚀 Platform — ColaMD 2.7.11
+
+- `@bytechain.cn/colamd` upgraded `^2.7.8` → `^2.7.11`; the contract anchor (`SUPPORTED_CONTRACT`), CLI/validator labels, and `.trae/rules` workspace rules now read **2.7.11**. Upstream has **no breaking contract change** — 27 live variables, `.cm-md-*` hooks, and the renderer API surface are unchanged (a new `cm-md-li` hook was added). `validate` reports `2.7.11（契约 2.7.11，与主题契约一致）`
+- **Blockquote line background removed** — since 2.7.11 the editor paints the quote backdrop with `::before` + `--blockquote-bg` beneath the selection; a `background` on the `.cm-md-blockquote` line itself covers the code-block background of fenced code inside quotes. All 16 themes and both templates (`template.css` / `theme-template.hbs`) dropped the declaration; the export-side `.colamd-document blockquote` background is kept
+
+### 🛠 Fixed — Export Pipeline
+
+- **Blank printed HTML/PDF** — the platform's print stylesheet hides `body > :not(#editor-region)` (it targets the live app shell), while the standalone export places the document in `<article class="colamd-document">` directly under `<body>`: the PDF printed blank (954 bytes). `renderer.ts` now stamps the exported article with `id="colamd-export-document"` and injects a `@media print` override into the export HTML — HTML and PDF share the same artifact
+- **Mermaid diagram background wrong in export** — Pele's SVG declares `--_bg: var(--pele-bg)` but never paints its own background: in the editor the diagram floats on the code-block line (`.cm-md-codeblock` backdrop), but 2.7.11's clean-html wraps it in a class-less `<div>` (the `cm-md-mermaid` class is dropped), leaving the diagram transparent over the page color. All 16 themes and both templates gained `.colamd-document svg.pele { background: var(--pele-bg); border-radius: var(--pele-radius); }` — the exact backdrop the editor uses
+
+### ✅ Verified
+
+- 16/16 themes pass `validate` with zero errors; elegant export HTML 1.54 MB (2 Mermaid SVGs, 49 `--pele-*` references intact); PDFs — elegant 6 pages / 903 KB, word-contract 6 pages / 795 KB (previously 954 blank bytes)
+
+### 📦 Upgrade
+
+```bash
+git pull && npm install && npm run build
+```
+
+---
+
 ## Version 0.5.4 (2026-11-05) — Trae Skill Target 🎯
 
 ### 🎯 Added

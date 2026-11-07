@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.5] - 2026-11-07
+
+### Changed
+- **平台升级 ColaMD 2.7.11**：`@bytechain.cn/colamd` 依赖由 `^2.7.8` 升至 `^2.7.11`，契约锚点（`SUPPORTED_CONTRACT`）、CLI/校验器文案与 `.trae/rules` 工作区规则同步更新为 2.7.11。上游契约无破坏性变更（27 活变量、`.cm-md-*` 钩子、渲染器 API 均不变，新增 `cm-md-li` 钩子）；`validate` 平台兼容行报告 `2.7.11（契约 2.7.11，与主题契约一致）`
+- **引用块行背景移除**：2.7.11 起编辑器用 `::before` + `--blockquote-bg` 把引用底色画在选区下方，主题继续在 `.cm-md-blockquote` 行上写 `background` 会盖住"引用内代码块"的底色。全部 16 个主题与两套模板（`template.css` / `theme-template.hbs`）移除该声明，导出端 `.colamd-document blockquote` 背景保留
+
+### Fixed
+- **导出 HTML/PDF 打印空白**：平台 print 样式含 `body > :not(#editor-region) { display: none !important }`（针对应用外壳），而独立导出文档是 `<body>` 下的 `<article class="colamd-document">`，实测 PDF 仅 954 字节空白。`renderer.ts` 现在导出 HTML 中为文档加 `id="colamd-export-document"` 并注入 `@media print` 覆盖规则（HTML 与 PDF 共用同一份产物）
+- **Mermaid 图导出背景错误**：Pele 的 SVG 只声明 `--_bg: var(--pele-bg)` 但从不自绘背景——编辑器里图浮在代码块行（`.cm-md-codeblock` 底色）上，而 2.7.11 的 clean-html 导出时把图包进无类名 `<div>`（`cm-md-mermaid` 类名被丢掉），图变透明底浮在页面底色上。全部 16 个主题与两套模板的 `.colamd-document` 段新增 `.colamd-document svg.pele { background: var(--pele-bg); border-radius: var(--pele-radius); }`，与编辑器中的底完全一致
+
+### Verified
+- 16/16 主题 `validate` 零错误；elegant 导出 HTML 1.54 MB（Mermaid SVG ×2、49 处 `--pele-*` 正常）；PDF elegant 6 页 / 903 KB、word-contract 6 页 / 795 KB（修复前 954 字节空白）
+- 版本号升至 0.5.5
+
+---
+
 ## [0.5.4] - 2026-11-05
 
 ### Added
