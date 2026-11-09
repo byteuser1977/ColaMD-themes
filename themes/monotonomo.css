@@ -1,0 +1,294 @@
+/*
+ * ColaMD Theme: monotonomo
+ * 提取自 monotonomo.com 站点真实 CSS 设计令牌：
+ *   纸白底 #f5f2ed / 次级底 #eae6df / 正文暖灰 #4a443e / 次级暖灰 #6b6560
+ *   标题·粗体 黑 #1a1a1a（--seed-ink），正文独立于 seed-ink
+ *   信号红 #e40014 单点强调 / 分隔线 #d1ccc5 / 小圆角 .25rem
+ *   字体 Space Grotesk（正文·标题）+ JetBrains Mono（代码）
+ * 契约：ColaMD 2.7.8-rc.2（变量只写 :root；引用/代码块每行一 div 禁纵向 padding）
+ *
+ * 注：colamd-themes from-url 自动提取结果为白底蓝 #2b579a，未命中本站配色，
+ * 本文件为按站点 CSS 变量逐个对齐的手写版。
+ */
+
+:root {
+  /* ── 1.1 Seed Palette ── */
+  --seed-accent:        #e40014;
+  --seed-accent-light:  #fdebed;
+  --seed-accent-dark:   #b3000f;
+  --seed-surface:       #f5f2ed;
+  --seed-panel:         #eae6df;
+  --seed-panel-alt:     #e0dbd1;
+  --seed-ink:           #1a1a1a;
+  --seed-ink-muted:     #6b6560;
+  --seed-ink-dim:       #9a938b;
+  --seed-border:        #d1ccc5;
+  --seed-border-strong: #1a1a1a;
+
+  /* ── 1.2 Semantic Colors（活变量）── */
+  --bg-color:         var(--seed-surface);
+  --text-color:       #4a443e;
+  --text-secondary:   var(--seed-ink-muted);
+  --text-muted:       var(--seed-ink-dim);
+  --border-color:     var(--seed-border);
+  --link-color:       var(--seed-accent);
+
+  --code-bg:          var(--seed-panel);
+  --code-block-bg:    var(--seed-panel-alt);
+  --code-block-text:  var(--seed-ink);
+
+  --blockquote-border: var(--seed-accent);
+  --blockquote-bg:     transparent;
+  --table-header-bg:   var(--seed-ink);
+
+  --selection-bg: rgba(228, 0, 20, 0.14);
+  --highlight-bg: rgba(228, 0, 20, 0.14);
+
+  /* ── 1.3 Typography & Metrics（活变量）── */
+  --font-body: "Space Grotesk", "Noto Sans SC", "PingFang SC", "Microsoft YaHei",
+               system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+  --editor-font-size: 16px;
+  --editor-column-width: 760px;
+
+  /* ── 1.4 Pele Diagram（9 个变量）── */
+  --pele-bg:          var(--code-block-bg);
+  --pele-fg:          var(--code-block-text);
+  --pele-muted:       var(--seed-ink-muted);
+  --pele-line:        var(--seed-ink);
+  --pele-surface:     var(--seed-surface);
+  --pele-surface-alt: var(--seed-panel);
+  --pele-border:      var(--seed-border-strong);
+  --pele-accent:      var(--seed-accent);
+  --pele-radius:      4px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 2 — Editor DOM（#editor .cm-content + .cm-md-*）
+   ═══════════════════════════════════════════════════════════ */
+
+#editor .cm-content {
+  font-family: var(--font-body);
+  line-height: 1.625;
+  letter-spacing: -0.01em;
+  text-align: left;
+}
+
+/* ── 2.1 Headings：Space Grotesk 紧字距 ── */
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2,
+#editor .cm-content .cm-md-atxheading3,
+#editor .cm-content .cm-md-atxheading4,
+#editor .cm-content .cm-md-atxheading5,
+#editor .cm-content .cm-md-atxheading6 {
+  font-family: var(--font-body);
+  color: var(--seed-ink);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  text-align: left;
+}
+
+#editor .cm-content .cm-md-atxheading1 {
+  font-size: 2.125em;
+  letter-spacing: -0.035em;
+}
+#editor .cm-content .cm-md-atxheading2 {
+  font-size: 1.5em;
+  padding-bottom: 0.2em;
+  border-bottom: 2px solid var(--seed-border);
+}
+#editor .cm-content .cm-md-atxheading3 { font-size: 1.2em; }
+#editor .cm-content .cm-md-atxheading4 { font-size: 1.05em; }
+#editor .cm-content .cm-md-atxheading5 { font-size: 1em; }
+#editor .cm-content .cm-md-atxheading6 { font-size: 0.875em; }
+
+/* ── 2.2 Inline ── */
+#editor .cm-content .cm-md-strong { color: var(--seed-ink); font-weight: 700; }
+#editor .cm-content .cm-md-em { font-style: italic; }
+#editor .cm-content .cm-md-strike { text-decoration: line-through; }
+#editor .cm-content .cm-md-highlight { background: var(--highlight-bg); }
+
+/* 链接：红色下划线 */
+#editor .cm-content .cm-md-link {
+  color: var(--link-color);
+  text-decoration: none;
+  border-bottom: 1px solid var(--link-color);
+}
+#editor .cm-content .cm-md-url { color: var(--text-muted); }
+
+/* 内联代码：JetBrains Mono + 暖灰底 + 4px 圆角 */
+#editor .cm-content .cm-md-inlinecode {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  color: var(--text-color);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+#editor .cm-content .cm-md-marker,
+#editor .cm-content .cm-md-quotemark,
+#editor .cm-content .cm-md-listmark {
+  color: var(--seed-ink-muted);
+}
+
+/* ── 2.3 Blockquote / Code Block（每行一个 div，禁用纵向 padding）── */
+#editor .cm-content .cm-md-blockquote {
+  background: var(--blockquote-bg);
+  color: var(--text-secondary);
+  border-left: 3px solid var(--blockquote-border);
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+#editor .cm-content .cm-md-codeblock {
+  background: var(--code-block-bg);
+  color: var(--code-block-text);
+  border-left: 3px solid var(--seed-accent);
+  padding-left: 16px;
+  padding-right: 16px;
+}
+#editor .cm-content .cm-md-codeblock-first {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+#editor .cm-content .cm-md-codeblock-last {
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+/* ── 2.4 Table / Rule ── */
+#editor .cm-content .cm-md-table-widget th,
+#editor .cm-content .cm-md-table-widget td {
+  border-color: var(--border-color);
+}
+#editor .cm-content .cm-md-table-widget th {
+  background: var(--table-header-bg);
+  color: var(--seed-surface);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  font-size: 0.875em;
+  border-color: var(--seed-ink);
+}
+#editor .cm-content .cm-md-table-widget tr:nth-child(even) td {
+  background: var(--seed-panel);
+}
+#editor .cm-content .cm-md-hr {
+  border-top-color: var(--border-color);
+  margin: 2.75em 0;
+}
+
+/* ── 2.5 中文首行缩进 ── */
+#editor .cm-content .cm-line { text-indent: 2em; }
+
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2,
+#editor .cm-content .cm-md-atxheading3,
+#editor .cm-content .cm-md-atxheading4,
+#editor .cm-content .cm-md-atxheading5,
+#editor .cm-content .cm-md-atxheading6,
+#editor .cm-content .cm-md-blockquote,
+#editor .cm-content .cm-md-codeblock,
+#editor .cm-content .cm-md-hr,
+#editor .cm-content .cm-md-mermaid,
+#editor .cm-content .cm-md-li-0,
+#editor .cm-content .cm-md-li-1,
+#editor .cm-content .cm-md-li-2,
+#editor .cm-content .cm-md-li-3,
+#editor .cm-content .cm-md-li-4,
+#editor .cm-content .cm-md-li-5,
+#editor .cm-content .cm-md-li-6 {
+  text-indent: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 3 — Exported HTML（.colamd-document）
+   ═══════════════════════════════════════════════════════════ */
+
+.colamd-document {
+  font-family: var(--font-body);
+  font-size: var(--editor-font-size);
+  line-height: 1.625;
+  letter-spacing: -0.01em;
+  text-align: left;
+}
+
+.colamd-document h1,
+.colamd-document h2,
+.colamd-document h3,
+.colamd-document h4,
+.colamd-document h5,
+.colamd-document h6 {
+  font-family: var(--font-body);
+  color: var(--seed-ink);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+.colamd-document h1 { font-size: 2.125em; letter-spacing: -0.035em; }
+.colamd-document h2 {
+  font-size: 1.5em;
+  padding-bottom: 0.2em;
+  border-bottom: 2px solid var(--seed-border);
+}
+.colamd-document h3 { font-size: 1.2em; }
+
+.colamd-document strong { color: var(--seed-ink); }
+.colamd-document a {
+  color: var(--link-color);
+  text-decoration: none;
+  border-bottom: 1px solid var(--link-color);
+}
+.colamd-document code {
+  background: var(--code-bg);
+  color: var(--text-color);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.colamd-document pre {
+  background: var(--code-block-bg);
+  border-left: 3px solid var(--seed-accent);
+  border-radius: 4px;
+}
+.colamd-document pre code { color: var(--code-block-text); background: transparent; }
+.colamd-document blockquote {
+  background: var(--blockquote-bg);
+  color: var(--text-secondary);
+  border-left: 3px solid var(--blockquote-border);
+}
+.colamd-document mark { background: var(--highlight-bg); }
+.colamd-document th {
+  background: var(--table-header-bg);
+  color: var(--seed-surface);
+  letter-spacing: 0.03em;
+  font-size: 0.875em;
+}
+.colamd-document tbody tr:nth-child(even) td { background: var(--seed-panel); }
+.colamd-document hr {
+  border-top-color: var(--border-color);
+  margin: 2.75em 0;
+}
+
+.colamd-document p { text-indent: 2em; }
+.colamd-document li p,
+.colamd-document td p,
+.colamd-document th p,
+.colamd-document blockquote p {
+  text-indent: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 4 — Print
+   ═══════════════════════════════════════════════════════════ */
+
+@media print {
+  html,
+  body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
