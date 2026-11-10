@@ -1,9 +1,9 @@
 /*
  * ColaMD Theme: monotonomo
  * 提取自 monotonomo.com 站点真实 CSS 设计令牌：
- *   纸白底 #f5f2ed / 次级底 #eae6df / 正文暖灰 #4a443e / 次级暖灰 #6b6560
- *   标题·粗体 黑 #1a1a1a（--seed-ink），正文独立于 seed-ink
- *   信号红 #e40014 单点强调 / 分隔线 #d1ccc5 / 小圆角 .25rem
+ *   底色浅灰 #f8f8f8 / 面板 #ececec / #e0e0e0（paradigm 要求中性底）
+ *   标题 暖黑 #1a1918 / 粗体 深炭 #33302b / 正文 暖灰 #4a443e / 次级 #6b655f
+ *   信号红 #e40014 单点强调 / 中性分隔线 #d1d1d1 / 小圆角 .25rem
  *   字体 Space Grotesk（正文·标题）+ JetBrains Mono（代码）
  * 契约：ColaMD 2.7.8-rc.2（变量只写 :root；引用/代码块每行一 div 禁纵向 padding）
  *
@@ -16,14 +16,14 @@
   --seed-accent:        #e40014;
   --seed-accent-light:  #fdebed;
   --seed-accent-dark:   #b3000f;
-  --seed-surface:       #f5f2ed;
-  --seed-panel:         #eae6df;
-  --seed-panel-alt:     #e0dbd1;
-  --seed-ink:           #1a1a1a;
-  --seed-ink-muted:     #6b6560;
-  --seed-ink-dim:       #9a938b;
-  --seed-border:        #d1ccc5;
-  --seed-border-strong: #1a1a1a;
+  --seed-surface:       #f8f8f8;
+  --seed-panel:         #ececec;
+  --seed-panel-alt:     #e0e0e0;
+  --seed-ink:           #1a1918;
+  --seed-ink-muted:     #6b655f;
+  --seed-ink-dim:       #9a928a;
+  --seed-border:        #d1d1d1;
+  --seed-border-strong: #1a1918;
 
   /* ── 1.2 Semantic Colors（活变量）── */
   --bg-color:         var(--seed-surface);
@@ -104,7 +104,7 @@
 #editor .cm-content .cm-md-atxheading6 { font-size: 0.875em; }
 
 /* ── 2.2 Inline ── */
-#editor .cm-content .cm-md-strong { color: var(--seed-ink); font-weight: 700; }
+#editor .cm-content .cm-md-strong { color: #33302b; font-weight: 700; }
 #editor .cm-content .cm-md-em { font-style: italic; }
 #editor .cm-content .cm-md-strike { text-decoration: line-through; }
 #editor .cm-content .cm-md-highlight { background: var(--highlight-bg); }
@@ -233,7 +233,7 @@
 }
 .colamd-document h3 { font-size: 1.2em; }
 
-.colamd-document strong { color: var(--seed-ink); }
+.colamd-document strong { color: #33302b; }
 .colamd-document a {
   color: var(--link-color);
   text-decoration: none;
