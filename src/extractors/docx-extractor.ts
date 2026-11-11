@@ -10,8 +10,8 @@
  */
 
 import { readFileSync } from "node:fs";
-import { basename } from "node:path";
-import mammoth from "mammoth";
+import { basename, join } from "node:path";
+import { createRequire } from "node:module";
 import type { Extractor } from "./base.js";
 import {
   makeThemeStyle,
@@ -30,6 +30,41 @@ import {
   type TableCellStyle,
 } from "../docx-style-paradigm.js";
 
+/** mammoth resolved from the package tree, or from the working directory. */
+type MammothModule = typeof import("mammoth");
+
+let mammothModule: MammothModule | undefined;
+
+/**
+ * Load mammoth lazily with a working-directory fallback.
+ *
+ * mammoth ships out of the DSH plugin install: its jszip → readable-stream
+ * chain cannot satisfy the Harness generation peer validation (a dependency
+ * named after a Node builtin always resolves to the builtin). A plugin-hosted
+ * CLI therefore resolves mammoth from the ColaMD-themes checkout in
+ * `process.cwd()` — the same two-anchor pattern compat.ts / renderer.ts
+ * already use for @bytechain.cn/colamd.
+ */
+function loadMammoth(): MammothModule {
+  if (mammothModule) return mammothModule;
+  const anchors = [
+    createRequire(new URL("../package.json", import.meta.url)),
+    createRequire(join(process.cwd(), "package.json")),
+  ];
+  for (const anchor of anchors) {
+    try {
+      mammothModule = anchor("mammoth") as MammothModule;
+      return mammothModule;
+    } catch {
+      // try the next anchor
+    }
+  }
+  throw new Error(
+    "mammoth 未安装：DOCX 样式提取需要 mammoth。" +
+      "请在 ColaMD-themes 项目根目录运行 npm install 后重试。"
+  );
+}
+
 export class DocxExtractor implements Extractor {
   canHandle(source: string): boolean {
     return /\.docx$/i.test(source);
@@ -40,7 +75,7 @@ export class DocxExtractor implements Extractor {
     const name = basename(source).replace(/\.docx$/i, "");
     const theme = makeThemeStyle(name, "docx", source);
 
-    const result = await mammoth.convertToHtml(
+    const result = await loadMammoth().convertToHtml(
       { buffer },
       {
         styleMap: [

@@ -57,22 +57,21 @@
     }
   },
   "dependencies": {
-    "@bytechain.cn/colamd": "^2.7.11",
     "axios": "^1.7",
     "chalk": "^5.3",
     "cheerio": "^1.0",
     "commander": "^12.0",
     "css-tree": "^3.0",
     "handlebars": "^4.7",
-    "mammoth": "^1.8",
     "ora": "^8.0",
     "pdf-parse": "^1.1",
-    "pptxgenjs": "^4.0.1",
     "puppeteer": "^24.0"
   },
   "devDependencies": {
+    "@bytechain.cn/colamd": "^2.7.11",
     "@types/css-tree": "^2.3",
     "@types/node": "^22.0",
+    "mammoth": "^1.8",
     "tsx": "^4.0",
     "typescript": "^5.5"
   }
