@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.6] - 2026-11-11
+
+### Fixed
+- **build:skills 跨平台修复**：`npm run build:skills` 原直接调用 `bash skills/build-skills.sh`，而 npm scripts 在 Windows 经 cmd.exe 执行，宿主 PATH 无 `bash` 时直接失败（`'bash' is not recognized`）。新增跨平台启动器 `skills/build-skills.js`，按序探测 bash：`where git` 推导 `<Git根>\bin\bash.exe` → 注册表 `HKLM/HKCU\SOFTWARE\GitForWindows\InstallPath` → 常见安装根（Program Files / Program Files (x86) / LocalAppData）→ 回退 PATH 中的 `bash`；参数透传（`npm run build:skills -- dsh`）、stdio 与退出码继承，非 Windows 平台行为不变（直接 `bash`）。`package.json` 的 `build:skills` 改为 `node skills/build-skills.js`；启动器位于 `files` 白名单 `skills/` 内，随包发布
+
+### Verified
+- 本机（无 PATH bash 的 Windows）全量 7 个 agent 目标与单目标透传（`-- dsh`）均生成成功；`npm pack --dry-run` bundle 内容完整（91 文件 / 133 kB，含 `cordis.patch.yml`、`dist/dsh-plugin.js`、`skills/colamd-themes/SKILL.md`）
+- 版本号升至 0.5.6
+
+---
+
 ## [0.5.5] - 2026-11-07
 
 ### Changed

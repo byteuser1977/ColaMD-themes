@@ -1,4 +1,22 @@
 # Release Notes
+## Version 0.5.6 (2026-11-11) — Cross-Platform build:skills 🔧
+
+### 🔧 Fixed
+
+- **`npm run build:skills` failed on Windows hosts without `bash` on PATH** — the npm script invoked `bash skills/build-skills.sh` directly, and npm scripts run via cmd.exe on Windows, so hosts relying on Git-bundled bash (not on PATH) failed with `'bash' is not recognized`. A cross-platform launcher, `skills/build-skills.js`, now locates bash in order: derive from `git` on PATH (`<Git root>\bin\bash.exe`), the Git for Windows registry key (`HKLM/HKCU\SOFTWARE\GitForWindows\InstallPath`), well-known install roots (Program Files / Program Files (x86) / LocalAppData), and finally plain `bash`. Arguments pass through (`npm run build:skills -- dsh`), stdio and exit codes are inherited, and non-Windows behavior is unchanged (plain `bash`). `package.json` now runs `node skills/build-skills.js`; the launcher ships inside the `files` whitelist (`skills/`)
+
+### ✅ Verified
+
+- Full run (all 7 agent targets) and single-target passthrough (`-- dsh`) both succeed on a Windows host with no `bash` on PATH; `npm pack --dry-run` bundle complete (91 files / 133 kB — `cordis.patch.yml`, `dist/dsh-plugin.js`, `skills/colamd-themes/SKILL.md`)
+
+### 📦 Upgrade
+
+```bash
+git pull && npm install && npm run build
+```
+
+---
+
 ## Version 0.5.5 (2026-11-07) — ColaMD 2.7.11 & Export Fixes 🚀
 
 ### 🚀 Platform — ColaMD 2.7.11
