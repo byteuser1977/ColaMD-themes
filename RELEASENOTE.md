@@ -1,4 +1,25 @@
 # Release Notes
+## Version 0.5.7 (2026-11-12) — DSH Activation Fix 🔧
+
+### 🔧 Fixed
+
+- **DSH plugin failed to activate (`mammoth` static import)** — `dist/extractors/docx-extractor.js` statically imported `mammoth`, which ships only in `devDependencies` and is never installed into a DSH profile. The Harness imports the package root (`dist/index.js` → `docx-extractor.js`), so activation died with `ERR_MODULE_NOT_FOUND: Cannot find package 'mammoth'`. `docx-extractor.ts` now resolves mammoth lazily through `createRequire` with two anchors (package tree → `process.cwd()`): only `from-docx` needs it at call time, activation never touches it
+- **0.5.6 artifact was stale** — the lazy-loading fix landed after the 0.5.6 build and was never rebuilt, version-bumped, or published, so npm still served the static-import dist. dist is rebuilt and published as 0.5.7
+
+### ✅ Verified
+
+- `import('./dist/index.js')` loads cleanly (`name` / `inject` / `apply` intact); a full dist scan finds no static mammoth import
+
+### 📦 Upgrade
+
+```bash
+git pull && npm install && npm run build
+```
+
+In DSH, upgrade the `@bytechain.cn/colamd-themes` component to 0.5.7 (the profile install must be refreshed — the already-installed 0.5.6 keeps the broken dist).
+
+---
+
 ## Version 0.5.6 (2026-11-11) — Cross-Platform build:skills 🔧
 
 ### 🔧 Fixed

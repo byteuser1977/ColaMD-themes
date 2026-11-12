@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.7] - 2026-11-12
+
+### Fixed
+- **DSH 组件激活失败（mammoth 静态导入）**：`dist/extractors/docx-extractor.js` 原先以静态 `import mammoth from "mammoth"` 加载 DOCX 提取器，而 mammoth 只声明在 `devDependencies`、不会随插件安装进入 DSH profile。宿主导入包根（`dist/index.js` → `docx-extractor.js`）时直接抛 `ERR_MODULE_NOT_FOUND: Cannot find package 'mammoth'`，导致 `colamd-themes` 组件激活失败。`docx-extractor.ts` 改为 `createRequire` 双锚点懒加载（包自身 → 工作目录），仅在真正执行 `from-docx` 时才解析 mammoth，插件激活不再依赖该包
+- **0.5.6 产物未重建**：懒加载修复的提交晚于 0.5.6 构建且未升版本/未发布，npm 上的 0.5.6 仍是带静态导入的旧 dist。本次重新构建 dist 并作为 0.5.7 发布
+
+### Verified
+- `import('./dist/index.js')` 加载成功（`name` / `inject` / `apply` 正常），dist 全量扫描无静态 mammoth 导入
+- 版本号升至 0.5.7
+
+---
+
 ## [0.5.6] - 2026-11-11
 
 ### Fixed

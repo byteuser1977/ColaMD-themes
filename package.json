@@ -1,6 +1,6 @@
 {
   "name": "@bytechain.cn/colamd-themes",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "description": "Theme development & export tool for ColaMD — extract formatting, generate themes, and export Markdown to HTML/PDF",
   "repository": {
     "type": "git",
