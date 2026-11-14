@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.8] - 2026-11-14
 
+### Platform — ColaMD 2.7.12
+- **契约锚点升级 2.7.11 → 2.7.12**：`SUPPORTED_CONTRACT`、CLI/校验器文案、`generator` / `models` / `validators` / `renderer` / `dsh-plugin` 注释与 DSH skill 描述同步更新为 2.7.12。上游契约**无破坏性变更**——`themes/contract.json` 仅 `contractVersion` 字符串变化，27 个活变量、18 个死变量、`.cm-md-*` 钩子、渲染器 API 面均不变；依赖升级 `@bytechain.cn/colamd@^2.7.11` → `^2.7.12`，`validate` 平台兼容行报告「契约 2.7.12，与主题契约一致」
+- 2.7.12 上游变更（均不触及主题契约）：Android 端文件打开与单文档体验优化、待办框退格行为修复、主题边框色样式更新、公式/图表预览跨行增量更新修复
+
 ### Added
 - **导出产物 token 优化（默认开启）**：涉 AI/LLM agent 读取导出 HTML 时，内联的 base64 KaTeX 数学字体（`colamd.css` 中 20 个 `@font-face`，占整份 CSS 的 96%）会拖入模型上下文造成大量 token 浪费。现在 `export-html` / `export-pdf` / `export` 默认执行后处理：当源 markdown **没有**数学公式（`$$`、`$...$`、`\(..\)`、`\begin{..}`）时，自动剥离全部 `@font-face` 块，把典型导出从 ~1.5 MB（约 400k tokens）压缩到 ~57 KB（约 15k tokens），内容与其余样式规则完整保留（浏览器回退系统字体）。含数学的文档自动保留字体。`--keep-fonts` 可强制始终嵌入完整字体
 - **精确数学检测**：`markdownHasMath` 只认无歧义的数学标记；`$1.5M`、`$90 亿` 等金额不会误判为公式而触发字体保留

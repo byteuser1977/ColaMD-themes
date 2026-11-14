@@ -26,7 +26,7 @@ const inject = ["skills"];
 const PROVIDER = "colamd-themes-bundled";
 const SKILL_NAME = "colamd-themes";
 const DESCRIPTION =
-  "Generate, validate, export, and manage ColaMD 2.7.11 contract CSS themes. " +
+  "Generate, validate, export, and manage ColaMD 2.7.12 contract CSS themes. " +
   "Extract themes from URLs/DOCX/PDF; export Markdown to standalone HTML/PDF.";
 
 interface SkillCandidate {

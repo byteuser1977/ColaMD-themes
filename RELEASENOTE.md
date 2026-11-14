@@ -1,5 +1,9 @@
 # Release Notes
-## Version 0.5.8 (2026-11-14) — Export Token Optimization 🚀
+## Version 0.5.8 (2026-11-14) — Export Token Optimization & ColaMD 2.7.12 🚀
+
+### 🛰 Platform — ColaMD 2.7.12
+
+- **Contract anchor 2.7.11 → 2.7.12** — `SUPPORTED_CONTRACT` in [`src/compat.ts`](src/compat.ts), the CLI/validator labels, the generator/model/validator comments, and the DSH skill description now read **2.7.12**. Upstream has **no breaking contract change** — `themes/contract.json` only bumps its `contractVersion` string; the 27 live variables, 18 dead variables, `.cm-md-*` hooks, and the renderer API surface are unchanged. The dependency is bumped `@bytechain.cn/colamd@^2.7.11` → `^2.7.12` (now published on npm); `validate` reports「契约 2.7.12，与主题契约一致」. Upstream 2.7.12 changes (none touch the theme contract): Android file-open & single-document UX, todo-checkbox backspace behavior, theme border-color polish, formula/chart preview cross-line incremental update fix
 
 ### 🚀 Added
 

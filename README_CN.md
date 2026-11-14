@@ -23,7 +23,7 @@
 - **`export-pdf`** — 通过 Puppeteer（Chromium）将 Markdown 渲染为 PDF，用 `print-color-adjust: exact` 保住主题配色
 - **`export`** — 批量导出多个文件或整个目录为 HTML、PDF，或一次同时产出两种（`--format html,pdf` 在同一次 renderer/浏览器生命周期内渲染）
 - **导出产物 token 优化 (v0.5.8+，默认开启)** — 当源 Markdown 不含数学公式（`$$`、`$...$`、`\(..\)`、`\begin{..}`）时，自动剥离内嵌的 base64 KaTeX 数学字体（约占内嵌 CSS 的 96%），典型导出从 ~1.5 MB（约 40 万 tokens）压缩到 ~57 KB（约 1.5 万 tokens）——AI/LLM agent 回读导出产物时不再拖入海量字体 token。含数学的文档自动保留字体；`--keep-fonts` 可强制完整嵌入。`$1.5M` 等金额写法不会被误判为公式
-- 底层使用 `@bytechain.cn/colamd/renderer`（2.x 库构建，依赖 `@bytechain.cn/colamd@^2.7.8-rc.2`）——与应用同一个 CM6 编辑器经 Puppeteer 无头运行。主题 CSS 以 `:root` 声明直接消费，`buildExportHTML({ title })` 只序列化契约活变量，mermaid 图（Pele SVG）与 KaTeX 公式离线打开仍完整呈现。内置主题名优先解析本仓库的契约 CSS。生成的主题按 **2.7.8-rc.2 契约**编写，升级应用无需改动主题
+- 底层使用 `@bytechain.cn/colamd/renderer`（2.x 库构建，依赖 `@bytechain.cn/colamd@^2.7.12`）——与应用同一个 CM6 编辑器经 Puppeteer 无头运行。主题 CSS 以 `:root` 声明直接消费，`buildExportHTML({ title })` 只序列化契约活变量，mermaid 图（Pele SVG）与 KaTeX 公式离线打开仍完整呈现。内置主题名优先解析本仓库的契约 CSS。生成的主题按 **2.7.12 契约**编写，升级应用无需改动主题
 
 ### 主题管理
 
@@ -37,8 +37,8 @@
 - **对比度引擎** — WCAG 2.1 相对亮度与对比度计算
 - **范式验证器** — 15+ 条设计约束规则（CR、HR、SL、NT、BD、MP、FP、FS、SH），附带自动修复建议
 - **色彩系统库** — 5 大色系 15 套预定义种子色板（莫兰迪、马卡龙、北欧、复古、薄荷绿）
-- **2.7.8-rc.2 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
-- **2.7.8-rc.2 核验通过** — 全部 16 个主题已对照 `@bytechain.cn/colamd@2.7.7` 逐项审计（契约至 2.7.8-rc.2 保持不变），并在 2.7.8-rc.2 导出管线上实测通过：`.cm-md-*` 钩子零漂移，`:root` 活变量与 `--pele-*` 覆盖全部被渲染器消费，导出 `:root` 恰好携带 27 个契约活变量
+- **2.7.12 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
+- **契约核验通过** — 全部 16 个主题已对照冻结的活变量集逐项审计（契约至 2.7.12 保持不变），并在 2.7.11 导出管线上实测通过：`.cm-md-*` 钩子零漂移，`:root` 活变量与 `--pele-*` 覆盖全部被渲染器消费，导出 `:root` 恰好携带 27 个契约活变量
 - **Pele 图表配色** — 9 个 `--pele-*` 变量由 `--code-block-bg` / `--code-block-text` / `--link-color` 推导，取代 Mermaid 20 变量
 - **平台向后兼容 (v0.5.3+)** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移；`validate` 输出「平台兼容」报告行，导出前校验渲染器 API 面（`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`）。平台升级导致的契约/API 变化给出含版本号与修复命令的明确诊断，而非渲染中途的神秘报错
 
@@ -53,7 +53,7 @@
 
 ### CSS 模板引擎
 
-基于 Handlebars 的模板引擎生成 ColaMD 2.7.8-rc.2 契约 CSS（≤300 行）：
+基于 Handlebars 的模板引擎生成 ColaMD 2.7.12 契约 CSS（≤300 行）：
 
 | 分区 | 内容 |
 |------|------|
@@ -244,7 +244,7 @@ cthemes set-theme 我的品牌 --remove
 | `extract <source>` | 自动检测来源类型并提取主题 |
 | `color-systems` | 列出 15 套内置色彩系统 |
 | `list` | 列出所有生成的主题 |
-| `validate <file>` | 验证主题是否符合 2.7.8-rc.2 契约与范式规则（含平台兼容报告） |
+| `validate <file>` | 验证主题是否符合 2.7.12 契约与范式规则（含平台兼容报告） |
 | `set-theme <name>` | 设置、注册或注销导出主题 |
 | `export-html <input>` | 导出 Markdown → 独立 HTML |
 | `export-pdf <input>` | 导出 Markdown → PDF |
@@ -286,12 +286,12 @@ cthemes set-theme 我的品牌 --remove
            ▼
 ┌─────────────────────┐
 │  色彩系统匹配        │  → 15 套内置色板
-│  范式与契约验证      │  → WCAG 对比度 + 设计约束 + 2.7.8-rc.2 契约
+│  范式与契约验证      │  → WCAG 对比度 + 设计约束 + 2.7.12 契约
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────┐
-│  模板引擎            │  Handlebars → 2.7.8-rc.2 契约 CSS（≤300 行）
+│  模板引擎            │  Handlebars → 2.7.12 契约 CSS（≤300 行）
 └──────────┬──────────┘
            │
            ▼
@@ -324,7 +324,7 @@ Markdown 文件
 └─────────────────────────────────────────────┘
 ```
 
-## 设计范式 (2.7.8-rc.2 契约)
+## 设计范式 (2.7.12 契约)
 
 完整规范文档：[`templates/theme-paradigm.md`](src/templates/theme-paradigm.md)。
 
@@ -390,7 +390,7 @@ ColaMD-themes/
 │   │   └── pdf-extractor.ts                 # PDF → ThemeStyle
 │   └── templates/
 │       ├── template.css                     # 范式配套 CSS 模板
-│       ├── theme-paradigm.md               # v4.0 设计规范（2.7.8-rc.2 契约）
+│       ├── theme-paradigm.md               # v4.0 设计规范（2.7.12 契约）
 │       └── theme-template.hbs              # Handlebars CSS 模板
 └── tests/
 ```
@@ -423,14 +423,14 @@ npm run mcp
 |------|-----|------|
 | 运行时 | Node.js + TypeScript | ESM 模块，严格类型 |
 | CLI 框架 | Commander.js | 参数解析、子命令分发 |
-| CSS 模板 | Handlebars | 2.7.8-rc.2 契约 CSS 生成 |
+| CSS 模板 | Handlebars | 2.7.12 契约 CSS 生成 |
 | HTML 解析 | Cheerio | URL 提取时的 DOM 遍历 |
 | CSS 解析 | css-tree | CSS 规则 AST 解析 |
 | DOCX 解析 | Mammoth | Word → HTML 转换 |
 | PDF 解析 | pdf-parse | PDF 文本提取 |
 | HTTP 客户端 | Axios | 网页抓取 |
 | 浏览器引擎 | Puppeteer | 无头 Chromium，HTML/PDF 导出 |
-| 编辑器引擎 | @bytechain.cn/colamd | 基于 CM6 的 Markdown 渲染器（2.7.8-rc.2 契约） |
+| 编辑器引擎 | @bytechain.cn/colamd | 基于 CM6 的 Markdown 渲染器（2.7.12 契约） |
 | 终端输出 | Chalk + Ora | 彩色文本 + 加载动画 |
 
 ## License

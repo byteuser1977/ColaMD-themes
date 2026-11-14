@@ -23,7 +23,7 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 - **`export-pdf`** — render Markdown to PDF via Puppeteer (Chromium); theme colors are preserved with `print-color-adjust: exact`
 - **`export`** — batch export multiple files or entire directories to HTML, PDF, or both at once (`--format html,pdf` renders both artifacts in a single renderer/browser lifecycle)
 - **Token-saving exports (v0.5.8+, default on)** — when the source markdown contains no math (`$$`, `$...$`, `\(..\)`, `\begin{..}`), the inlined base64 KaTeX math fonts (≈96% of the embedded CSS) are stripped from the export artifact, shrinking a typical export from ~1.5 MB (~400k tokens) to ~57 KB (~15k tokens) — ideal when an AI/LLM agent reads the output back. Math documents keep their fonts automatically; `--keep-fonts` forces full font embedding. Money mentions like `$1.5M` are correctly ignored by the math detector
-- Powered by `@bytechain.cn/colamd/renderer` (2.x library build, requires `@bytechain.cn/colamd@^2.7.8-rc.2`) — the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations, `buildExportHTML({ title })` serializes only contract live variables, and mermaid diagrams (Pele SVG) / KaTeX math stay fully rendered offline. Built-in theme names resolve their local contract CSS first. Generated themes target the **2.7.8-rc.2 contract**, so they carry over unchanged.
+- Powered by `@bytechain.cn/colamd/renderer` (2.x library build, requires `@bytechain.cn/colamd@^2.7.12`) — the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations, `buildExportHTML({ title })` serializes only contract live variables, and mermaid diagrams (Pele SVG) / KaTeX math stay fully rendered offline. Built-in theme names resolve their local contract CSS first. Generated themes target the **2.7.12 contract**, so they carry over unchanged.
 
 ### Theme Management
 
@@ -37,8 +37,8 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 - **Contrast Engine** — WCAG 2.1 relative luminance & contrast ratio calculations
 - **Paradigm Validator** — 15+ design constraint rules (CR, HR, SL, NT, BD, MP, FP, FS, SH) with auto-fix suggestions
 - **Color System Library** — 15 predefined seed palettes across 5 families (Morandi, Macaron, Nordic, Vintage, Mint)
-- **2.7.8-rc.2 CSS Contract Validator** — flags dead selectors (`#write`, `.ProseMirror`, `body.theme-custom`), dead variables (`--mermaid-*`, `--radius-*`, `--font-size-root`…), `pt` units, and vertical padding on quote/code lines
-- **2.7.8-rc.2 Verified** — all 16 shipped themes audited against `@bytechain.cn/colamd@2.7.7` (contract unchanged through 2.7.8-rc.2) and smoke-tested on the 2.7.8-rc.2 export pipeline: zero `.cm-md-*` hook drift, all `:root` live variables and `--pele-*` overrides consumed, exports carry exactly the 27 contract live variables
+- **2.7.12 CSS Contract Validator** — flags dead selectors (`#write`, `.ProseMirror`, `body.theme-custom`), dead variables (`--mermaid-*`, `--radius-*`, `--font-size-root`…), `pt` units, and vertical padding on quote/code lines
+- **Contract verified** — all 16 shipped themes audited against the frozen live-variable set (contract unchanged through 2.7.12) and smoke-tested on the 2.7.11 export pipeline: zero `.cm-md-*` hook drift, all `:root` live variables and `--pele-*` overrides consumed, exports carry exactly the 27 contract live variables
 - **Pele Diagram Colors** — 9 `--pele-*` variables derived from `--code-block-bg` / `--code-block-text` / `--link-color`, replacing the 20 Mermaid variables
 - **Platform backward compatibility (v0.5.3+)** — [`src/compat.ts`](src/compat.ts) probes the installed `@bytechain.cn/colamd` version and its `themes/contract.json` for contract drift; `validate` prints a "平台兼容" report line and the renderer verifies the export API surface (`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`) before rendering. Platform upgrades produce actionable diagnostics (version + fix command) instead of cryptic mid-render failures
 
@@ -53,7 +53,7 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 
 ### CSS Template Engine
 
-Handlebars-powered template produces ColaMD 2.7.8-rc.2 contract CSS (≤300 lines):
+Handlebars-powered template produces ColaMD 2.7.12 contract CSS (≤300 lines):
 
 | Section | Content |
 |---------|---------|
@@ -268,7 +268,7 @@ cthemes set-theme my-brand --remove
 | `extract <source>` | Auto-detect source type and extract theme |
 | `color-systems` | List 15 built-in color systems |
 | `list` | List all generated themes |
-| `validate <file>` | Validate a theme against the 2.7.8-rc.2 contract and paradigm rules (with a platform compat report) |
+| `validate <file>` | Validate a theme against the 2.7.12 contract and paradigm rules (with a platform compat report) |
 | `set-theme <name>` | Set, register, or remove export themes |
 | `export-html <input>` | Export Markdown → standalone HTML |
 | `export-pdf <input>` | Export Markdown → PDF |
@@ -310,12 +310,12 @@ Source (URL / .docx / .pdf)
            ▼
 ┌─────────────────────┐
 │  Color System       │  Match → 15 built-in palettes
-│  Validators         │  WCAG contrast + paradigm + 2.7.8-rc.2 contract
+│  Validators         │  WCAG contrast + paradigm + 2.7.12 contract
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────┐
-│  Template Engine    │  Handlebars → 2.7.8-rc.2 CSS (≤300 lines)
+│  Template Engine    │  Handlebars → 2.7.12 CSS (≤300 lines)
 └──────────┬──────────┘
            │
            ▼
@@ -348,7 +348,7 @@ Markdown file
 └─────────────────────────────────────────────┘
 ```
 
-## Design Paradigm (2.7.8-rc.2 contract)
+## Design Paradigm (2.7.12 contract)
 
 Full specification: [`templates/theme-paradigm.md`](src/templates/theme-paradigm.md).
 
@@ -414,7 +414,7 @@ ColaMD-themes/
 │   │   └── pdf-extractor.ts                 # PDF → ThemeStyle
 │   └── templates/
 │       ├── template.css                     # Paradigm companion CSS
-│       ├── theme-paradigm.md               # v4.0 design specification (2.7.8-rc.2 contract)
+│       ├── theme-paradigm.md               # v4.0 design specification (2.7.12 contract)
 │       └── theme-template.hbs              # Handlebars CSS template
 └── tests/
 ```
@@ -425,14 +425,14 @@ ColaMD-themes/
 |-----------|---------|---------|
 | Runtime | Node.js + TypeScript | ESM modules, strict typing |
 | CLI framework | Commander.js | Argument parsing, subcommands |
-| CSS templating | Handlebars | 2.7.8-rc.2 contract CSS generation |
+| CSS templating | Handlebars | 2.7.12 contract CSS generation |
 | HTML parsing | Cheerio | DOM traversal for URL extraction |
 | CSS parsing | css-tree | CSS rule AST parsing |
 | DOCX parsing | Mammoth | Word → HTML conversion |
 | PDF parsing | pdf-parse | PDF text extraction |
 | HTTP client | Axios | Web page fetching |
 | Browser engine | Puppeteer | Headless Chromium for HTML/PDF export |
-| Editor engine | @bytechain.cn/colamd | CM6-based Markdown renderer (2.7.8-rc.2 contract) |
+| Editor engine | @bytechain.cn/colamd | CM6-based Markdown renderer (2.7.12 contract) |
 | Terminal output | Chalk + Ora | Colored text + spinners |
 
 ## License

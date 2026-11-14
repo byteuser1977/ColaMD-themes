@@ -4,7 +4,7 @@
  * Uses the @bytechain.cn/colamd 2.x library build (dist/lib/colamd-renderer.js +
  * colamd.css, requires ≥2.7.8-rc.2) to create a headless editor, apply themes,
  * render mermaid/math, and export standalone HTML or PDF. Theme CSS targets the
- * ColaMD 2.7.11 contract (machine-readable as themes/contract.json in the
+ * ColaMD 2.7.12 contract (machine-readable as themes/contract.json in the
  * npm package) and is consumed directly as `:root` declarations.
  *
  * Architecture:

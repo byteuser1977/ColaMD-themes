@@ -245,7 +245,7 @@ async function runExtraction(
       style.colorSystemId = cs.id;
     }
     if (options.autoMatch) style.colorSystemId = "";
-    spinner.text = "Generating CSS (2.7.11 contract)...";
+    spinner.text = "Generating CSS (2.7.12 contract)...";
     const outputPath = writeThemeFile(style, options.output || options.themesDir);
     spinner.succeed(chalk.green(`Theme "${style.name}" generated: ${outputPath}`));
     printSummary(style);
@@ -335,7 +335,7 @@ program
 // ── validate ──
 program
   .command("validate")
-  .description("Validate a theme CSS against the 2.7.11 contract and paradigm rules")
+  .description("Validate a theme CSS against the 2.7.12 contract and paradigm rules")
   .argument("<file>", "Path to theme CSS file")
   .action((file: string) => {
     if (!existsSync(file)) { console.error(chalk.red(`File not found: ${file}`)); process.exit(1); }
@@ -352,7 +352,7 @@ program
       inkDim: extract("--seed-ink-dim"), border: extract("--seed-border"),
       borderStrong: extract("--seed-border-strong"),
     };
-    console.log(chalk.bold("CSS contract (ColaMD 2.7.11):"));
+    console.log(chalk.bold("CSS contract (ColaMD 2.7.12):"));
     const cssIssues = validateThemeCss(css);
     console.log(cssIssues.length === 0 ? chalk.green("  ✔ :root 根块与选择器契约通过") : summarizeIssues(cssIssues));
 
