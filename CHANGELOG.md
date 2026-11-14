@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.9] - 2026-11-14
+
+### Documentation
+- **ColaMD-extend 项目介绍与桌面版下载**：中英文 README 新增上游跨平台桌面编辑器及渲染引擎介绍，并提供项目使用指南、官方网站和最新桌面版本下载入口
+- **vscode-colaview 项目介绍与扩展安装**：新增 ColaView MD 的 Markdown 实时预览、KaTeX/Mermaid 渲染、HTML/PDF/Word 导出功能说明，以及扩展安装和预览开启引导
+- **主题使用指引**：补充生成 CSS 主题在 ColaMD 桌面版（主题 → 导入主题）和 ColaView MD（Import Custom Theme... 或工作区 `.themes/` 目录）中的使用方法
+- 本次仅更新文档与生态项目指引，不改动主题契约、内置主题 CSS 或导出行为
+- 版本号升至 0.5.9
+
+---
+
 ## [0.5.8] - 2026-11-14
 
 ### Platform — ColaMD 2.7.12

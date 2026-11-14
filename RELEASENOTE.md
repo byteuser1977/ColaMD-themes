@@ -1,4 +1,23 @@
 # Release Notes
+
+## Version 0.5.9 (2026-11-14) — Ecosystem Guide & Downloads
+
+### Documentation
+
+- **ColaMD-extend introduction and desktop downloads** — both English and Chinese READMEs now introduce the upstream cross-platform desktop editor and rendering engine, with links to the project guide, official website, and latest desktop release
+- **vscode-colaview introduction and extension installation** — the new ecosystem section covers ColaView MD's live Markdown preview, KaTeX/Mermaid rendering, HTML/PDF/Word export, setup steps, and Visual Studio Marketplace installation
+- **Theme usage guidance** — generated CSS themes now have direct import instructions for both the ColaMD desktop app (**Theme → Import Theme**) and ColaView MD (**Import Custom Theme...** or the workspace `.themes/` directory)
+
+This is a documentation-only release. The theme contract, shipped CSS themes, and export behavior are unchanged.
+
+### Upgrade
+
+```bash
+npm install @bytechain.cn/colamd-themes@0.5.9
+```
+
+---
+
 ## Version 0.5.8 (2026-11-14) — Export Token Optimization & ColaMD 2.7.12 🚀
 
 ### 🛰 Platform — ColaMD 2.7.12
