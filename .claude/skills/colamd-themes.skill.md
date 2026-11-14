@@ -34,6 +34,13 @@ colamd-themes export-pdf  <input.md> -t <theme> -o <output.pdf>
 colamd-themes export <inputs...> --format html|pdf -t <theme> -d <dir>
 ```
 
+> **Token-saving by default**: exports are optimized automatically. When the source
+> markdown contains no math (`$$`, `$...$`, `\(..\)`, `\begin{..}`), the inlined
+> base64 KaTeX fonts are stripped from the HTML artifact, shrinking a typical
+> export from ~1.5 MB (~400k tokens) to ~57 KB (~15k tokens). Math documents keep
+> their fonts automatically. Pass `--keep-fonts` on any export command to always
+> embed the full fonts (e.g. formula-heavy docs that must render offline).
+
 ### Theme management
 
 ```bash
@@ -73,6 +80,7 @@ colamd-themes validate <file.css>
 | `-o, --output` | Output file path |
 | `-d, --output-dir` | Output directory for batch export |
 | `--format` | Batch: `html` or `pdf`; PDF: `A4`, `Letter`, `A3` |
+| `--keep-fonts` | Keep inlined base64 math fonts (default strips them when source has no math) |
 
 ## Theme Resolution
 

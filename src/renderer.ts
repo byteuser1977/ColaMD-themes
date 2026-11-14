@@ -34,12 +34,67 @@ export interface RenderInput {
   customCSS?: string;
   /** Document title for the HTML <title> */
   title?: string;
+  /**
+   * Trim exported-artifact bloat to save tokens when an AI agent reads the
+   * output back. When `true` (default), any `@font-face` blocks that embed
+   * base64 math fonts (KaTeX) are stripped from the exported HTML unless the
+   * source markdown actually contains a math expression. Without math, losing
+   * the inlined fonts only costs a fallback to the system font while shrinking
+   * a typical export from ~1.5 MB to ~57 KB. Pass `optimize: false` to always
+   * keep the full inlined-font artifact (e.g. for formula-heavy documents whose
+   * math must render remotely after export).
+   */
+  optimize?: boolean;
 }
 
 /** Result of a render operation. */
 export interface RenderResult {
   /** Complete standalone HTML document */
   html: string;
+}
+
+// ── Export-artifact size optimization ──
+
+/**
+ * Heuristic: does the source markdown contain inline/block math that relies on
+ * the inlined KaTeX fonts? Only unambiguous math markers count so ordinary
+ * prose is not penalized: `$$..$$` or a *balanced* pair of `$` for inline math,
+ * `\(..\)` / `\[..\]`, and latex `\begin{..}` environments. A lone `$` used for
+ * money/units (e.g. `$1.5M`) is deliberately ignored.
+ */
+function markdownHasMath(markdown: string): boolean {
+  // Latex environments and explicit macros.
+  if (/\\begin\{[A-Za-z]+\}/.test(markdown)) return true;
+  // Display math `$$...$$` (unescaped).
+  if (/(^|[^\\])\$\$/.test(markdown)) return true;
+  // Escaped inline math `\(...\)` or `\[...\]`.
+  if (/\\[\(\[]/.test(markdown)) return true;
+  // Balanced inline `$...$`: an even count of unescaped `$` is a strong signal
+  // (open+close). Price mentions like `$12`/`$1.5M` stay odd and are excluded.
+  const matches = markdown.match(/(^|[^\\])\$/g) ?? [];
+  return matches.length >= 2 && matches.length % 2 === 0;
+}
+
+/**
+ * Strip `@font-face{...}` blocks (all of them are KaTeX math fonts in the
+ * bundled colamd.css) from an exported HTML document. Keeps every non-font
+ * style rule and the document structure intact. Only the inlined base64 font
+ * payloads are removed, replacing each block with nothing so the browser falls
+ * back to the platform default font family.
+ */
+function stripMathFonts(html: string): string {
+  return html.replace(/@font-face\s*\{[^}]*\}\s*/g, "");
+}
+
+/**
+ * Build the final export artifact: apply the token-saving optimization when
+ * requested (default on) and the source has no math that needs remote fonts.
+ */
+function optimizeExportHtml(html: string, markdown: string, optimize: boolean): string {
+  if (optimize && !markdownHasMath(markdown)) {
+    return stripMathFonts(html);
+  }
+  return html;
 }
 
 /** PDF export options. */
@@ -273,7 +328,13 @@ export class ColamdRenderer {
         '<style>@media print { body > #colamd-export-document { display: block !important; } }</style></head>'
       );
 
-    return { html: printableHtml };
+    // Token-saving optimization: for documents without math, drop the inlined
+    // base64 KaTeX fonts so agent-side reads of the artifact no longer drag
+    // ~1.5 MB (~400k tokens) of unused font data into the model context.
+    // Opt out with `optimize: false` when the full-font artifact is required.
+    const optimizedHtml = optimizeExportHtml(printableHtml, input.markdown, input.optimize ?? true);
+
+    return { html: optimizedHtml };
   }
 
   /**

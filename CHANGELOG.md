@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.8] - 2026-11-14
+
+### Added
+- **导出产物 token 优化（默认开启）**：涉 AI/LLM agent 读取导出 HTML 时，内联的 base64 KaTeX 数学字体（`colamd.css` 中 20 个 `@font-face`，占整份 CSS 的 96%）会拖入模型上下文造成大量 token 浪费。现在 `export-html` / `export-pdf` / `export` 默认执行后处理：当源 markdown **没有**数学公式（`$$`、`$...$`、`\(..\)`、`\begin{..}`）时，自动剥离全部 `@font-face` 块，把典型导出从 ~1.5 MB（约 400k tokens）压缩到 ~57 KB（约 15k tokens），内容与其余样式规则完整保留（浏览器回退系统字体）。含数学的文档自动保留字体。`--keep-fonts` 可强制始终嵌入完整字体
+- **精确数学检测**：`markdownHasMath` 只认无歧义的数学标记；`$1.5M`、`$90 亿` 等金额不会误判为公式而触发字体保留
+- **batch 多格式渲染复用**：`export ... --format html,pdf` 现在支持逗号分隔的多格式，同一份 markdown 在**一次** renderer/browser 生命周期内同时产出 HTML 与 PDF（此前需两次 CLI 启动，每次冷启动 Chromium），减少重复启动开销
+
+### Changed
+- `renderer.ts` 的 `RenderInput` 新增 `optimize?: boolean`（默认 `true`）；新增 `optimizeExportHtml` / `stripMathFonts` / `markdownHasMath` 辅助逻辑
+
+### Verified
+- 普通无公式论文：HTML 从 1,520,498 B → 79,377 B（−94.8%），标题/摘要/关键词/章节/参考文献全部保留，`@font-face` 与 base64 归零
+- 数学文档（`$$...$$`）：默认仍保留 20 字体（1.5 MB），`--keep-fonts` 行为一致
+- 金额文档（`$1.5M`）：正确剥离字体
+- `batch --format html,pdf`：一次 init 同时产出 HTML（88 KB）+ PDF（1.1 MB / 6 页 A4）
+
+---
+
 ## [0.5.7] - 2026-11-12
 
 ### Fixed

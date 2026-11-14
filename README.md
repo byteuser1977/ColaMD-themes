@@ -21,7 +21,8 @@ A theme development & export toolkit for [ColaMD](https://github.com/cola-md/col
 
 - **`export-html`** — render Markdown to a standalone HTML document with theme CSS embedded, Mermaid diagrams and KaTeX math fully rendered
 - **`export-pdf`** — render Markdown to PDF via Puppeteer (Chromium); theme colors are preserved with `print-color-adjust: exact`
-- **`export`** — batch export multiple files or entire directories to HTML or PDF
+- **`export`** — batch export multiple files or entire directories to HTML, PDF, or both at once (`--format html,pdf` renders both artifacts in a single renderer/browser lifecycle)
+- **Token-saving exports (v0.5.8+, default on)** — when the source markdown contains no math (`$$`, `$...$`, `\(..\)`, `\begin{..}`), the inlined base64 KaTeX math fonts (≈96% of the embedded CSS) are stripped from the export artifact, shrinking a typical export from ~1.5 MB (~400k tokens) to ~57 KB (~15k tokens) — ideal when an AI/LLM agent reads the output back. Math documents keep their fonts automatically; `--keep-fonts` forces full font embedding. Money mentions like `$1.5M` are correctly ignored by the math detector
 - Powered by `@bytechain.cn/colamd/renderer` (2.x library build, requires `@bytechain.cn/colamd@^2.7.8-rc.2`) — the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations, `buildExportHTML({ title })` serializes only contract live variables, and mermaid diagrams (Pele SVG) / KaTeX math stay fully rendered offline. Built-in theme names resolve their local contract CSS first. Generated themes target the **2.7.8-rc.2 contract**, so they carry over unchanged.
 
 ### Theme Management
@@ -105,7 +106,7 @@ Universal skill definitions for 6 AI coding agents (7 outputs — Trae gets both
 skills/colamd-themes/SKILL.md       ← Canonical source (single source of truth)
         │
         ▼
-skills/build-skills.sh              ← Build script (bash)
+skills/build-skills.js              ← Cross-platform launcher (bash passthrough)
         │
         ├──→ .claude/skills/colamd-themes.skill.md
         ├──→ .opencode/skills/colamd-themes/SKILL.md
@@ -119,17 +120,16 @@ skills/build-skills.sh              ← Build script (bash)
 **Regenerate all agent skills:**
 
 ```bash
-npm run build:skills            # generate all
-bash skills/build-skills.sh     # same thing
+npm run build:skills            # generate all (cross-platform, works without bash on PATH)
 
 # Or generate for a single agent:
-bash skills/build-skills.sh claude
-bash skills/build-skills.sh opencode
-bash skills/build-skills.sh openclaw
-bash skills/build-skills.sh hermes
-bash skills/build-skills.sh trae
-bash skills/build-skills.sh trae-skill
-bash skills/build-skills.sh dsh
+npm run build:skills -- claude
+npm run build:skills -- opencode
+npm run build:skills -- openclaw
+npm run build:skills -- hermes
+npm run build:skills -- trae
+npm run build:skills -- trae-skill
+npm run build:skills -- dsh
 ```
 
 To customize: edit `skills/colamd-themes/SKILL.md`, then run `npm run build:skills`.
@@ -237,6 +237,9 @@ cthemes export docs/*.md --format html -t light -d output/
 
 # Directory of Markdown files to PDF
 cthemes export docs/ --format pdf -t elegant -d output/
+
+# Both formats in one pass (shared renderer/browser startup)
+cthemes export docs/ --format html,pdf -t elegant -d output/
 ```
 
 ### Theme management
@@ -288,8 +291,9 @@ cthemes set-theme my-brand --remove
 | `-t, --theme` | Theme name (built-in, custom, or CSS file path) |
 | `-o, --output` | Output file path |
 | `-d, --output-dir` | Output directory for batch export |
-| `--format` | Output format for batch: `html` or `pdf` (default: `html`) |
+| `--format` | Batch format: `html`, `pdf`, or a comma-separated combo like `html,pdf` (default: `html`) |
 | `--format` | PDF page size: `A4`, `Letter`, `A3` (default: `A4`) |
+| `--keep-fonts` | Keep inlined base64 math fonts (default strips them when the source has no math) |
 
 ## How It Works
 
@@ -375,7 +379,7 @@ Full specification: [`templates/theme-paradigm.md`](src/templates/theme-paradigm
 ColaMD-themes/
 ├── skills/
 │   ├── colamd-themes/SKILL.md              # Canonical skill source
-│   └── build-skills.sh                     # Generate agent-specific files
+│   └── build-skills.js                     # Cross-platform launcher (generates agent files)
 ├── .claude/skills/colamd-themes.skill.md   # Claude Code skill
 ├── .opencode/skills/colamd-themes/SKILL.md # OpenCode skill
 ├── .openclaw/skills/colamd-themes/SKILL.md # OpenClaw skill

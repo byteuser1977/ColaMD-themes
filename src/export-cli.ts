@@ -106,7 +106,8 @@ function registerExportHTML(program: Command): void {
     .argument("<input>", "Path to .md file")
     .option("-t, --theme <name>", "Theme name (built-in, custom, or CSS file path)")
     .option("-o, --output <path>", "Output HTML file path")
-    .action(async (input: string, options: { theme?: string; output?: string }) => {
+    .option("--keep-fonts", "Keep inlined base64 math fonts (default strips them when the source has no math)", false)
+    .action(async (input: string, options: { theme?: string; output?: string; keepFonts?: boolean }) => {
       try {
         // Resolve paths using shared utilities
         const inputPath = resolveInputPath(input);
@@ -128,6 +129,7 @@ function registerExportHTML(program: Command): void {
             themeName: theme.themeName,
             customCSS: theme.customCSS,
             title,
+            optimize: !options.keepFonts,
           });
 
           const { writeFileSync } = await import("node:fs");
@@ -162,7 +164,8 @@ function registerExportPDF(program: Command): void {
     .option("-t, --theme <name>", "Theme name (built-in, custom, or CSS file path)")
     .option("-o, --output <path>", "Output PDF file path")
     .option("--format <size>", "Page format: A4, Letter, A3", "A4")
-    .action(async (input: string, options: { theme?: string; output?: string; format?: string }) => {
+    .option("--keep-fonts", "Keep inlined base64 math fonts (default strips them when the source has no math)", false)
+    .action(async (input: string, options: { theme?: string; output?: string; format?: string; keepFonts?: boolean }) => {
       try {
         // Resolve paths using shared utilities
         const inputPath = resolveInputPath(input);
@@ -194,6 +197,7 @@ function registerExportPDF(program: Command): void {
               themeName: theme.themeName,
               customCSS: theme.customCSS,
               title,
+              optimize: !options.keepFonts,
             },
             { format: options.format as any }
           );
@@ -230,7 +234,8 @@ function registerExport(program: Command): void {
     .option("--format <type>", "Output format: html or pdf", "html")
     .option("-t, --theme <name>", "Theme name")
     .option("-d, --output-dir <dir>", "Output directory", ".")
-    .action(async (inputs: string[], options: { format?: string; theme?: string; outputDir?: string }) => {
+    .option("--keep-fonts", "Keep inlined base64 math fonts (default strips them when a source has no math)", false)
+    .action(async (inputs: string[], options: { format?: string; theme?: string; outputDir?: string; keepFonts?: boolean }) => {
       try {
         // Resolve glob inputs (shell usually expands, but handle edge cases)
         const files: string[] = [];
@@ -260,11 +265,17 @@ function registerExport(program: Command): void {
 
         // Setup output directory
         const outDir = resolve(process.cwd(), options.outputDir ?? ".");
-        const fmt = options.format ?? "html";
+        // Support comma-separated formats ("html,pdf") so HTML+PDF share one
+        // renderer/browser startup (rendering reuse optimization).
+        const fmtList = (options.format ?? "html")
+          .split(",")
+          .map((f) => f.trim().toLowerCase())
+          .filter(Boolean);
+        const fmt = fmtList.join(",");
 
-        if (!["html", "pdf"].includes(fmt)) {
+        if (fmtList.length === 0 || !fmtList.every((f) => ["html", "pdf"].includes(f))) {
           throw new CLIError(
-            `Invalid format: "${fmt}". Supported formats: html, pdf`,
+            `Invalid format: "${options.format}". Supported formats: html, pdf (comma-separated)`,
             ErrorCode.INVALID_INPUT
           );
         }
@@ -273,11 +284,12 @@ function registerExport(program: Command): void {
         const { existsSync: dirExists } = await import("node:fs");
         if (!dirExists(outDir)) mkdirSync(outDir, { recursive: true });
 
-        console.log(chalk.bold(`\nBatch export: ${files.length} file(s) → ${fmt.toUpperCase()}`));
+        console.log(chalk.bold(`\nBatch export: ${files.length} file(s) → ${fmtList.map((f) => f.toUpperCase()).join(" + ")}`));
         console.log(chalk.dim(`  Theme: ${theme.themeName}`));
         console.log(chalk.dim(`  Output: ${outDir}/\n`));
 
-        // Initialize renderer for batch processing
+        // Initialize renderer once for the whole batch (reuse across files AND
+        // formats — a single browser/editor is shared for all HTML/PDF output).
         const renderer = new ColamdRenderer();
         let success = 0;
         let failed = 0;
@@ -288,7 +300,6 @@ function registerExport(program: Command): void {
           for (const file of files) {
             const name = getDocumentTitle(file);
             const md = readFileSync(file, "utf-8");
-            const outPath = join(outDir, `${name}.${fmt === "pdf" ? "pdf" : "html"}`);
             const spinner = ora(`  ${name}.md`).start();
 
             try {
@@ -297,19 +308,21 @@ function registerExport(program: Command): void {
                 themeName: theme.themeName,
                 customCSS: theme.customCSS,
                 title: name,
+                optimize: !options.keepFonts,
               };
+              const { writeFileSync } = await import("node:fs");
 
-              if (fmt === "pdf") {
-                const pdfBuffer = await renderer.exportPDF(input);
-                const { writeFileSync } = await import("node:fs");
-                writeFileSync(outPath, pdfBuffer);
-              } else {
-                const result = await renderer.render(input);
-                const { writeFileSync } = await import("node:fs");
-                writeFileSync(outPath, result.html, "utf-8");
+              for (const f of fmtList) {
+                if (f === "pdf") {
+                  const pdfBuffer = await renderer.exportPDF(input);
+                  writeFileSync(join(outDir, `${name}.pdf`), pdfBuffer);
+                } else {
+                  const result = await renderer.render(input);
+                  writeFileSync(join(outDir, `${name}.html`), result.html, "utf-8");
+                }
               }
 
-              spinner.succeed(`${name}.${fmt === "pdf" ? "pdf" : "html"}`);
+              spinner.succeed(`${name}.${fmtList.map((f) => (f === "pdf" ? "pdf" : "html")).join("+")}`);
               success++;
             } catch (fileErr) {
               spinner.fail(`${name}.md — ${(fileErr as Error).message}`);

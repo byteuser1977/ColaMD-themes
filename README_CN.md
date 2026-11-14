@@ -21,7 +21,8 @@
 
 - **`export-html`** — 将 Markdown 渲染为独立 HTML 文档，主题 CSS 内嵌，Mermaid 图表和 KaTeX 公式完整渲染
 - **`export-pdf`** — 通过 Puppeteer（Chromium）将 Markdown 渲染为 PDF，用 `print-color-adjust: exact` 保住主题配色
-- **`export`** — 批量导出多个文件或整个目录为 HTML 或 PDF
+- **`export`** — 批量导出多个文件或整个目录为 HTML、PDF，或一次同时产出两种（`--format html,pdf` 在同一次 renderer/浏览器生命周期内渲染）
+- **导出产物 token 优化 (v0.5.8+，默认开启)** — 当源 Markdown 不含数学公式（`$$`、`$...$`、`\(..\)`、`\begin{..}`）时，自动剥离内嵌的 base64 KaTeX 数学字体（约占内嵌 CSS 的 96%），典型导出从 ~1.5 MB（约 40 万 tokens）压缩到 ~57 KB（约 1.5 万 tokens）——AI/LLM agent 回读导出产物时不再拖入海量字体 token。含数学的文档自动保留字体；`--keep-fonts` 可强制完整嵌入。`$1.5M` 等金额写法不会被误判为公式
 - 底层使用 `@bytechain.cn/colamd/renderer`（2.x 库构建，依赖 `@bytechain.cn/colamd@^2.7.8-rc.2`）——与应用同一个 CM6 编辑器经 Puppeteer 无头运行。主题 CSS 以 `:root` 声明直接消费，`buildExportHTML({ title })` 只序列化契约活变量，mermaid 图（Pele SVG）与 KaTeX 公式离线打开仍完整呈现。内置主题名优先解析本仓库的契约 CSS。生成的主题按 **2.7.8-rc.2 契约**编写，升级应用无需改动主题
 
 ### 主题管理
@@ -81,7 +82,7 @@
 skills/colamd-themes/SKILL.md       ← 规范源文件（单一事实来源）
         │
         ▼
-skills/build-skills.sh              ← 构建脚本（bash）
+skills/build-skills.js              ← 跨平台启动器（透传给 bash）
         │
         ├──→ .claude/skills/colamd-themes.skill.md
         ├──→ .opencode/skills/colamd-themes/SKILL.md
@@ -95,17 +96,16 @@ skills/build-skills.sh              ← 构建脚本（bash）
 **重新生成所有 Agent 的 Skill：**
 
 ```bash
-npm run build:skills            # 生成全部
-bash skills/build-skills.sh     # 同上
+npm run build:skills            # 生成全部（跨平台，PATH 无 bash 也可用）
 
 # 或只生成单个 Agent：
-bash skills/build-skills.sh claude
-bash skills/build-skills.sh opencode
-bash skills/build-skills.sh openclaw
-bash skills/build-skills.sh hermes
-bash skills/build-skills.sh trae
-bash skills/build-skills.sh trae-skill
-bash skills/build-skills.sh dsh
+npm run build:skills -- claude
+npm run build:skills -- opencode
+npm run build:skills -- openclaw
+npm run build:skills -- hermes
+npm run build:skills -- trae
+npm run build:skills -- trae-skill
+npm run build:skills -- dsh
 ```
 
 自定义 Skill 内容：编辑 `skills/colamd-themes/SKILL.md`，然后运行 `npm run build:skills`
@@ -213,6 +213,9 @@ cthemes export docs/*.md --format html -t light -d 输出目录/
 
 # 目录下所有 Markdown 导出为 PDF
 cthemes export docs/ --format pdf -t elegant -d 输出目录/
+
+# 一次同时产出两种格式（共享渲染器/浏览器启动）
+cthemes export docs/ --format html,pdf -t elegant -d 输出目录/
 ```
 
 ### 主题管理
@@ -264,8 +267,9 @@ cthemes set-theme 我的品牌 --remove
 | `-t, --theme` | 主题名称（内置、自定义或 CSS 文件路径） |
 | `-o, --output` | 输出文件路径 |
 | `-d, --output-dir` | 批量导出的输出目录 |
-| `--format` | 批量导出格式：`html` 或 `pdf`（默认：`html`） |
+| `--format` | 批量导出格式：`html`、`pdf` 或逗号分隔组合如 `html,pdf`（默认：`html`） |
 | `--format` | PDF 页面大小：`A4`、`Letter`、`A3`（默认：`A4`） |
+| `--keep-fonts` | 保留内嵌 base64 数学字体（默认在源文档无公式时剥离） |
 
 ## 工作原理
 
@@ -351,7 +355,7 @@ Markdown 文件
 ColaMD-themes/
 ├── skills/
 │   ├── colamd-themes/SKILL.md              # 规范 Skill 源文件
-│   └── build-skills.sh                     # 生成各 Agent 专用文件
+│   └── build-skills.js                     # 跨平台启动器（生成各 Agent 专用文件）
 ├── .claude/skills/colamd-themes.skill.md   # Claude Code Skill
 ├── .opencode/skills/colamd-themes/SKILL.md # OpenCode Skill
 ├── .openclaw/skills/colamd-themes/SKILL.md # OpenClaw Skill

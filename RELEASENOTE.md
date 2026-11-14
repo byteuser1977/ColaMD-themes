@@ -1,4 +1,32 @@
 # Release Notes
+## Version 0.5.8 (2026-11-14) — Export Token Optimization 🚀
+
+### 🚀 Added
+
+- **Export-artifact token optimization (default on)** — the bundled `colamd.css` inlines 20 KaTeX `@font-face` blocks (~96% of the CSS, ~1.5 MB / ~400k tokens) so math renders offline. When an AI/LLM agent reads an export back, that dead weight is pure token waste. `export-html` / `export-pdf` / `export` now post-process the artifact by default: when the source markdown contains **no** math (`$$`, `$...$`, `\(..\)`, `\begin{..}`), all `@font-face` blocks are stripped, shrinking a typical export to ~57 KB (~15k tokens) while keeping content and every other style rule intact (the browser falls back to system fonts). Math documents keep their fonts automatically; `--keep-fonts` forces full embedding on any export command
+- **Precise math detection** — `markdownHasMath` only reacts to unambiguous math markers; money mentions like `$1.5M` / `$90 亿` stay single-`$` and don't trigger font retention
+- **Batch multi-format rendering reuse** — `export ... --format html,pdf` accepts a comma-separated format list; the same markdown renders both HTML and PDF inside **one** renderer/browser lifecycle (previously two CLI startups, each cold-starting Chromium)
+
+### 🔧 Changed
+
+- `renderer.ts` `RenderInput` gains `optimize?: boolean` (default `true`); new `optimizeExportHtml` / `stripMathFonts` / `markdownHasMath` helpers
+- Export CLI options table (README / README_CN / bundled skill) documents `--keep-fonts` and the multi-format batch syntax; skill regeneration switched to the cross-platform `skills/build-skills.js` launcher (`npm run build:skills`)
+
+### ✅ Verified
+
+- Plain no-math paper: HTML 1,520,498 B → 79,377 B (−94.8%), title/abstract/keywords/sections/bibliography all preserved, `@font-face` and base64 payloads at zero
+- Math document (`$$...$$`): all 20 fonts kept by default (1.5 MB); `--keep-fonts` behaves identically
+- Money document (`$1.5M`): fonts correctly stripped
+- `batch --format html,pdf`: one init produces both HTML (88 KB) and PDF (1.1 MB / 6 pages A4)
+
+### 📦 Upgrade
+
+```bash
+git pull && npm install && npm run build
+```
+
+---
+
 ## Version 0.5.7 (2026-11-12) — DSH Activation Fix 🔧
 
 ### 🔧 Fixed
