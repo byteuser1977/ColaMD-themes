@@ -8,6 +8,27 @@
 
 [ColaMD](https://github.com/cola-md/cola-md) Agent 原生 Markdown 编辑器的主题开发与导出工具。从网页、Word 文档和 PDF 中提取视觉格式，转换为经过范式验证的 CSS 主题文件，并可将 Markdown 导出为带主题样式的独立 HTML 或 PDF。
 
+## 相关项目
+
+### ColaMD-extend — 桌面编辑器与渲染引擎
+
+[ColaMD-extend](https://github.com/byteuser1977/ColaMD-extend) 是本工具链所使用的上游跨平台 Markdown 桌面编辑器及渲染引擎，支持 macOS、Windows 和 Linux。它提供无干扰的所见即所得编辑、文件变更实时同步、KaTeX 公式、Mermaid 图表、内置与自定义主题，以及 PDF、HTML、Word 导出能力。
+
+使用本工具创建或校验 CSS 主题后，可在 ColaMD 中通过 **主题 → 导入主题** 导入，并在桌面编辑器中直接使用。
+
+- [项目介绍与使用指南](https://github.com/byteuser1977/ColaMD-extend#readme)
+- [官方网站](https://colamd.com/)
+- [下载最新桌面版本](https://github.com/byteuser1977/ColaMD-extend/releases/latest)
+
+### vscode-colaview — VS Code 的 ColaMD 预览扩展
+
+[vscode-colaview](https://github.com/byteuser1977/vscode-colaview) 将 ColaMD 的渲染体验带入 VS Code。其 **ColaView MD** 扩展支持 Markdown 实时富文本预览、KaTeX 公式与 Mermaid 图表渲染、主题切换与自定义主题导入，并可导出 HTML、PDF 和 Word 文档。
+
+安装后打开 `.md` 文件，在命令面板（`Ctrl+Shift+P`）中运行 **ColaView MD: Show Preview** 即可开启预览。本工具生成的主题可通过 **ColaView MD: Import Custom Theme...** 导入，也可放入工作区的 `.themes/` 目录使用。
+
+- [项目介绍与安装使用指南](https://github.com/byteuser1977/vscode-colaview#readme)
+- [从 Visual Studio Marketplace 安装](https://marketplace.visualstudio.com/items?itemName=bytechain.vscode-colaview)
+
 ## 功能特性
 
 ### 主题提取

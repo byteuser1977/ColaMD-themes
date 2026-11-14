@@ -8,6 +8,27 @@
 
 A theme development & export toolkit for [ColaMD](https://github.com/cola-md/cola-md) — the Agent-native Markdown editor. Extract visual formatting from web pages, Word documents, and PDFs, convert them into validated CSS theme files, and export Markdown to standalone HTML or PDF with any theme applied.
 
+## Related Projects
+
+### ColaMD-extend — Desktop Editor & Rendering Engine
+
+[ColaMD-extend](https://github.com/byteuser1977/ColaMD-extend) is the upstream cross-platform Markdown desktop editor and rendering engine used by this toolkit. It offers distraction-free WYSIWYG editing, live file synchronization, KaTeX math, Mermaid diagrams, built-in and custom themes, and PDF/HTML/Word export on macOS, Windows, and Linux.
+
+Create or validate a CSS theme with this toolkit, then import it into ColaMD through **Theme → Import Theme** to use it in the desktop editor.
+
+- [Project introduction & usage guide](https://github.com/byteuser1977/ColaMD-extend#readme)
+- [Official website](https://colamd.com/)
+- [Download the latest desktop release](https://github.com/byteuser1977/ColaMD-extend/releases/latest)
+
+### vscode-colaview — ColaMD Preview for VS Code
+
+[vscode-colaview](https://github.com/byteuser1977/vscode-colaview) brings the ColaMD rendering experience to VS Code. The **ColaView MD** extension provides live rich Markdown preview, KaTeX and Mermaid rendering, theme switching and custom theme imports, plus HTML, PDF, and Word export.
+
+After installation, open a `.md` file and run **ColaView MD: Show Preview** from the Command Palette (`Ctrl+Shift+P`). Themes generated here can be imported with **ColaView MD: Import Custom Theme...** or placed in the workspace `.themes/` directory.
+
+- [Project introduction & setup guide](https://github.com/byteuser1977/vscode-colaview#readme)
+- [Install from Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=bytechain.vscode-colaview)
+
 ## Features
 
 ### Theme Extraction
