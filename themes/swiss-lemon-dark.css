@@ -1,0 +1,313 @@
+/*
+ * ColaMD Theme: swiss-lemon-dark
+ * 瑞士国际主义 · 柠檬黄 · 深色（对齐 guizang template-swiss.html 的 .slide.dark）
+ * 契约：ColaMD 2.7.12（CodeMirror 6 + Pele）
+ *
+ * 深墨底 #0a0a0a + 暖白字 #fafaf8；柠檬黄 #FFD500 作唯一强调（链接/加粗/高亮/表头）。
+ * 字重沿用模板 "越大越细"：标题 200/300，正文 400，表格表头 600，代码 mono。
+ * 变量一律写在 :root；编辑器没有 <h1>/<blockquote> 元素。
+ * 字体栈严格复制 guizang HTML：--sans (Inter) + --sans-zh (Noto Sans SC) + --mono (JetBrains Mono)。
+ */
+
+:root {
+  /* ── 语义色：深墨底 + 暖白字 + 单一柠檬黄锚点（对映 .slide.dark）── */
+  --bg-color: #0a0a0a;                 /* --ink 近黑 */
+  --text-color: #fafaf8;               /* --paper 暖白 */
+  --text-secondary: #c6c6bf;           /* 暗底次级文字 rgab(255,255,255,.78) 近似 */
+  --text-muted: #8c8c86;               /* 暗底辅助文字 rgba(255,255,255,.62) 近似 */
+  --border-color: #2b2b29;             /* 暗底 hairline */
+  --link-color: #FFD500;               /* 柠檬黄高亮：近黑底上对比 13.9:1 */
+
+  --code-bg: #171716;                  /* 暗底轻块 */
+  --code-block-bg: #161615;
+  --code-block-text: #f0f0ee;
+
+  --blockquote-border: #FFD500;         /* 柠檬黄竖线（callout 语义）*/
+  --blockquote-bg: transparent;
+  --table-header-bg: #FFD500;           /* 黄底黑字表头（accent 块）*/
+
+  --selection-bg: rgba(255, 213, 0, 0.30);
+  --highlight-bg: rgba(255, 213, 0, 0.28);
+
+  /* ── 字体：严格复制 guizang --sans + --sans-zh + --mono ── */
+  --font-body: "Inter", "Helvetica Neue", "Helvetica", "Arial", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Source Han Sans SC", "Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", "微软雅黑", sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", "SF Mono", "Cascadia Code", "Consolas", "Courier New", ui-monospace, monospace;
+  --editor-font-size: 16px;
+  --editor-column-width: 780px;
+
+  /* ── Pele 图表：暗底 + 柠檬黄 ── */
+  --pele-bg: #161615;
+  --pele-fg: #fafaf8;
+  --pele-muted: #8c8c86;
+  --pele-line: #FFD500;
+  --pele-surface: #0a0a0a;
+  --pele-surface-alt: #1c1c1a;
+  --pele-border: #FFD500;
+  --pele-accent: #FFD500;
+  --pele-radius: 0px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 2 — 编辑器 DOM
+   ═══════════════════════════════════════════════════════════ */
+
+#editor .cm-content {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;                     /* guizang .body */
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-align: left;                     /* Swiss flush-left */
+}
+
+/* ── 2.1 标题：极轻字重 200/300 + 紧凑负字距（越大越细）── */
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2,
+#editor .cm-content .cm-md-atxheading3,
+#editor .cm-content .cm-md-atxheading4,
+#editor .cm-content .cm-md-atxheading5,
+#editor .cm-content .cm-md-atxheading6 {
+  font-family: var(--font-body);
+  color: var(--text-color);
+  font-weight: 200;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-align: left;
+}
+
+/* H1 = h-hero-zh；文档 H1 ≈ 2.4em，2px 柠檬黄实线下压 */
+#editor .cm-content .cm-md-atxheading1 {
+  font-size: 2.4em;
+  letter-spacing: -0.025em;
+  padding-bottom: 0.3em;
+  border-bottom: 2px solid #FFD500;
+}
+/* H2 = h-xl；文档 H2 ≈ 1.9em，hairline 下压 */
+#editor .cm-content .cm-md-atxheading2 {
+  font-size: 1.9em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border-color);
+}
+/* H3/H4 = h-md 2.6vw weight 300 */
+#editor .cm-content .cm-md-atxheading3 { font-size: 1.4em; font-weight: 300; }
+#editor .cm-content .cm-md-atxheading4 { font-size: 1.2em; font-weight: 300; }
+/* H5/H6 = h-sub 2.2vw weight 400 */
+#editor .cm-content .cm-md-atxheading5 { font-size: 1.05em; font-weight: 400; }
+#editor .cm-content .cm-md-atxheading6 { font-size: 0.95em; font-weight: 400; }
+
+/* ── 2.2 行内强调：加粗 = 柠檬黄（t-cat 语义），600 ── */
+#editor .cm-content .cm-md-strong {
+  color: var(--link-color);
+  font-weight: 600;
+}
+#editor .cm-content .cm-md-em { font-style: italic; color: var(--text-secondary); }
+#editor .cm-content .cm-md-strike { text-decoration: line-through; }
+#editor .cm-content .cm-md-highlight {
+  background: var(--highlight-bg);
+  color: var(--text-color);
+}
+
+/* ── 2.3 链接：柠檬黄 + 底部横线 ── */
+#editor .cm-content .cm-md-link {
+  color: var(--link-color);
+  text-decoration: none;
+  border-bottom: 1px solid var(--link-color);
+}
+#editor .cm-content .cm-md-url { color: var(--text-muted); }
+
+/* ── 2.4 内联代码：直角，暗块浅字 ── */
+#editor .cm-content .cm-md-inlinecode {
+  font-family: var(--font-mono);
+  background: var(--code-bg);
+  color: var(--code-block-text);
+  border-radius: 0;
+  padding: 1px 6px;
+}
+
+#editor .cm-content .cm-md-marker,
+#editor .cm-content .cm-md-quotemark,
+#editor .cm-content .cm-md-listmark {
+  color: var(--text-muted);
+}
+
+/* ── 2.5 代码块：暗底 + 柠檬黄左竖线，直角 ── */
+#editor .cm-content .cm-md-codeblock {
+  font-family: var(--font-mono);
+  background: var(--code-block-bg);
+  color: var(--code-block-text);
+  border-left: 4px solid var(--link-color);
+  padding-left: 16px;
+  padding-right: 16px;
+}
+#editor .cm-content .cm-md-codeblock-first,
+#editor .cm-content .cm-md-codeblock-last {
+  border-radius: 0;
+}
+
+/* ── 2.6 引用块：柠檬黄左竖线（callout 语义）── */
+#editor .cm-content .cm-md-blockquote {
+  background: var(--blockquote-bg);
+  color: var(--text-secondary);
+  border-left: 4px solid var(--blockquote-border);
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* ── 2.7 表格：柠檬黄底黑字表头 + hairline ── */
+#editor .cm-content .cm-md-table-widget th,
+#editor .cm-content .cm-md-table-widget td {
+  border: 1px solid var(--border-color);
+}
+#editor .cm-content .cm-md-table-widget th {
+  background: var(--table-header-bg);
+  color: #0a0a0a;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.875em;
+  border-color: #FFD500;
+  border-bottom: 2px solid #FFD500;
+}
+
+/* ── 2.8 分隔线：hairline ── */
+#editor .cm-content .cm-md-hr {
+  border-top-color: var(--border-color);
+  margin: 3em 0;
+}
+
+/* ── 2.9 中文首行缩进 ── */
+#editor .cm-content .cm-line { text-indent: 2em; }
+
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2,
+#editor .cm-content .cm-md-atxheading3,
+#editor .cm-content .cm-md-atxheading4,
+#editor .cm-content .cm-md-atxheading5,
+#editor .cm-content .cm-md-atxheading6,
+#editor .cm-content .cm-md-blockquote,
+#editor .cm-content .cm-md-codeblock,
+#editor .cm-content .cm-md-hr,
+#editor .cm-content .cm-md-mermaid,
+#editor .cm-content .cm-md-li-0,
+#editor .cm-content .cm-md-li-1,
+#editor .cm-content .cm-md-li-2,
+#editor .cm-content .cm-md-li-3,
+#editor .cm-content .cm-md-li-4,
+#editor .cm-content .cm-md-li-5,
+#editor .cm-content .cm-md-li-6 {
+  text-indent: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 3 — 导出 HTML（.colamd-document）
+   ═══════════════════════════════════════════════════════════ */
+
+.colamd-document {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  text-align: left;
+  font-feature-settings: "ss01", "cv11";
+  color: var(--text-color);
+}
+
+.colamd-document h1,
+.colamd-document h2,
+.colamd-document h3,
+.colamd-document h4,
+.colamd-document h5,
+.colamd-document h6 {
+  font-family: var(--font-body);
+  color: var(--text-color);
+  font-weight: 200;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.colamd-document h1 {
+  font-size: 2.4em;
+  letter-spacing: -0.025em;
+  padding-bottom: 0.3em;
+  border-bottom: 2px solid #FFD500;
+}
+.colamd-document h2 {
+  font-size: 1.9em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border-color);
+}
+.colamd-document h3, .colamd-document h4 { font-weight: 300; }
+.colamd-document h5, .colamd-document h6 { font-weight: 400; }
+
+.colamd-document strong { color: var(--link-color); font-weight: 600; }
+.colamd-document em { font-style: italic; color: var(--text-secondary); }
+.colamd-document a {
+  color: var(--link-color);
+  text-decoration: none;
+  border-bottom: 1px solid var(--link-color);
+}
+.colamd-document code {
+  background: var(--code-bg);
+  color: var(--code-block-text);
+  font-family: var(--font-mono);
+  border-radius: 0;
+}
+/* Pele SVG 不自绘背景，导出后需补回代码块底色 */
+.colamd-document svg.pele {
+  background: var(--pele-bg);
+  border-radius: var(--pele-radius);
+}
+/* 覆盖平台基础样式的圆角——瑞士风必须直角 */
+.colamd-document pre {
+  font-family: var(--font-mono);
+  background: var(--code-block-bg);
+  border-left: 4px solid var(--link-color);
+  border-radius: 0;
+}
+.colamd-document pre code { color: var(--code-block-text); }
+.colamd-document blockquote {
+  background: var(--blockquote-bg);
+  color: var(--text-secondary);
+  border-left: 4px solid var(--blockquote-border);
+}
+.colamd-document mark {
+  background: var(--highlight-bg);
+  color: var(--text-color);
+  border-radius: 0;
+}
+.colamd-document th {
+  background: var(--table-header-bg);
+  color: #0a0a0a;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.875em;
+}
+.colamd-document hr {
+  border-top-color: var(--border-color);
+  margin: 3em 0;
+}
+
+.colamd-document p { text-indent: 2em; }
+.colamd-document li p,
+.colamd-document td p,
+.colamd-document th p,
+.colamd-document blockquote p {
+  text-indent: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 4 — 打印
+   ═══════════════════════════════════════════════════════════ */
+
+@media print {
+  html,
+  body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
