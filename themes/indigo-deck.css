@@ -1,0 +1,336 @@
+/*
+ * ColaMD Theme: Indigo Deck（靛蓝瓷 · 复刻自 ppt/index.html）
+ * 来源：/mnt/d/workspace/git/ColaMD-themes/ppt/index.html 的 🌊 靛蓝瓷主题
+ *   --ink:#0a1f3d  --paper:#f1f3f5  --paper-tint:#e4e8ec  --ink-tint:#152a4a
+ *   标题 Noto Serif SC / 正文 Noto Sans SC / 元数据 IBM Plex Mono
+ * 契约：ColaMD 2.7.12（:root 活变量；CM6 每行一 div；引用/代码块禁纵向 padding；
+ *   .cm-md-blockquote 不写 background——2.7.11 起底色由 ::before + --blockquote-bg 绘制）
+ */
+
+:root {
+  /* ── 1.1 Seed Palette（11 色，取自 deck :root + 派生灰阶） ── */
+  --seed-accent:        #8ab4e8;   /* 链接/强调：WebGL 银蓝流光 */
+  --seed-accent-light:  rgba(138, 180, 232, 0.16);
+  --seed-accent-dark:   #5b8fce;
+  --seed-surface:       #0a1f3d;   /* --ink 深靛蓝（蓝色背景） */
+  --seed-panel:         #12294a;   /* L 18.0%（SL-04：surface < panel < panelAlt） */
+  --seed-panel-alt:     #16304f;   /* L 19.8% */
+  --seed-ink:           #f1f4f8;   /* --paper 微调至 H214°（NT-01 与 muted/dim 同色相轴） */
+  --seed-ink-muted:     #d1d6dc;   /* deck lead opacity:.86 合成 */
+  --seed-ink-dim:       #949eab;   /* deck opacity:.6 合成 */
+  --seed-border:        #525458;   /* 中性灰（NT-03），L33% 与 panel 差 0.15（NT-02） */
+  --seed-border-strong: #6c6f74;
+
+  /* ── 1.2 Semantic Colors（27 活变量 · 14 色） ── */
+  --bg-color:          var(--seed-surface);   /* #0a1f3d 深靛蓝 = deck .slide.dark 背景 */
+  --text-color:        var(--seed-ink);
+  --text-secondary:    var(--seed-ink-muted);
+  --text-muted:        var(--seed-ink-dim);
+  --border-color:      var(--seed-border);
+  --link-color:        var(--seed-accent);
+
+  --code-bg:           #182c49;    /* deck 暗页 rgba(paper,.06) over ink */
+  --code-block-bg:     var(--seed-panel-alt);
+  --code-block-text:   #e4e8ec;    /* --paper-tint */
+
+  --blockquote-border: var(--seed-ink);      /* deck callout: border-left currentColor */
+  --blockquote-bg:     #182c49;              /* deck 暗页 callout 底 */
+  /* 注：seed surface/panel 的饱和度违背 paradigm SL-01/SL-02（要求中性纸感），
+     这是「完整复刻 deck 蓝色背景」的必然取舍——契约 2.7.12 全部通过，仅此 3 条美学规则报错 */
+  --table-header-bg:   var(--seed-panel);
+
+  --selection-bg:      rgba(138, 180, 232, 0.30);
+  --highlight-bg:      #33547d;    /* accent 30% over ink：mark 可见且仍是靛蓝 */
+
+  /* ── 1.3 Typography & Metrics（4 活变量） ── */
+  --font-body: "Source Serif 4", "Noto Serif SC", source-han-serif-sc,
+               "Songti SC", Georgia, serif;   /* 正文优雅印刷体：拉丁 Source Serif 4 + 中文 Noto Serif SC */
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas,
+               "Noto Sans SC", monospace;
+  --editor-font-size: 17px;        /* deck body max(15px,1.22vw) @1440 */
+  --editor-column-width: 860px;    /* deck lead max-width:58vw @1480 */
+
+  /* ── 1.4 Pele Diagram（9 活变量） ── */
+  --pele-bg:          var(--code-block-bg);
+  --pele-fg:          var(--text-color);
+  --pele-muted:       var(--seed-ink-dim);
+  --pele-line:        var(--seed-ink-muted);
+  --pele-surface:     var(--seed-panel);
+  --pele-surface-alt: var(--seed-panel-alt);
+  --pele-border:      var(--seed-border-strong);
+  --pele-accent:      var(--seed-accent);
+  --pele-radius:      6px;          /* deck frame-img border-radius:4px → 图表 6px */
+}
+
+/* ═══════════════ SECTION 2 — Editor DOM ═══════════════ */
+
+#editor .cm-content {
+  color: var(--text-color);
+  font-family: var(--font-body);        /* deck .body-zh → 印刷体 */
+  font-weight: 300;                    /* 正文 Light：Source Serif 4 / Noto Serif SC Light */
+  line-height: 1.8;                    /* 衬线正文比无衬线多一点行距 */
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;      /* deck body 同款 */
+  text-rendering: optimizeLegibility;
+}
+
+/* ── 2.1 Headings：deck 标题一律衬线 Noto Serif SC ── */
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2,
+#editor .cm-content .cm-md-atxheading3,
+#editor .cm-content .cm-md-atxheading4,
+#editor .cm-content .cm-md-atxheading5,
+#editor .cm-content .cm-md-atxheading6 {
+  color: var(--seed-ink);
+  font-family: "Noto Serif SC", source-han-serif-sc, "Songti SC", Georgia, serif;
+  font-weight: 700;                     /* deck .h-xl weight:700 */
+  line-height: 1.15;                    /* deck .h-xl 1.08 → 1.15 兼顾正文 */
+  letter-spacing: -0.01em;              /* deck .h-xl letter-spacing:-.01em */
+}
+/* deck 字号阶梯（h-hero 10vw / h-xl 6.2vw / h-sub 3.1vw / h-md 2.3vw / body 1.22vw）
+   折算到文档 em 体系：h1 2.7em、h2 2.1em、h3 1.55em、h4 1.25em、h5 1.08em、h6 0.95em */
+#editor .cm-content .cm-md-atxheading1 {
+  font-size: 3.15em;
+  font-weight: 900;                     /* deck .h-hero weight:900 */
+  line-height: 1.06;                    /* deck .h-hero line-height:.96 → 1.06 */
+  letter-spacing: -0.02em;
+}
+#editor .cm-content .cm-md-atxheading2 {
+  font-size: 2.45em;
+  padding-bottom: 0.22em;
+  border-bottom: 1px solid var(--border-color);   /* deck .rule */
+}
+#editor .cm-content .cm-md-atxheading3 { font-size: 1.8em; font-weight: 600; }
+#editor .cm-content .cm-md-atxheading4 { font-size: 1.45em; font-weight: 600; }
+#editor .cm-content .cm-md-atxheading5 { font-size: 1.25em; }
+#editor .cm-content .cm-md-atxheading6 {
+  font-size: 1.08em;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);        /* deck kicker/meta 等宽小标签 */
+  font-weight: 500;
+  letter-spacing: 0.16em;               /* deck .meta letter-spacing */
+  text-transform: uppercase;
+}
+
+/* ── 2.2 Inline / Lists ── */
+#editor .cm-content .cm-md-strong { color: var(--seed-ink); font-weight: 700; }
+#editor .cm-content .cm-md-em {
+  font-family: "Playfair Display", "Source Serif 4", Georgia, serif;  /* deck em/en 衬线斜体 */
+  font-style: italic;
+}
+#editor .cm-content .cm-md-strike { text-decoration: line-through; }
+#editor .cm-content .cm-md-highlight { background: var(--highlight-bg); }
+#editor .cm-content .cm-md-link {
+  color: var(--link-color);
+  text-decoration: none;
+  border-bottom: 1px solid var(--seed-border-strong);
+}
+#editor .cm-content .cm-md-url { color: var(--text-muted); font-family: var(--font-mono); }
+#editor .cm-content .cm-md-inlinecode {
+  color: var(--text-color);
+  font-family: var(--font-mono);        /* deck --mono */
+  font-weight: 400;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;                   /* deck frame-img 圆角 */
+  padding: 1px 5px;
+}
+#editor .cm-content .cm-md-marker,
+#editor .cm-content .cm-md-quotemark { color: var(--text-muted); font-family: var(--font-mono); }
+#editor .cm-content .cm-md-listmark { color: var(--seed-accent); }
+#editor .cm-content .cm-md-li-0,
+#editor .cm-content .cm-md-li-1,
+#editor .cm-content .cm-md-li-2,
+#editor .cm-content .cm-md-li-3,
+#editor .cm-content .cm-md-li-4,
+#editor .cm-content .cm-md-li-5,
+#editor .cm-content .cm-md-li-6 { color: var(--text-color); }
+
+/* ── 2.3 Blockquote / Code Block（禁纵向 padding；blockquote 不写 background） ── */
+#editor .cm-content .cm-md-blockquote {
+  color: var(--text-secondary);
+  font-family: "Noto Serif SC", source-han-serif-sc, "Songti SC", Georgia, serif;   /* deck .callout 衬线 */
+  font-size: 1.12em;                                      /* deck .lead 1.9vw vs body 1.22vw */
+  line-height: 1.6;
+  border-left: 3px solid var(--blockquote-border);         /* deck .callout 3px currentColor */
+  padding-left: 16px;
+  padding-right: 16px;
+}
+#editor .cm-content .cm-md-codeblock {
+  color: var(--code-block-text);
+  font-family: var(--font-mono);
+  line-height: 1.6;
+  background: var(--code-block-bg);
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  padding-left: 16px;
+  padding-right: 16px;
+}
+#editor .cm-content .cm-md-codeblock-first {
+  border-top: 1px solid var(--border-color);
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+#editor .cm-content .cm-md-codeblock-last {
+  border-bottom: 1px solid var(--border-color);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* ── 2.4 Table / Rule ── */
+#editor .cm-content .cm-md-table-widget th,
+#editor .cm-content .cm-md-table-widget td {
+  padding: 10px 14px;
+  border-color: var(--border-color);
+}
+#editor .cm-content .cm-md-table-widget th {
+  color: var(--seed-ink);
+  font-family: var(--font-mono);                    /* deck chrome 等宽表头 */
+  font-size: 0.82em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--table-header-bg);
+  border-bottom: 1px solid var(--seed-border-strong);
+}
+#editor .cm-content .cm-md-table-widget td { font-weight: 400; }
+#editor .cm-content .cm-md-table-widget tr:nth-child(even) td { background: var(--seed-panel); }
+#editor .cm-content .cm-md-hr { border-top-color: var(--border-color); }
+#editor .cm-content .cm-md-task-checked { color: var(--text-muted); }
+
+/* ═══════════════ SECTION 3 — Exported HTML ═══════════════ */
+
+.colamd-document {
+  color: var(--text-color);
+  font-family: var(--font-body);
+  font-weight: 300;                    /* 正文 Light */
+  font-size: var(--editor-font-size);
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background: var(--bg-color);          /* 导出页同步深靛蓝背景 */
+}
+.colamd-document h1,
+.colamd-document h2,
+.colamd-document h3,
+.colamd-document h4,
+.colamd-document h5,
+.colamd-document h6 {
+  color: var(--seed-ink);
+  font-family: "Noto Serif SC", source-han-serif-sc, "Songti SC", Georgia, serif;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.colamd-document h1 {
+  font-size: 3.15em;
+  font-weight: 900;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+.colamd-document h2 {
+  font-size: 2.45em;
+  padding-bottom: 0.22em;
+  border-bottom: 1px solid var(--border-color);
+}
+.colamd-document h3 { font-size: 1.8em; font-weight: 600; }
+.colamd-document h4 { font-size: 1.45em; font-weight: 600; }
+.colamd-document h5 { font-size: 1.25em; }
+.colamd-document h6 {
+  font-size: 1.08em;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.colamd-document strong { color: var(--seed-ink); }
+.colamd-document em {
+  font-family: "Playfair Display", "Source Serif 4", Georgia, serif;
+  font-style: italic;
+}
+.colamd-document a {
+  color: var(--link-color);
+  text-decoration: none;
+  border-bottom: 1px solid var(--seed-border-strong);
+}
+.colamd-document ul,
+.colamd-document ol { padding-left: 1.75em; }
+.colamd-document li { margin: 0.25em 0; }
+.colamd-document li::marker { color: var(--seed-accent); }
+.colamd-document code {
+  color: var(--text-color);
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.colamd-document pre {
+  background: var(--code-block-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+.colamd-document pre code {
+  color: var(--code-block-text);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+/* 导出端引用块保留背景（编辑端由 ::before 绘制，此处不冲突） */
+.colamd-document blockquote {
+  color: var(--text-secondary);
+  font-family: "Noto Serif SC", source-han-serif-sc, "Songti SC", Georgia, serif;   /* deck .callout */
+  font-size: 1.12em;
+  line-height: 1.6;
+  background: var(--blockquote-bg);
+  border-left: 3px solid var(--blockquote-border);
+  padding: 0.4em 1.2em;
+}
+.colamd-document mark { background: var(--highlight-bg); }
+.colamd-document table { border-collapse: collapse; width: 100%; }
+.colamd-document th,
+.colamd-document td { border: 1px solid var(--border-color); padding: 10px 14px; }
+.colamd-document th {
+  color: var(--seed-ink);
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--table-header-bg);
+}
+.colamd-document td { font-weight: 400; }
+.colamd-document tbody tr:nth-child(even) td { background: var(--seed-panel); }
+.colamd-document hr { border: 0; border-top: 1px solid var(--border-color); }
+.colamd-document img {
+  max-width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;                   /* deck frame-img border-radius:4px */
+}
+.colamd-document svg.pele { background: var(--pele-bg); border-radius: var(--pele-radius); }
+
+.colamd-document p { margin: 0.9em 0; }
+
+.colamd-document h1 { margin: 1.8em 0 0.7em; }
+.colamd-document h2 { margin: 1.7em 0 0.6em; }
+.colamd-document h3,
+.colamd-document h4,
+.colamd-document h5,
+.colamd-document h6 { margin: 1.5em 0 0.5em; }
+
+/* ═══════════════ SECTION 4 — Print ═══════════════ */
+
+@media print {
+  html,
+  body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
