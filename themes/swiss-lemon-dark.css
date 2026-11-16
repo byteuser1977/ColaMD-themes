@@ -489,11 +489,10 @@
    body.slides-printing 生效，编辑视图不受影响）
    ═══════════════════════════════════════════════════════════ */
 
-/* steps 版式的步骤名胶囊：实心柠檬标签块，文字用页面底色。
- * 选择器带 #editor .cm-content：本文件的加粗规则（1.2 节）会把
- * .cm-md-strong 染成柠檬黄，叠在柠檬底上就成了黄底黄字；这里
- * 同权重且后加载，才能把文字颜色压回来。形状取 4px 圆角标签块
- * 而不是 50% 圆，避免被长步骤名拉成扁椭圆。 */
+/* steps 版式的步骤名胶囊：透明底 + 柠檬描边 + 柠檬文字的全圆胶囊。
+ * 选择器带 #editor .cm-content：压过应用内置的实心标签块画法，
+ * 也压过本文件 1.2 节的加粗规则，保证描边风格不被改写。
+ * 细线代替色块是本主题的设计语言，胶囊不填色，靠描边和字色分层。 */
 body.presenting #editor .cm-content .cm-md-slide-steps .cm-md-listmark,
 body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-listmark {
   display: none;
@@ -506,11 +505,11 @@ body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-strong {
   justify-content: center;
   flex: 0 0 auto;
   min-width: 2.4em;
-  padding: 0.28em 0.85em;
-  border: none;
-  border-radius: 4px;
-  background: var(--pele-accent);
-  color: var(--bg-color);
+  padding: 0.22em 0.9em;
+  border: 1.5px solid var(--pele-accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--pele-accent);
   font-family: var(--slide-title-font);
   font-size: 0.95em;
   line-height: 1.25;
