@@ -239,21 +239,24 @@ function validateSlideDeclarationsAndSelectors(
       // SLIDE-03：标题/衬线字体栈须含中文字族并以 generic family 结尾。
       if ((name === "--slide-title-font" || name === "--slide-serif") && node.value?.type === "Value") {
         const value = generate(node.value).trim();
-        if (!SLIDE_CJK_RE.test(value)) {
-          push({
-            ruleId: "SLIDE-03",
-            level: "SHOULD",
-            message: `${name} 字体栈缺少中文字族，中文标题会回退到拉丁兜底字体：${value}`,
-            fix: '追加 "Songti SC" / "Noto Serif SC" / 宋体 等中文字族',
-          });
-        }
-        if (!/(?:^|,)\s*(?:serif|sans-serif|monospace)\s*$/i.test(value)) {
-          push({
-            ruleId: "SLIDE-03",
-            level: "SHOULD",
-            message: `${name} 字体栈未以 generic family 结尾：${value}`,
-            fix: "在栈尾补 serif / sans-serif / monospace",
-          });
+        // var() 引用（如 mono 预设的 var(--slide-mono)）跳过栈形态检查。
+        if (!value.includes("var(")) {
+          if (!SLIDE_CJK_RE.test(value)) {
+            push({
+              ruleId: "SLIDE-03",
+              level: "SHOULD",
+              message: `${name} 字体栈缺少中文字族，中文标题会回退到拉丁兜底字体：${value}`,
+              fix: '追加 "Songti SC" / "Noto Serif SC" / 宋体 等中文字族',
+            });
+          }
+          if (!/(?:^|,)\s*(?:serif|sans-serif|monospace)\s*$/i.test(value)) {
+            push({
+              ruleId: "SLIDE-03",
+              level: "SHOULD",
+              message: `${name} 字体栈未以 generic family 结尾：${value}`,
+              fix: "在栈尾补 serif / sans-serif / monospace",
+            });
+          }
         }
       }
     }

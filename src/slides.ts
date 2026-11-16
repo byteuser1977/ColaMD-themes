@@ -96,12 +96,14 @@ function genericFor(preset: SlidePreset): string {
 
 /**
  * Make a brand font stack safe for the slide token layer: guarantee a CJK
- * family (Chinese titles fall through to Georgia otherwise) and a trailing
- * generic family (contract font rule).
+ * family for title voices (Chinese titles fall through to Georgia otherwise)
+ * and a trailing generic family (contract font rule). Mono stacks skip the
+ * CJK append — there is no standard CJK mono; upstream lets chrome CJK fall
+ * back to the system font.
  */
 function ensureFontStack(stack: string, preset: SlidePreset): string {
   let out = stack.trim().replace(/,\s*$/, "");
-  if (!CJK_FONT_RE.test(out)) {
+  if (preset !== "mono" && !CJK_FONT_RE.test(out)) {
     out += preset === "sans"
       ? `, "PingFang SC", "Microsoft YaHei", "Noto Sans SC"`
       : `, "Songti SC", "Noto Serif SC", "SimSun"`;

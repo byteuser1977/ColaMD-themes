@@ -139,8 +139,10 @@ export function compareColamdVersions(a: string, b: string): number {
 
 /**
  * Detect the slide layout system (ColaMD 2.7.13-rc.1+). Primary signal is the
- * installed version; fallback greps colamd.css for slide markers, so a future
- * release that renames versions (or a locally linked build) still probes.
+ * installed version; fallback greps colamd.css for rc.2-specific markers
+ * (--slide-page-top-pad / .cm-md-slide-), so a locally linked build still
+ * probes. Generic "--slide-" is deliberately avoided: 2.7.12 already ships a
+ * legacy --slide-font-size from the plain slideshow.
  */
 function detectSlidesSupport(root: string | null, version: string | null): boolean {
   if (version && compareColamdVersions(version, SLIDES_MIN_VERSION) >= 0) return true;
@@ -149,7 +151,7 @@ function detectSlidesSupport(root: string | null, version: string | null): boole
   if (!existsSync(cssPath)) return false;
   try {
     const css = readFileSync(cssPath, "utf-8");
-    return css.includes("--slide-") || css.includes("cm-md-page-start");
+    return css.includes("--slide-page-top-pad") || css.includes(".cm-md-slide-");
   } catch {
     return false;
   }
