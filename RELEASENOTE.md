@@ -1,5 +1,30 @@
 # Release Notes
 
+## Version 0.6.0 (2026-11-16) — PPT Slide Layout Support (ColaMD 2.7.13-rc.2) 🎞️
+
+### 🎞️ Added
+
+- **PPT style in themes (`--ppt`, off by default)** — `from-url` / `from-docx` / `from-pdf` / `extract` accept `--ppt [serif|sans|mono]` to emit a `--slide-*` token section (SECTION 1.5) into the generated theme. Presets mirror upstream voices: `serif` = magazine default, `sans` = Notion-like (sans titles, centered cover), `mono` = Writer-like (mono titles). Only the brand layer is derived (`--slide-title-font` / `--slide-mono` / `--slide-title-weight`, with CJK fallback + generic family ensured); the layout size ladder stays at upstream defaults. Custom theme CSS loads after upstream `slides.css`, so `:root` tokens win at equal specificity
+- **Markdown → slide-deck Markdown (`to-slides`)** — `colamd-themes to-slides <input.md> -o <output.md>` (plus `--deck-brand/--deck-title/--deck-meta/--deck-logo`) splits a plain document into pages (upstream pagination semantics via `@lezer/markdown`) and infers all eleven built-in layouts from content structure, emitting deck chrome and per-page header blocks with chapter tracking. The output is self-checked against the directive contract before writing
+- **Slide rule validation** — `validate` now accepts `.md` files and enforces the directive contract: page-first placement (SLIDES-01), layout-name syntax (SLIDES-02), unknown-layout warning (SLIDES-03), page/deck field-key whitelists (SLIDES-04/05), and the `slide-css` safety subset rejecting `position: absolute/fixed` / `z-index` / pseudo-protocol URLs (SLIDES-06). Theme-side slide rules: unknown `--slide-*` tokens (SLIDE-01), structure selectors must live under `body.presenting` / `body.slides-printing` (SLIDE-02), CJK+generic title font stacks (SLIDE-03)
+
+### 🔧 Changed
+
+- **Dual-contract compat layer** — exact contract match now accepts both `2.7.12` and `2.7.13-rc.2` (rc.2 adds no live variables; themes carry over unchanged). New `slidesSupported` probe: version ≥ `2.7.13-rc.1` or rc.2-specific CSS markers; the platform compat line reports「幻灯片版式: 支持/不支持」
+- New dependency `@lezer/markdown@^1` (same parser family as upstream). Skill + workspace rule files document the slide directive syntax, the 11 layouts, token presets, and all validation rules; regenerated for all 7 agent targets
+
+### 📌 Scope notes
+
+- 2.7.13-rc.2 is not yet published to npm; exports through `buildExportHTML` remain document-style (the upstream lib build does not bundle `slides.css`) — presentation layouts apply in the ColaMD app, and the compat probe points the way. `slide-js` generation is out of scope (documented syntax only)
+
+### Upgrade
+
+```bash
+npm install @bytechain.cn/colamd-themes@0.6.0
+```
+
+---
+
 ## Version 0.5.9 (2026-11-14) — Ecosystem Guide & Downloads
 
 ### Documentation

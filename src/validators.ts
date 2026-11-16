@@ -237,7 +237,8 @@ function validateSlideDeclarationsAndSelectors(
         });
       }
       // SLIDE-03：标题/衬线字体栈须含中文字族并以 generic family 结尾。
-      if ((name === "--slide-title-font" || name === "--slide-serif") && node.value?.type === "Value") {
+      // 自定义属性的值被 css-tree 解析为 Raw（非 Value），两种都接受。
+      if ((name === "--slide-title-font" || name === "--slide-serif") && node.value) {
         const value = generate(node.value).trim();
         // var() 引用（如 mono 预设的 var(--slide-mono)）跳过栈形态检查。
         if (!value.includes("var(")) {

@@ -4,9 +4,9 @@
 [![Awesome DSH](https://awesome.re/badge.svg)](https://github.com/Dominic789654/awesome-deepseek-harness)
 [![Awesome DSH Plugin](https://beancookie.github.io/awesome-dsh-plugin/badge.svg)](https://github.com/beancookie/awesome-dsh-plugin)
 
-**Topics**: `dsh` `deepseek-harness` `colamd` `themes` `css` `markdown` `pdf` `html` `skill` `ai-agent`
+**Topics**: `dsh` `deepseek-harness` `colamd` `themes` `css` `markdown` `pdf` `html` `ppt` `slides` `skill` `ai-agent`
 
-[ColaMD](https://github.com/cola-md/cola-md) Agent 原生 Markdown 编辑器的主题开发与导出工具。从网页、Word 文档和 PDF 中提取视觉格式，转换为经过范式验证的 CSS 主题文件，并可将 Markdown 导出为带主题样式的独立 HTML 或 PDF。
+[ColaMD](https://github.com/cola-md/cola-md) Agent 原生 Markdown 编辑器的主题开发与导出工具。从网页、Word 文档和 PDF 中提取视觉格式（可选同时生成 PPT 幻灯片样式），转换为经过范式验证的 CSS 主题文件；可将 Markdown 文档转换为幻灯片 Markdown（PPT），并可导出为带主题样式的独立 HTML 或 PDF。
 
 ## 相关项目
 
@@ -37,6 +37,13 @@
 - **DOCX 提取** — 通过 mammoth 读取 Word 文档完整样式（H1–H6、表格、代码块），映射为主题变量
 - **PDF 提取** — 采用多层启发式分析从 PDF 文本中提取排版元数据
 - **自动检测** — `extract` 命令根据文件类型或 URL 协议自动路由到对应提取器
+- **PPT 样式（`--ppt`，v0.6.0+，默认关闭）** — 提取时可选在生成主题中追加 `--slide-*` 令牌区块（ColaMD 2.7.13-rc.2 幻灯片版式）。预设对齐上游气质：`serif`（杂志衬线默认）、`sans`（Notion 风：无衬线标题、居中封面）、`mono`（Writer 风：等宽标题）；品牌层只派生标题字体 / 等宽字体 / 字重（保证中文字族回退），版式字号阶梯沿用上游默认
+
+### Markdown → PPT Markdown (v0.6.0+)
+
+- **`to-slides`** — 将普通 Markdown 文档转换为幻灯片 Markdown：按上游分页语义切页（`---`，经 `@lezer/markdown` 解析，与应用同一解析器家族），按内容结构自动推断全部 11 种内置版式（cover / section / agenda / kpi / timeline / steps / matrix / two-col / figure / quote / closing），生成 deck 块与页头块，kicker/chapter 随章节推进
+- **产物自校验** — 生成的 deck 在写出前自动通过指令契约校验（页首规则、版式名语法、字段键白名单、slide-css 安全子集）
+- 完整指令语法与版式对照表见 [`skills/colamd-themes/SKILL.md`](skills/colamd-themes/SKILL.md)（幻灯片版式章节）
 
 ### HTML / PDF 导出
 
@@ -59,9 +66,10 @@
 - **范式验证器** — 15+ 条设计约束规则（CR、HR、SL、NT、BD、MP、FP、FS、SH），附带自动修复建议
 - **色彩系统库** — 5 大色系 15 套预定义种子色板（莫兰迪、马卡龙、北欧、复古、薄荷绿）
 - **2.7.12 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
+- **幻灯片规则校验 (v0.6.0+)** — 主题侧：未知 `--slide-*` 令牌提示（SLIDE-01）、结构选择器必须包裹在 `body.presenting` / `body.slides-printing` 作用域下（SLIDE-02）、标题字体栈须含中文字族并以 generic family 结尾（SLIDE-03）；deck 侧（`validate <deck.md>`）：页头块页首规则（SLIDES-01）、版式名语法（SLIDES-02）、未知版式名提示（SLIDES-03）、字段键白名单（SLIDES-04/05）、slide-css 安全子集拒绝 `position: absolute/fixed` / `z-index` / 伪协议 URL（SLIDES-06）
 - **契约核验通过** — 全部 16 个主题已对照冻结的活变量集逐项审计（契约至 2.7.12 保持不变），并在 2.7.11 导出管线上实测通过：`.cm-md-*` 钩子零漂移，`:root` 活变量与 `--pele-*` 覆盖全部被渲染器消费，导出 `:root` 恰好携带 27 个契约活变量
 - **Pele 图表配色** — 9 个 `--pele-*` 变量由 `--code-block-bg` / `--code-block-text` / `--link-color` 推导，取代 Mermaid 20 变量
-- **平台向后兼容 (v0.5.3+)** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移；`validate` 输出「平台兼容」报告行，导出前校验渲染器 API 面（`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`）。平台升级导致的契约/API 变化给出含版本号与修复命令的明确诊断，而非渲染中途的神秘报错
+- **平台向后兼容 (v0.5.3+，v0.6.0 起双契约)** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移（同时接受 `2.7.12` 与 `2.7.13-rc.2`——rc.2 未新增活变量，主题原样携带），并探测**幻灯片版式系统**（`slidesSupported`：版本 ≥ `2.7.13-rc.1` 或 rc.2 特征 CSS）；`validate` 输出「平台兼容」报告行（含幻灯片版式支持状态），导出前校验渲染器 API 面（`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`）。平台升级导致的契约/API 变化给出含版本号与修复命令的明确诊断，而非渲染中途的神秘报错
 
 ### 安全与性能 (v0.4.0+)
 
@@ -79,6 +87,7 @@
 | 分区 | 内容 |
 |------|------|
 | 1 | 设计令牌 — `:root` 种子色板（11 变量）、14 个语义色、字体与度量、9 个 `--pele-*` |
+| 1.5 | PPT / 幻灯片（可选，`--ppt`）— `--slide-*` 令牌（2.7.13-rc.2），预设气质 + 品牌字体 |
 | 2 | 编辑器 DOM — `#editor .cm-content` + `.cm-md-*`（标题、行内、引用、代码块、表格、缩进） |
 | 3 | 导出 HTML — `.colamd-document` 语义标签配色层 |
 | 4 | `@media print` — 只补打印保真（屏幕规则原样生效） |
@@ -187,16 +196,40 @@ cthemes from-docx 报告.docx --name 企业主题
 cthemes from-pdf 论文.pdf --name 学术主题
 ```
 
+### 提取时附带 PPT 幻灯片样式（可选，默认关闭）
+
+```bash
+# 同时生成 --slide-* 令牌，sans 预设（serif | sans | mono）
+cthemes from-url "https://example.com" --name 我的品牌 --ppt sans
+```
+
+### 将 Markdown 转换为幻灯片 Markdown（PPT）
+
+```bash
+# 自动推断全部 11 种版式 + deck 块，产物自动校验
+cthemes to-slides 报告.md -o 报告.slides.md
+
+# 指定 deck 页脚信息
+cthemes to-slides 报告.md --deck-brand "ColaMD" --deck-title "季度汇报" --deck-meta "2026.11"
+
+# 校验生成的（或手写的）deck 是否符合指令契约
+cthemes validate 报告.slides.md
+```
+
 ### 自动检测来源类型
 
 ```bash
 cthemes extract 源文件.docx --name 自动主题
 ```
 
-### 验证主题
+### 验证主题（或幻灯片 deck）
 
 ```bash
+# 主题 CSS：2.7 契约 + 范式规则 + 幻灯片令牌规则
 cthemes validate themes/我的主题.css
+
+# 幻灯片 Markdown：指令契约校验（页首规则、版式名、字段键、slide-css 安全子集）
+cthemes validate 报告.slides.md
 ```
 
 ### 列出主题和色彩系统
@@ -263,9 +296,10 @@ cthemes set-theme 我的品牌 --remove
 | `from-docx <file>` | 从 .docx 文档提取主题 |
 | `from-pdf <file>` | 从 PDF 文档提取主题 |
 | `extract <source>` | 自动检测来源类型并提取主题 |
+| `to-slides <input>` | 将 Markdown 文档转换为幻灯片 Markdown（自动推断版式） |
 | `color-systems` | 列出 15 套内置色彩系统 |
 | `list` | 列出所有生成的主题 |
-| `validate <file>` | 验证主题是否符合 2.7.12 契约与范式规则（含平台兼容报告） |
+| `validate <file>` | 验证主题 CSS（2.7 契约 + 范式 + 幻灯片令牌规则）或幻灯片 Markdown 文件（指令契约）；含平台兼容报告 |
 | `set-theme <name>` | 设置、注册或注销导出主题 |
 | `export-html <input>` | 导出 Markdown → 独立 HTML |
 | `export-pdf <input>` | 导出 Markdown → PDF |
@@ -280,6 +314,17 @@ cthemes set-theme 我的品牌 --remove
 | `-d, --themes-dir` | 主题目录（默认：`themes/`） |
 | `-c, --color-system` | 强制指定色彩系统 |
 | `-A, --auto-match` | 从提取的色板自动匹配色彩系统 |
+| `--ppt [style]` | 同时生成 PPT `--slide-*` 令牌（2.7.13-rc.2 幻灯片版式）；可选预设 `serif`（默认）/ `sans` / `mono`。默认关闭 |
+
+### to-slides 选项
+
+| 参数 | 说明 |
+|------|------|
+| `-o, --output` | 输出 `.md` 路径（默认：`<input>.slides.md`） |
+| `--deck-brand` | deck 页脚品牌（左下衬线文字） |
+| `--deck-title` | deck 页脚标题（覆盖 frontmatter / 首个 h1） |
+| `--deck-meta` | deck 页脚元信息（右上兜底，如日期） |
+| `--deck-logo` | deck 页脚 logo 路径（相对输出文件） |
 
 ### 导出选项
 
@@ -396,7 +441,9 @@ ColaMD-themes/
 │   ├── export-cli.ts                        # 导出 CLI 命令
 │   ├── theme-store.ts                       # 主题配置持久化（异步 API）
 │   ├── dsh-plugin.ts                        # DSH 宿主入口（Cordis skill provider）
-│   ├── compat.ts                            # 平台兼容层（契约漂移 + 渲染器 API 探测）
+│   ├── compat.ts                            # 平台兼容层（双契约 + 幻灯片探测 + 渲染器 API 探测）
+│   ├── slides.ts                            # PPT --slide-* 令牌、预设与品牌派生（2.7.13-rc.2）
+│   ├── slides-markdown.ts                   # Markdown → 幻灯片 Markdown 转换 + 指令契约校验
 │   ├── utils/
 │   │   └── cli-utils.ts                     # 公共工具函数与错误处理
 │   ├── color-utils.ts                       # 颜色操作工具
@@ -451,7 +498,8 @@ npm run mcp
 | PDF 解析 | pdf-parse | PDF 文本提取 |
 | HTTP 客户端 | Axios | 网页抓取 |
 | 浏览器引擎 | Puppeteer | 无头 Chromium，HTML/PDF 导出 |
-| 编辑器引擎 | @bytechain.cn/colamd | 基于 CM6 的 Markdown 渲染器（2.7.12 契约） |
+| 编辑器引擎 | @bytechain.cn/colamd | 基于 CM6 的 Markdown 渲染器（2.7.12 锚点 + 2.7.13-rc.2 幻灯片版式） |
+| 幻灯片解析 | @lezer/markdown | Markdown → 幻灯片 Markdown 转换（与上游同一解析器家族） |
 | 终端输出 | Chalk + Ora | 彩色文本 + 加载动画 |
 
 ## License

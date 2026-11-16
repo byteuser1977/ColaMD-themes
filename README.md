@@ -4,9 +4,9 @@
 [![Awesome DSH](https://img.shields.io/badge/Awesome-DSH-black)](https://github.com/Dominic789654/awesome-deepseek-harness)
 [![Awesome DSH Plugin](https://beancookie.github.io/awesome-dsh-plugin/badge.svg)](https://github.com/beancookie/awesome-dsh-plugin)
 
-**Topics**: `dsh` `deepseek-harness` `colamd` `themes` `css` `markdown` `pdf` `html` `skill` `ai-agent`
+**Topics**: `dsh` `deepseek-harness` `colamd` `themes` `css` `markdown` `pdf` `html` `ppt` `slides` `skill` `ai-agent`
 
-A theme development & export toolkit for [ColaMD](https://github.com/cola-md/cola-md) — the Agent-native Markdown editor. Extract visual formatting from web pages, Word documents, and PDFs, convert them into validated CSS theme files, and export Markdown to standalone HTML or PDF with any theme applied.
+A theme development & export toolkit for [ColaMD](https://github.com/cola-md/cola-md) — the Agent-native Markdown editor. Extract visual formatting from web pages, Word documents, and PDFs (optionally with PPT slide styling), convert them into validated CSS theme files, convert Markdown documents into slide-deck Markdown, and export Markdown to standalone HTML or PDF with any theme applied.
 
 ## Related Projects
 
@@ -37,6 +37,13 @@ After installation, open a `.md` file and run **ColaView MD: Show Preview** from
 - **DOCX** — read Word document styles (H1–H6, tables, code blocks) via mammoth, map to theme variables
 - **PDF** — extract typography metadata from PDF text using multi-layer heuristic analysis
 - **Auto‑detect** — `extract` command automatically routes to the right extractor
+- **PPT styling (`--ppt`, v0.6.0+, optional)** — extraction can also emit the `--slide-*` token section (ColaMD 2.7.13-rc.2 slide layouts) into the generated theme. Presets mirror upstream voices: `serif` (magazine default), `sans` (Notion-like), `mono` (Writer-like); only the brand layer is derived (title font / mono font / title weight, CJK fallback ensured) while the layout size ladder stays at upstream defaults
+
+### Markdown → PPT Markdown (v0.6.0+)
+
+- **`to-slides`** — convert a plain Markdown document into slide-deck Markdown: pages split with upstream pagination semantics (`---` via `@lezer/markdown`, the same parser family as the app), all eleven built-in layouts inferred from content structure (cover / section / agenda / kpi / timeline / steps / matrix / two-col / figure / quote / closing), deck chrome and per-page header blocks emitted with chapter tracking
+- **Self-checked output** — the generated deck is validated against the directive contract (page-first placement, layout-name syntax, field-key whitelists, `slide-css` safety subset) before writing
+- Full slide directive syntax and layout table: see [`skills/colamd-themes/SKILL.md`](skills/colamd-themes/SKILL.md) (幻灯片版式 chapter)
 
 ### HTML / PDF Export
 
@@ -59,9 +66,10 @@ After installation, open a `.md` file and run **ColaView MD: Show Preview** from
 - **Paradigm Validator** — 15+ design constraint rules (CR, HR, SL, NT, BD, MP, FP, FS, SH) with auto-fix suggestions
 - **Color System Library** — 15 predefined seed palettes across 5 families (Morandi, Macaron, Nordic, Vintage, Mint)
 - **2.7.12 CSS Contract Validator** — flags dead selectors (`#write`, `.ProseMirror`, `body.theme-custom`), dead variables (`--mermaid-*`, `--radius-*`, `--font-size-root`…), `pt` units, and vertical padding on quote/code lines
+- **Slide rule validators (v0.6.0+)** — theme side: unknown `--slide-*` tokens (SLIDE-01), structure selectors must live under `body.presenting` / `body.slides-printing` (SLIDE-02), CJK + generic title font stacks (SLIDE-03); deck side (`validate <deck.md>`): page-first directive placement (SLIDES-01), layout-name syntax (SLIDES-02), unknown-layout warning (SLIDES-03), field-key whitelists (SLIDES-04/05), `slide-css` safety subset rejecting `position: absolute/fixed` / `z-index` / pseudo-protocol URLs (SLIDES-06)
 - **Contract verified** — all 16 shipped themes audited against the frozen live-variable set (contract unchanged through 2.7.12) and smoke-tested on the 2.7.11 export pipeline: zero `.cm-md-*` hook drift, all `:root` live variables and `--pele-*` overrides consumed, exports carry exactly the 27 contract live variables
 - **Pele Diagram Colors** — 9 `--pele-*` variables derived from `--code-block-bg` / `--code-block-text` / `--link-color`, replacing the 20 Mermaid variables
-- **Platform backward compatibility (v0.5.3+)** — [`src/compat.ts`](src/compat.ts) probes the installed `@bytechain.cn/colamd` version and its `themes/contract.json` for contract drift; `validate` prints a "平台兼容" report line and the renderer verifies the export API surface (`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`) before rendering. Platform upgrades produce actionable diagnostics (version + fix command) instead of cryptic mid-render failures
+- **Platform backward compatibility (v0.5.3+, dual contract v0.6.0+)** — [`src/compat.ts`](src/compat.ts) probes the installed `@bytechain.cn/colamd` version and its `themes/contract.json` for contract drift (both `2.7.12` and `2.7.13-rc.2` are accepted — rc.2 adds no live variables, themes carry over unchanged), and detects the **slide layout system** (`slidesSupported`: version ≥ `2.7.13-rc.1` or rc.2-specific CSS markers); `validate` prints a "平台兼容" report line including 幻灯片版式 support, and the renderer verifies the export API surface (`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`) before rendering. Platform upgrades produce actionable diagnostics (version + fix command) instead of cryptic mid-render failures
 
 ### Security & Performance (v0.4.0+)
 
@@ -79,6 +87,7 @@ Handlebars-powered template produces ColaMD 2.7.12 contract CSS (≤300 lines):
 | Section | Content |
 |---------|---------|
 | 1 | Design Tokens — `:root` seed palette (11 vars), 14 semantic colors, fonts, metrics, 9 `--pele-*` |
+| 1.5 | PPT / Slides (optional, `--ppt`) — `--slide-*` tokens (2.7.13-rc.2), preset voice + brand fonts |
 | 2 | Editor DOM — `#editor .cm-content` + `.cm-md-*` (headings, inline, quote, code block, table, indent) |
 | 3 | Exported HTML — `.colamd-document` color layer for semantic tags |
 | 4 | `@media print` — print-color fidelity only (screen rules already apply) |
@@ -211,16 +220,40 @@ cthemes from-docx report.docx --name corporate-theme
 cthemes from-pdf paper.pdf --name academic-theme
 ```
 
+### Extract with PPT slide styling (optional, off by default)
+
+```bash
+# Also emit --slide-* tokens with the sans preset (serif | sans | mono)
+cthemes from-url "https://example.com" --name my-brand --ppt sans
+```
+
+### Convert Markdown into slide-deck Markdown
+
+```bash
+# Auto-infer all 11 layouts + deck chrome, self-checked output
+cthemes to-slides report.md -o report.slides.md
+
+# With deck chrome fields
+cthemes to-slides report.md --deck-brand "ColaMD" --deck-title "Q4 Review" --deck-meta "2026.11"
+
+# Validate a generated (or hand-written) deck against the directive contract
+cthemes validate report.slides.md
+```
+
 ### Auto‑detect source type
 
 ```bash
 cthemes extract source.docx --name auto-theme
 ```
 
-### Validate a theme
+### Validate a theme (or a slide deck)
 
 ```bash
+# Theme CSS: 2.7 contract + paradigm rules + slide token rules
 cthemes validate themes/my-theme.css
+
+# Slides markdown: directive contract checks (page-first, layout names, field keys, slide-css safety)
+cthemes validate report.slides.md
 ```
 
 ### List themes and color systems
@@ -287,9 +320,10 @@ cthemes set-theme my-brand --remove
 | `from-docx <file>` | Extract theme from a .docx document |
 | `from-pdf <file>` | Extract theme from a PDF document |
 | `extract <source>` | Auto-detect source type and extract theme |
+| `to-slides <input>` | Convert a Markdown document into slide-deck Markdown (auto-inferred layouts) |
 | `color-systems` | List 15 built-in color systems |
 | `list` | List all generated themes |
-| `validate <file>` | Validate a theme against the 2.7.12 contract and paradigm rules (with a platform compat report) |
+| `validate <file>` | Validate a theme CSS (2.7 contract + paradigm + slide token rules) or a slides markdown file (directive contract); with a platform compat report |
 | `set-theme <name>` | Set, register, or remove export themes |
 | `export-html <input>` | Export Markdown → standalone HTML |
 | `export-pdf <input>` | Export Markdown → PDF |
@@ -304,6 +338,17 @@ cthemes set-theme my-brand --remove
 | `-d, --themes-dir` | Themes directory (default: `themes/`) |
 | `-c, --color-system` | Force a color system |
 | `-A, --auto-match` | Auto-match a color system from the extracted palette |
+| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13-rc.2 slides); optional preset `serif` (default) / `sans` / `mono`. Off by default |
+
+### to-slides options
+
+| Flag | Description |
+|------|-------------|
+| `-o, --output` | Output `.md` path (default: `<input>.slides.md`) |
+| `--deck-brand` | Deck chrome brand (footer-left serif text) |
+| `--deck-title` | Deck chrome title (overrides frontmatter / first h1) |
+| `--deck-meta` | Deck chrome meta (chrome-right fallback, e.g. date) |
+| `--deck-logo` | Deck chrome logo path (relative to the output file) |
 
 ### Export options
 
@@ -420,7 +465,9 @@ ColaMD-themes/
 │   ├── export-cli.ts                        # Export CLI commands
 │   ├── theme-store.ts                       # Theme config persistence (async API)
 │   ├── dsh-plugin.ts                        # DSH host entry (Cordis skill provider)
-│   ├── compat.ts                            # Platform compat layer (contract drift + renderer API probe)
+│   ├── compat.ts                            # Platform compat layer (dual contract + slides probe + renderer API probe)
+│   ├── slides.ts                            # PPT --slide-* tokens, presets & brand derivation (2.7.13-rc.2)
+│   ├── slides-markdown.ts                   # Markdown → slide-deck conversion + directive contract validation
 │   ├── utils/
 │   │   └── cli-utils.ts                     # Shared utilities & error handling
 │   ├── color-utils.ts                       # Color manipulation utilities
@@ -453,7 +500,8 @@ ColaMD-themes/
 | PDF parsing | pdf-parse | PDF text extraction |
 | HTTP client | Axios | Web page fetching |
 | Browser engine | Puppeteer | Headless Chromium for HTML/PDF export |
-| Editor engine | @bytechain.cn/colamd | CM6-based Markdown renderer (2.7.12 contract) |
+| Editor engine | @bytechain.cn/colamd | CM6-based Markdown renderer (2.7.12 anchor + 2.7.13-rc.2 slides) |
+| Slide parsing | @lezer/markdown | Markdown → slide-deck conversion (same parser family as upstream) |
 | Terminal output | Chalk + Ora | Colored text + spinners |
 
 ## License

@@ -87,6 +87,22 @@ function stripMathFonts(html: string): string {
 }
 
 /**
+ * Strip `--slide-*` declarations from custom theme CSS before handing it to
+ * the export pipeline. The export artifact is a semantic `.colamd-document`
+ * (no cm-md-page/slide classes), so slide tokens are inert there — but the
+ * platform's style collector (≤2.7.12) serializes the injected `:root` rule
+ * verbatim and would leak them into every export. Line-based removal matches
+ * the generator's one-token-per-line emission.
+ */
+function stripSlideTokenDeclarations(css: string): string {
+  if (!css.includes("--slide-")) return css;
+  return css
+    .split("\n")
+    .filter((line) => !/^\s*--slide-[\w-]+\s*:/.test(line))
+    .join("\n");
+}
+
+/**
  * Build the final export artifact: apply the token-saving optimization when
  * requested (default on) and the source has no math that needs remote fonts.
  */
@@ -284,14 +300,16 @@ export class ColamdRenderer {
     if (!this.ready || !this.page) await this.init();
     const page = this.page!;
 
-    // Apply theme — the 2.x renderer consumes :root contract CSS directly
+    // Apply theme — the 2.x renderer consumes :root contract CSS directly.
+    // Slide tokens are stripped from the export path: the semantic export
+    // DOM can't consume them and the platform collector would leak them.
     if (input.themeName) {
       await page.evaluate(
         (name: string, css: string | undefined) => {
           (window as any).__colamdHandle.applyTheme(name, css || undefined);
         },
         input.themeName,
-        input.customCSS || undefined
+        stripSlideTokenDeclarations(input.customCSS || "")
       );
     }
 
