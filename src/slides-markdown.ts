@@ -1,7 +1,7 @@
 /**
  * Markdown → PPT Markdown generator + slide-directive validator.
  *
- * Targets the ColaMD-extend 2.7.13-rc.2 slide layout system:
+ * Targets the ColaMD-extend 2.7.13 slide layout system:
  *   - pages split on `---` (HorizontalRule); every line after the rule opens
  *     a new page — identical semantics to upstream editor/slide-directives.ts
  *   - a page header block `<!-- slide: layout` + `kicker/label/chapter -->`
@@ -152,7 +152,7 @@ function lineAt(doc: string, pos: number): number {
 const UNSAFE_CSS_RE = /position\s*:\s*(absolute|fixed)|z-index\s*:|javascript\s*:|vbscript\s*:|data:text\/html/i;
 
 /**
- * Validate a slides markdown document against the 2.7.13-rc.2 directive
+ * Validate a slides markdown document against the 2.7.13 directive
  * contract: layout name syntax, known layout/field keys, page-first
  * placement, and the slide-css safety subset (mirrors upstream
  * scopeSlideCSS's rejection of position:absolute/fixed, z-index and

@@ -1,5 +1,5 @@
 /**
- * PPT / Slides token layer — ColaMD-extend 2.7.13-rc.2 slide layout system.
+ * PPT / Slides token layer — ColaMD-extend 2.7.13 slide layout system.
  *
  * Upstream `slides.css` defines the `--slide-*` tokens on `:root` with
  * magazine-style defaults; built-in themes override them via `body.theme-*`
@@ -17,7 +17,7 @@
 
 import type { ThemeStyle } from "./models.js";
 
-/** Every `--slide-*` token declared in upstream slides.css `:root` (2.7.13-rc.2). */
+/** Every `--slide-*` token declared in upstream slides.css `:root` (2.7.13). */
 export const SLIDE_TOKENS: readonly string[] = Object.freeze([
   "--slide-serif",
   "--slide-mono",

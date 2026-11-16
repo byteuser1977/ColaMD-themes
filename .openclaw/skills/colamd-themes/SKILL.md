@@ -3,7 +3,7 @@ id: colamd-themes
 name: ColaMD Themes
 description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.12 anchor + 2.7.13-rc.2 slide layouts). Extract from URLs/DOCX/PDF
+  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF
   with optional PPT styling; convert Markdown to slide decks; export
   Markdown to HTML/PDF; batch export.
 version: "1.0.0"
@@ -20,7 +20,7 @@ metadata:
       bins: [node, npm]
 ---
 
-Generate, validate, export, and manage ColaMD **2.7 contract** CSS themes (2.7.12 anchor + 2.7.13-rc.2 slide layouts). Extract formatting from URLs, DOCX, or PDF sources (optionally with PPT `--slide-*` styling); convert Markdown into slide-deck Markdown; export Markdown to standalone HTML/PDF with themes applied; batch export; manage theme configuration.
+Generate, validate, export, and manage ColaMD **2.7 contract** CSS themes (2.7.13 anchor, slide layouts stable). Extract formatting from URLs, DOCX, or PDF sources (optionally with PPT `--slide-*` styling); convert Markdown into slide-deck Markdown; export Markdown to standalone HTML/PDF with themes applied; batch export; manage theme configuration.
 
 ## Prerequisites
 
@@ -71,7 +71,7 @@ colamd-themes list [-d <dir>]
 colamd-themes validate <file.css | file.md>
 ```
 
-`validate` accepts theme CSS **and** slides markdown (`.md` → directive contract checks). It prints a **platform compat line** ("平台兼容") — it reports the installed `@bytechain.cn/colamd` version, whether its `themes/contract.json` matches the theme contract (2.7.12 and 2.7.13-rc.2 are both accepted), and whether the **slide layout system** is available (幻灯片版式: 支持/不支持). On drift it lists missing live variables; treat that as a signal to check the platform changelog or pin `@bytechain.cn/colamd@^2.7.12`.
+`validate` accepts theme CSS **and** slides markdown (`.md` → directive contract checks). It prints a **platform compat line** ("平台兼容") — it reports the installed `@bytechain.cn/colamd` version, whether its `themes/contract.json` matches the theme contract (2.7.13 and 2.7.13 are both accepted), and whether the **slide layout system** is available (幻灯片版式: 支持/不支持). On drift it lists missing live variables; treat that as a signal to check the platform changelog or pin `@bytechain.cn/colamd@^2.7.13`.
 
 ## Options
 
@@ -84,7 +84,7 @@ colamd-themes validate <file.css | file.md>
 | `-d, --themes-dir` | Themes directory (default: `themes/`) |
 | `-c, --color-system` | Force a color system |
 | `-A, --auto-match` | Auto-match a color system from the extracted palette |
-| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13-rc.2 slides); optional preset `serif` (default) / `sans` / `mono`. Off by default |
+| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13 slides); optional preset `serif` (default) / `sans` / `mono`. Off by default |
 
 ### Export options
 
@@ -160,9 +160,9 @@ Export uses Puppeteer (headless Chromium) with `@bytechain.cn/colamd/renderer`:
 8. `buildExportHTML()` → standalone HTML with embedded CSS
 9. For PDF: load the export HTML in a fresh page + `page.pdf()` — do NOT `emulateMediaType('screen')`, the theme's `@media print` rules (with `print-color-adjust: exact`) must apply
 
-## Slide Layouts (ColaMD 2.7.13-rc.2 幻灯片版式)
+## Slide Layouts (ColaMD 2.7.13 幻灯片版式)
 
-Upstream 2.7.13-rc.2 adds a slide deck system. A deck is plain markdown: pages split on `---`, each page may open with a header comment block.
+Upstream 2.7.13 adds a slide deck system. A deck is plain markdown: pages split on `---`, each page may open with a header comment block.
 
 ### Directive syntax
 
@@ -244,9 +244,9 @@ colamd-themes from-url <URL> -n my-brand --ppt sans   # presets: serif | sans | 
 - serif = 上游杂志衬线默认；sans = Notion 气质（无衬线、居中封面）；mono = Writer 气质（等宽标题）。品牌层只派生 `--slide-title-font` / `--slide-mono` / `--slide-title-weight`，版式字号阶梯保持上游默认。
 - 自定义主题 CSS 在 slides.css 之后加载，`:root` 同权重后到先赢；不要写 `body.theme-custom`（文档契约死选择器）。
 - 手写主题里的幻灯片规则须遵守：**SLIDE-01** (SHOULD) 只用已知令牌；**SLIDE-02** (MUST_NOT) `.cm-md-page-*` / `.cm-md-slide-*` / `.slide-chrome|foot|ghost` 必须包裹在 `body.presenting` 或 `body.slides-printing` 作用域下（裸写污染编辑视图）；**SLIDE-03** (SHOULD) 标题字体栈含中文字族并以 generic family 结尾。
-- 平台需 ≥ 2.7.13-rc.1 才消费这些令牌（compat 行「幻灯片版式」）；旧平台下令牌惰性。导出的 HTML/PDF 仍为文档式排版，放映版式在 ColaMD 应用内查看。
+- 平台需 ≥ 2.7.13 才消费这些令牌（compat 行「幻灯片版式」）；旧平台下令牌惰性。导出的 HTML/PDF 仍为文档式排版，放映版式在 ColaMD 应用内查看。
 
-## 2.7.12 Contract Constraints
+## 2.7 Contract Constraints
 
 - Variables live in `:root`; anything in `body.theme-*` is ignored
 - Live variables only: `--bg-color --text-color --text-secondary --text-muted --border-color --link-color --code-bg --code-block-bg --code-block-text --blockquote-border --blockquote-bg --table-header-bg --selection-bg --highlight-bg --font-body --font-mono --editor-font-size --editor-column-width` + `--pele-*`
@@ -290,9 +290,9 @@ colamd-themes from-url <URL> -n my-brand --ppt sans   # presets: serif | sans | 
 ## Architecture
 
 ```
-Source → Extractor → ThemeStyle → Color System + Pele + Validators → CSS (2.7.12 contract)
+Source → Extractor → ThemeStyle → Color System + Pele + Validators → CSS (2.7.13 contract)
 
 Markdown → Puppeteer + ColaMD renderer → HTML / PDF
 ```
 
-> Export runs the ColaMD 2.x library renderer (`@bytechain.cn/colamd@^2.7.12` ships `dist/lib/colamd-renderer.js` + `colamd.css`); the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations and `buildExportHTML({ title })` serializes only contract live variables. Generated CSS targets the 2.7.12 contract (unchanged since 2.7.7, machine-readable as `themes/contract.json` in the npm package), so it carries over unchanged. Platform upgrades are handled by a compat layer (`src/compat.ts`): contract drift is reported by `validate` and non-fatally at export, and the renderer API surface is probed at init — upgrades produce actionable diagnostics, not crashes.
+> Export runs the ColaMD 2.x library renderer (`@bytechain.cn/colamd@^2.7.13` ships `dist/lib/colamd-renderer.js` + `colamd.css`); the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations and `buildExportHTML({ title })` serializes only contract live variables. Generated CSS targets the 2.7.13 contract (unchanged since 2.7.7, machine-readable as `themes/contract.json` in the npm package), so it carries over unchanged. Platform upgrades are handled by a compat layer (`src/compat.ts`): contract drift is reported by `validate` and non-fatally at export, and the renderer API surface is probed at init — upgrades produce actionable diagnostics, not crashes.

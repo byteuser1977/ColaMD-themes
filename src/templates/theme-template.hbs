@@ -72,10 +72,10 @@
 }
 
 {{#if slideTokens}}
-/* ── 1.5 PPT / Slides（ColaMD 2.7.13 rc.2 幻灯片版式令牌，预设：{{slidePreset}}）──
+/* ── 1.5 PPT / Slides（ColaMD 2.7.13 幻灯片版式令牌，预设：{{slidePreset}}）──
    本主题在应用内加载于 slides.css 之后，:root 同权重后到先赢；只换标题/等宽
    字体、字重与 preset 气质，版式字号阶梯沿用上游默认。仅在有幻灯片系统的
-   平台（≥2.7.13-rc.1）生效，其余平台惰性。 */
+   平台（≥2.7.13）生效，其余平台惰性。 */
 :root {
 {{#each slideTokens}}  {{@key}}: {{this}};
 {{/each}}

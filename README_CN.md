@@ -37,7 +37,7 @@
 - **DOCX 提取** — 通过 mammoth 读取 Word 文档完整样式（H1–H6、表格、代码块），映射为主题变量
 - **PDF 提取** — 采用多层启发式分析从 PDF 文本中提取排版元数据
 - **自动检测** — `extract` 命令根据文件类型或 URL 协议自动路由到对应提取器
-- **PPT 样式（`--ppt`，v0.6.0+，默认关闭）** — 提取时可选在生成主题中追加 `--slide-*` 令牌区块（ColaMD 2.7.13-rc.2 幻灯片版式）。预设对齐上游气质：`serif`（杂志衬线默认）、`sans`（Notion 风：无衬线标题、居中封面）、`mono`（Writer 风：等宽标题）；品牌层只派生标题字体 / 等宽字体 / 字重（保证中文字族回退），版式字号阶梯沿用上游默认
+- **PPT 样式（`--ppt`，v0.6.0+，默认关闭）** — 提取时可选在生成主题中追加 `--slide-*` 令牌区块（ColaMD 2.7.13 幻灯片版式）。预设对齐上游气质：`serif`（杂志衬线默认）、`sans`（Notion 风：无衬线标题、居中封面）、`mono`（Writer 风：等宽标题）；品牌层只派生标题字体 / 等宽字体 / 字重（保证中文字族回退），版式字号阶梯沿用上游默认
 
 ### Markdown → PPT Markdown (v0.6.0+)
 
@@ -51,7 +51,7 @@
 - **`export-pdf`** — 通过 Puppeteer（Chromium）将 Markdown 渲染为 PDF，用 `print-color-adjust: exact` 保住主题配色
 - **`export`** — 批量导出多个文件或整个目录为 HTML、PDF，或一次同时产出两种（`--format html,pdf` 在同一次 renderer/浏览器生命周期内渲染）
 - **导出产物 token 优化 (v0.5.8+，默认开启)** — 当源 Markdown 不含数学公式（`$$`、`$...$`、`\(..\)`、`\begin{..}`）时，自动剥离内嵌的 base64 KaTeX 数学字体（约占内嵌 CSS 的 96%），典型导出从 ~1.5 MB（约 40 万 tokens）压缩到 ~57 KB（约 1.5 万 tokens）——AI/LLM agent 回读导出产物时不再拖入海量字体 token。含数学的文档自动保留字体；`--keep-fonts` 可强制完整嵌入。`$1.5M` 等金额写法不会被误判为公式
-- 底层使用 `@bytechain.cn/colamd/renderer`（2.x 库构建，依赖 `@bytechain.cn/colamd@^2.7.12`）——与应用同一个 CM6 编辑器经 Puppeteer 无头运行。主题 CSS 以 `:root` 声明直接消费，`buildExportHTML({ title })` 只序列化契约活变量，mermaid 图（Pele SVG）与 KaTeX 公式离线打开仍完整呈现。内置主题名优先解析本仓库的契约 CSS。生成的主题按 **2.7.12 契约**编写，升级应用无需改动主题
+- 底层使用 `@bytechain.cn/colamd/renderer`（2.x 库构建，依赖 `@bytechain.cn/colamd@^2.7.13`）——与应用同一个 CM6 编辑器经 Puppeteer 无头运行。主题 CSS 以 `:root` 声明直接消费，`buildExportHTML({ title })` 只序列化契约活变量，mermaid 图（Pele SVG）与 KaTeX 公式离线打开仍完整呈现。内置主题名优先解析本仓库的契约 CSS。生成的主题按 **2.7.13 契约**编写，升级应用无需改动主题
 
 ### 主题管理
 
@@ -65,11 +65,11 @@
 - **对比度引擎** — WCAG 2.1 相对亮度与对比度计算
 - **范式验证器** — 15+ 条设计约束规则（CR、HR、SL、NT、BD、MP、FP、FS、SH），附带自动修复建议
 - **色彩系统库** — 5 大色系 15 套预定义种子色板（莫兰迪、马卡龙、北欧、复古、薄荷绿）
-- **2.7.12 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
+- **2.7.13 契约校验器** — 检查死选择器（`#write`、`.ProseMirror`、`body.theme-custom`）、死变量（`--mermaid-*`、`--radius-*`、`--font-size-root` 等）、`pt` 单位与引用/代码块的纵向 padding
 - **幻灯片规则校验 (v0.6.0+)** — 主题侧：未知 `--slide-*` 令牌提示（SLIDE-01）、结构选择器必须包裹在 `body.presenting` / `body.slides-printing` 作用域下（SLIDE-02）、标题字体栈须含中文字族并以 generic family 结尾（SLIDE-03）；deck 侧（`validate <deck.md>`）：页头块页首规则（SLIDES-01）、版式名语法（SLIDES-02）、未知版式名提示（SLIDES-03）、字段键白名单（SLIDES-04/05）、slide-css 安全子集拒绝 `position: absolute/fixed` / `z-index` / 伪协议 URL（SLIDES-06）
-- **契约核验通过** — 全部 16 个主题已对照冻结的活变量集逐项审计（契约至 2.7.12 保持不变），并在 2.7.11 导出管线上实测通过：`.cm-md-*` 钩子零漂移，`:root` 活变量与 `--pele-*` 覆盖全部被渲染器消费，导出 `:root` 恰好携带 27 个契约活变量
+- **契约核验通过** — 全部主题已对照冻结的活变量集逐项审计（契约至 2.7.13 保持不变），并在 2.7.13 导出管线上实测通过：`.cm-md-*` 钩子零漂移，`:root` 活变量与 `--pele-*` 覆盖全部被渲染器消费，导出 `:root` 恰好携带 27 个契约活变量
 - **Pele 图表配色** — 9 个 `--pele-*` 变量由 `--code-block-bg` / `--code-block-text` / `--link-color` 推导，取代 Mermaid 20 变量
-- **平台向后兼容 (v0.5.3+，v0.6.0 起双契约)** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移（同时接受 `2.7.12` 与 `2.7.13-rc.2`——rc.2 未新增活变量，主题原样携带），并探测**幻灯片版式系统**（`slidesSupported`：版本 ≥ `2.7.13-rc.1` 或 rc.2 特征 CSS）；`validate` 输出「平台兼容」报告行（含幻灯片版式支持状态），导出前校验渲染器 API 面（`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`）。平台升级导致的契约/API 变化给出含版本号与修复命令的明确诊断，而非渲染中途的神秘报错
+- **平台向后兼容 (v0.5.3+，v0.6.0 起单契约)** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移（只接受 `2.7.13`——活变量/死变量集与旧锚点完全一致，主题原样携带），并探测**幻灯片版式系统**（`slidesSupported`：版本 ≥ `2.7.13-rc.1` 或 rc.2 特征 CSS）；`validate` 输出「平台兼容」报告行（含幻灯片版式支持状态），导出前校验渲染器 API 面（`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`）。平台升级导致的契约/API 变化给出含版本号与修复命令的明确诊断，而非渲染中途的神秘报错
 
 ### 安全与性能 (v0.4.0+)
 
@@ -82,12 +82,12 @@
 
 ### CSS 模板引擎
 
-基于 Handlebars 的模板引擎生成 ColaMD 2.7.12 契约 CSS（≤300 行）：
+基于 Handlebars 的模板引擎生成 ColaMD 2.7.13 契约 CSS（≤300 行）：
 
 | 分区 | 内容 |
 |------|------|
 | 1 | 设计令牌 — `:root` 种子色板（11 变量）、14 个语义色、字体与度量、9 个 `--pele-*` |
-| 1.5 | PPT / 幻灯片（可选，`--ppt`）— `--slide-*` 令牌（2.7.13-rc.2），预设气质 + 品牌字体 |
+| 1.5 | PPT / 幻灯片（可选，`--ppt`）— `--slide-*` 令牌（2.7.13），预设气质 + 品牌字体 |
 | 2 | 编辑器 DOM — `#editor .cm-content` + `.cm-md-*`（标题、行内、引用、代码块、表格、缩进） |
 | 3 | 导出 HTML — `.colamd-document` 语义标签配色层 |
 | 4 | `@media print` — 只补打印保真（屏幕规则原样生效） |
@@ -314,7 +314,7 @@ cthemes set-theme 我的品牌 --remove
 | `-d, --themes-dir` | 主题目录（默认：`themes/`） |
 | `-c, --color-system` | 强制指定色彩系统 |
 | `-A, --auto-match` | 从提取的色板自动匹配色彩系统 |
-| `--ppt [style]` | 同时生成 PPT `--slide-*` 令牌（2.7.13-rc.2 幻灯片版式）；可选预设 `serif`（默认）/ `sans` / `mono`。默认关闭 |
+| `--ppt [style]` | 同时生成 PPT `--slide-*` 令牌（2.7.13 幻灯片版式）；可选预设 `serif`（默认）/ `sans` / `mono`。默认关闭 |
 
 ### to-slides 选项
 
@@ -352,12 +352,12 @@ cthemes set-theme 我的品牌 --remove
            ▼
 ┌─────────────────────┐
 │  色彩系统匹配        │  → 15 套内置色板
-│  范式与契约验证      │  → WCAG 对比度 + 设计约束 + 2.7.12 契约
+│  范式与契约验证      │  → WCAG 对比度 + 设计约束 + 2.7.13 契约
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────┐
-│  模板引擎            │  Handlebars → 2.7.12 契约 CSS（≤300 行）
+│  模板引擎            │  Handlebars → 2.7.13 契约 CSS（≤300 行）
 └──────────┬──────────┘
            │
            ▼
@@ -390,7 +390,7 @@ Markdown 文件
 └─────────────────────────────────────────────┘
 ```
 
-## 设计范式 (2.7.12 契约)
+## 设计范式 (2.7.13 契约)
 
 完整规范文档：[`templates/theme-paradigm.md`](src/templates/theme-paradigm.md)。
 
@@ -442,7 +442,7 @@ ColaMD-themes/
 │   ├── theme-store.ts                       # 主题配置持久化（异步 API）
 │   ├── dsh-plugin.ts                        # DSH 宿主入口（Cordis skill provider）
 │   ├── compat.ts                            # 平台兼容层（双契约 + 幻灯片探测 + 渲染器 API 探测）
-│   ├── slides.ts                            # PPT --slide-* 令牌、预设与品牌派生（2.7.13-rc.2）
+│   ├── slides.ts                            # PPT --slide-* 令牌、预设与品牌派生（2.7.13）
 │   ├── slides-markdown.ts                   # Markdown → 幻灯片 Markdown 转换 + 指令契约校验
 │   ├── utils/
 │   │   └── cli-utils.ts                     # 公共工具函数与错误处理
@@ -458,7 +458,7 @@ ColaMD-themes/
 │   │   └── pdf-extractor.ts                 # PDF → ThemeStyle
 │   └── templates/
 │       ├── template.css                     # 范式配套 CSS 模板
-│       ├── theme-paradigm.md               # v4.0 设计规范（2.7.12 契约）
+│       ├── theme-paradigm.md               # v4.0 设计规范（2.7.13 契约）
 │       └── theme-template.hbs              # Handlebars CSS 模板
 └── tests/
 ```
@@ -491,14 +491,14 @@ npm run mcp
 |------|-----|------|
 | 运行时 | Node.js + TypeScript | ESM 模块，严格类型 |
 | CLI 框架 | Commander.js | 参数解析、子命令分发 |
-| CSS 模板 | Handlebars | 2.7.12 契约 CSS 生成 |
+| CSS 模板 | Handlebars | 2.7.13 契约 CSS 生成 |
 | HTML 解析 | Cheerio | URL 提取时的 DOM 遍历 |
 | CSS 解析 | css-tree | CSS 规则 AST 解析 |
 | DOCX 解析 | Mammoth | Word → HTML 转换 |
 | PDF 解析 | pdf-parse | PDF 文本提取 |
 | HTTP 客户端 | Axios | 网页抓取 |
 | 浏览器引擎 | Puppeteer | 无头 Chromium，HTML/PDF 导出 |
-| 编辑器引擎 | @bytechain.cn/colamd | 基于 CM6 的 Markdown 渲染器（2.7.12 锚点 + 2.7.13-rc.2 幻灯片版式） |
+| 编辑器引擎 | @bytechain.cn/colamd | 基于 CM6 的 Markdown 渲染器（2.7.13 锚点 + 2.7.13 幻灯片版式） |
 | 幻灯片解析 | @lezer/markdown | Markdown → 幻灯片 Markdown 转换（与上游同一解析器家族） |
 | 终端输出 | Chalk + Ora | 彩色文本 + 加载动画 |
 

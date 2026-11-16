@@ -34,7 +34,7 @@ FRONT_CLAUDE='---
 name: colamd-themes
 description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.12 anchor + 2.7.13-rc.2 slide layouts). Extract formatting from URLs,
+  (2.7.13 anchor, slide layouts stable). Extract formatting from URLs,
   DOCX, or PDF sources (optionally with PPT --slide-* styling); convert
   Markdown into slide-deck Markdown; export Markdown to standalone HTML/PDF
   with themes applied; batch export; manage theme configuration.
@@ -45,7 +45,7 @@ name: colamd-themes
 version: "1.0.0"
 description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.12 anchor + 2.7.13-rc.2 slide layouts). Extract from URLs/DOCX/PDF
+  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF
   with optional PPT styling; convert Markdown to slide decks; export
   Markdown to HTML/PDF; batch export.
 user-invocable: true
@@ -63,7 +63,7 @@ id: colamd-themes
 name: ColaMD Themes
 description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.12 anchor + 2.7.13-rc.2 slide layouts). Extract from URLs/DOCX/PDF
+  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF
   with optional PPT styling; convert Markdown to slide decks; export
   Markdown to HTML/PDF; batch export.
 version: "1.0.0"
@@ -98,7 +98,7 @@ name: colamd-themes
 version: "1.0.0"
 description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.12 anchor + 2.7.13-rc.2 slide layouts). Extract from URLs/DOCX/PDF
+  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF
   with optional PPT styling; convert Markdown to slide decks; export
   Markdown to HTML/PDF; batch export.
 metadata:

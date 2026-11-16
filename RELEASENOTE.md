@@ -1,6 +1,6 @@
 # Release Notes
 
-## Version 0.6.0 (2026-11-16) — PPT Slide Layout Support (ColaMD 2.7.13-rc.2) 🎞️
+## Version 0.6.0 (2026-11-16) — PPT Slide Layout Support (ColaMD 2.7.13) 🎞️
 
 ### 🎞️ Added
 
@@ -10,12 +10,13 @@
 
 ### 🔧 Changed
 
-- **Dual-contract compat layer** — exact contract match now accepts both `2.7.12` and `2.7.13-rc.2` (rc.2 adds no live variables; themes carry over unchanged). New `slidesSupported` probe: version ≥ `2.7.13-rc.1` or rc.2-specific CSS markers; the platform compat line reports「幻灯片版式: 支持/不支持」
+- **Single-contract compat layer on 2.7.13** — exact contract match accepts only `2.7.13` (the stable slide layout release; its contract.json is identical to the previous anchor — no live/dead variable changes, themes carry over unchanged). `SUPPORTED_CONTRACT` / `MIN_RENDERER_VERSION` both point at `2.7.13`. New `slidesSupported` probe: version ≥ `2.7.13-rc.1` or rc.2-specific CSS markers; the platform compat line reports「幻灯片版式: 支持/不支持」
+- **Theme audits fixed** — `indigo-deck` paper layers desaturated to the paradigm limits (SL-01/SL-02: surface/panel/panelAlt now on a single 210–213° axis within ≤5% / ≤10% saturation; the indigo identity moves to accent/highlight/Pele), and `swiss-lemon-dark` drops the vertical padding on code block edge lines (CSS-03). All 23 shipped themes now pass `validate` with zero issues
 - New dependency `@lezer/markdown@^1` (same parser family as upstream). Skill + workspace rule files document the slide directive syntax, the 11 layouts, token presets, and all validation rules; regenerated for all 7 agent targets
 
 ### 📌 Scope notes
 
-- 2.7.13-rc.2 is not yet published to npm; exports through `buildExportHTML` remain document-style (the upstream lib build does not bundle `slides.css`) — presentation layouts apply in the ColaMD app, and the compat probe points the way. `slide-js` generation is out of scope (documented syntax only)
+- Exports through `buildExportHTML` remain document-style (the upstream lib build keeps slide CSS out of `colamd.css` — in 2.7.13 it ships only in the renderer assets used by the app's presentation mode) — presentation layouts apply in the ColaMD app, and the compat probe points the way. `slide-js` generation is out of scope (documented syntax only)
 
 ### Upgrade
 

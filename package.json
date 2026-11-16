@@ -57,19 +57,19 @@
     }
   },
   "dependencies": {
+    "@lezer/markdown": "^1.0",
     "axios": "^1.7",
     "chalk": "^5.3",
     "cheerio": "^1.0",
     "commander": "^12.0",
     "css-tree": "^3.0",
     "handlebars": "^4.7",
-    "@lezer/markdown": "^1.0",
     "ora": "^8.0",
     "pdf-parse": "^1.1",
     "puppeteer": "^24.0"
   },
   "devDependencies": {
-    "@bytechain.cn/colamd": "^2.7.12",
+    "@bytechain.cn/colamd": "^2.7.13",
     "@types/css-tree": "^2.3",
     "@types/node": "^22.0",
     "mammoth": "^1.8",

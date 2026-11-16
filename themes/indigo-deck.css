@@ -3,8 +3,10 @@
  * 来源：/mnt/d/workspace/git/ColaMD-themes/ppt/index.html 的 🌊 靛蓝瓷主题
  *   --ink:#0a1f3d  --paper:#f1f3f5  --paper-tint:#e4e8ec  --ink-tint:#152a4a
  *   标题 Noto Serif SC / 正文 Noto Sans SC / 元数据 IBM Plex Mono
- * 契约：ColaMD 2.7.12（:root 活变量；CM6 每行一 div；引用/代码块禁纵向 padding；
+ * 契约：ColaMD 2.7.13（:root 活变量；CM6 每行一 div；引用/代码块禁纵向 padding；
  *   .cm-md-blockquote 不写 background——2.7.11 起底色由 ::before + --blockquote-bg 绘制）
+ * 注：纸面三层（surface/panel/panelAlt）按 paradigm SL-01/SL-02 降饱和为冷石墨蓝
+ *   （H210-213°、S≤10%），靛蓝意象由 accent / highlight / Pele 承担。
  */
 
 :root {
@@ -12,13 +14,13 @@
   --seed-accent:        #8ab4e8;   /* 链接/强调：WebGL 银蓝流光 */
   --seed-accent-light:  rgba(138, 180, 232, 0.16);
   --seed-accent-dark:   #5b8fce;
-  --seed-surface:       #0a1f3d;   /* --ink 深靛蓝（蓝色背景） */
-  --seed-panel:         #12294a;   /* L 18.0%（SL-04：surface < panel < panelAlt） */
-  --seed-panel-alt:     #16304f;   /* L 19.8% */
+  --seed-surface:       #242526;   /* deck --ink 降饱和至 S2.7%（SL-01：底色 ≤5%） */
+  --seed-panel:         #2b2f34;   /* L 18.6%（SL-02：≤10%；SL-04：surface < panel < panelAlt） */
+  --seed-panel-alt:     #2e3237;   /* L 19.8%，H213° 与 surface/panel 同轴（SL-03） */
   --seed-ink:           #f1f4f8;   /* --paper 微调至 H214°（NT-01 与 muted/dim 同色相轴） */
   --seed-ink-muted:     #d1d6dc;   /* deck lead opacity:.86 合成 */
   --seed-ink-dim:       #949eab;   /* deck opacity:.6 合成 */
-  --seed-border:        #525458;   /* 中性灰（NT-03），L33% 与 panel 差 0.15（NT-02） */
+  --seed-border:        #525458;   /* 中性灰（NT-03），与 panel L 差 ≥0.08（NT-02） */
   --seed-border-strong: #6c6f74;
 
   /* ── 1.2 Semantic Colors（27 活变量 · 14 色） ── */
@@ -29,18 +31,16 @@
   --border-color:      var(--seed-border);
   --link-color:        var(--seed-accent);
 
-  --code-bg:           #182c49;    /* deck 暗页 rgba(paper,.06) over ink */
+  --code-bg:           #303133;    /* paper 6% 叠加新 surface 的合成 */
   --code-block-bg:     var(--seed-panel-alt);
   --code-block-text:   #e4e8ec;    /* --paper-tint */
 
   --blockquote-border: var(--seed-ink);      /* deck callout: border-left currentColor */
-  --blockquote-bg:     #182c49;              /* deck 暗页 callout 底 */
-  /* 注：seed surface/panel 的饱和度违背 paradigm SL-01/SL-02（要求中性纸感），
-     这是「完整复刻 deck 蓝色背景」的必然取舍——契约 2.7.12 全部通过，仅此 3 条美学规则报错 */
+  --blockquote-bg:     #303133;              /* deck 暗页 callout 底（随新 surface 同步降饱和） */
   --table-header-bg:   var(--seed-panel);
 
   --selection-bg:      rgba(138, 180, 232, 0.30);
-  --highlight-bg:      #33547d;    /* accent 30% over ink：mark 可见且仍是靛蓝 */
+  --highlight-bg:      #435060;    /* accent 30% over ink：mark 可见且仍是靛蓝 */
 
   /* ── 1.3 Typography & Metrics（4 活变量） ── */
   --font-body: "Source Serif 4", "Noto Serif SC", source-han-serif-sc,

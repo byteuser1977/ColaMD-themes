@@ -7,24 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0] - 2026-11-16
 
-### Added — ColaMD 2.7.13-rc.2 幻灯片版式（PPT）支持
+### Added — ColaMD 2.7.13 幻灯片版式（PPT）支持
 
 - **主题 PPT 样式（`--ppt` 提取选项，默认关闭）**：`from-url` / `from-docx` / `from-pdf` / `extract` 新增 `--ppt [style]`，可选预设 `serif`（上游杂志衬线默认）/ `sans`（Notion 气质：无衬线标题、居中封面、kicker 收敛）/ `mono`（Writer 气质：等宽标题）。开启后在生成主题 CSS 的 `:root` 追加 `--slide-*` 令牌区块（SECTION 1.5）——品牌层只派生 `--slide-title-font` / `--slide-mono` / `--slide-title-weight`（保证中文字族回退与 generic family 结尾），版式字号阶梯沿用上游默认。自定义主题 CSS 在上游 `slides.css` 之后加载，`:root` 同权重后到先赢；未开启时行为与 0.5.9 完全一致（回归通过）
 - **Markdown → PPT Markdown（新命令 `to-slides`）**：`colamd-themes to-slides <input.md> -o <output.md> [--deck-brand/--deck-title/--deck-meta/--deck-logo]`。用 `@lezer/markdown`（上游同款解析器，新增依赖）按幻灯片语义分页（`---`/HorizontalRule 归前一页、frontmatter 排除、h1 恒分页、h2 智能合并保留 h1+h2 封面与 two-col 对半），按内容结构自动推断全部 11 种版式（cover/section/agenda/kpi/timeline/steps/matrix/two-col/figure/quote/closing），生成 deck 块与页头块（kicker/chapter 随章节推进），生成后自动跑指令契约校验
 - **幻灯片规则校验**：`validate` 命令现在接受 `.md` 文件并执行指令契约检查——SLIDES-01 页头块必须在页首（MUST_NOT）、SLIDES-02 版式名语法（MUST_NOT）、SLIDES-03 未知版式名提示（SHOULD）、SLIDES-04/05 页头块与 deck 字段键白名单（MUST_NOT）、SLIDES-06 slide-css 安全子集：拒 `position: absolute/fixed` / `z-index` / 伪协议 URL，对齐上游 `scopeSlideCSS`（MUST_NOT）
-- **主题侧幻灯片校验规则**：SLIDE-01 未知 `--slide-*` 令牌提示（SHOULD，对齐 rc.2 slides.css 令牌清单）；SLIDE-02 幻灯片结构选择器（`.cm-md-page-*` / `.cm-md-slide-*` / `.slide-chrome|foot|ghost`）必须包裹在 `body.presenting` / `body.slides-printing` 作用域下，裸写污染编辑视图（MUST_NOT）；SLIDE-03 幻灯片标题字体栈须含中文字族并以 generic family 结尾（SHOULD）
+- **主题侧幻灯片校验规则**：SLIDE-01 未知 `--slide-*` 令牌提示（SHOULD，对齐 2.7.13 slides.css 令牌清单）；SLIDE-02 幻灯片结构选择器（`.cm-md-page-*` / `.cm-md-slide-*` / `.slide-chrome|foot|ghost`）必须包裹在 `body.presenting` / `body.slides-printing` 作用域下，裸写污染编辑视图（MUST_NOT）；SLIDE-03 幻灯片标题字体栈须含中文字族并以 generic family 结尾（SHOULD）
 - **导出侧 slide 令牌剥离**：`renderer.ts` 在导出路径把 customCSS 中的 `--slide-*` 声明剥掉后再交给 `applyTheme`——导出产物是语义 `.colamd-document`（无 cm-md-page/slide 类），令牌在导出里本就惰性；不剥离时 ≤2.7.12 平台的样式收集器会把 `:root` 里的 slide 令牌原样带进每份导出 HTML（实测 ~800 B 噪声）。主题文件本身不受影响，应用内放映照常消费
 
-### Changed — 平台兼容层（双契约 + 能力探测）
+### Changed — 平台锚点升至 2.7.13（能力探测） + 主题审计修复
 
-- **双契约兼容**：`getColamdCompat` 的 exact 判定从单一 `SUPPORTED_CONTRACT = 2.7.12` 扩展为 `SUPPORTED_CONTRACTS = ["2.7.12", "2.7.13-rc.2"]`——rc.2 契约未新增活变量，主题 CSS 原样携带
-- **幻灯片能力探测**：`ColamdCompat` 新增 `slidesSupported`——主判据为安装版本 ≥ `2.7.13-rc.1`（新增 `compareColamdVersions`，处理 `-rc.N` 后缀），兜底特征为 colamd.css 含 `--slide-page-top-pad` / `.cm-md-slide-`（刻意不用泛化的 `--slide-`：2.7.12 已带旧放映的 `--slide-font-size`，会误报）。平台兼容行追加「幻灯片版式: 支持/不支持（放映样式需 ColaMD ≥ 2.7.13-rc.1，PPT 令牌将保持惰性）」
-- 依赖新增 `@lezer/markdown@^1`；devDep `@bytechain.cn/colamd` 安装态随 install 刷新至 2.7.12
+- **单契约锚点 2.7.13**：`getColamdCompat` 的 exact 判定为 `SUPPORTED_CONTRACTS = ["2.7.13"]`——2.7.13 正式版契约与旧锚点完全一致（27 活变量 / 18 死变量不变），主题 CSS 原样携带；`SUPPORTED_CONTRACT` 与 `MIN_RENDERER_VERSION` 同步指向 2.7.13
+- **幻灯片能力探测**：`ColamdCompat` 新增 `slidesSupported`——主判据为安装版本 ≥ `2.7.13-rc.1`（新增 `compareColamdVersions`，处理 `-rc.N` 后缀），兜底特征为 colamd.css 含 `--slide-page-top-pad` / `.cm-md-slide-`（2.7.13 起幻灯片 CSS 移至 renderer assets，兜底仅对旧 rc 安装态有意义）。平台兼容行追加「幻灯片版式: 支持/不支持（放映样式需 ColaMD ≥ 2.7.13-rc.1，PPT 令牌将保持惰性）」
+- **indigo-deck 纸面降饱和**：surface/panel/panelAlt 从 deck 原稿深靛蓝（S 56–72%）压到 paradigm 阈值内（#242526 / #2b2f34 / #2e3237，H210–213° 同轴，SL-01/SL-02/SL-03 全过，暗色亮度顺序不变）；靛蓝意象由 accent / highlight / Pele 承担。导出与编辑端 code-bg / blockquote-bg / highlight-bg 同步换算
+- **swiss-lemon-dark 代码块边缘线修复**：移除 `.cm-md-codeblock-first` / `.cm-md-codeblock-last` 的纵向 padding（CSS-03：每行一 div 契约），导出端 `pre` 的纵向留白不受影响。全部 23 个主题 `validate` 零问题
+- 依赖新增 `@lezer/markdown@^1`；devDep `@bytechain.cn/colamd` 升至 `^2.7.13`
 - Skill（`skills/colamd-themes/SKILL.md`）与工作区规则（`.trae/rules/colamd-themes.md`，由 `build:skills` 同源再生成）新增幻灯片章节：指令语法、11 种版式对照、`--slide-*` 令牌与预设、to-slides 用法、SLIDE/SLIDES 校验规则；7 个 agent 目标 frontmatter 描述同步更新
 
 ### 范围说明
 
-- 2.7.13-rc.2 尚未发布到 npm；经 lib `buildExportHTML` 的 HTML/PDF 导出仍为文档式排版（上游 lib 未引入 slides.css），放映版式在 ColaMD 应用内查看，compat 探测负责给出可操作提示
+- 经 lib `buildExportHTML` 的 HTML/PDF 导出仍为文档式排版（2.7.13 的幻灯片 CSS 只随 renderer assets 提供应用内放映），放映版式在 ColaMD 应用内查看，compat 探测负责给出可操作提示
 - 不生成 `slide-js`（脚本属高级用法，skill 文档说明语法）
 
 ### Verified
@@ -32,10 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `npm run build`（tsc）与 `npm run build:skills`（7 个 agent 目标）通过
 - `to-slides` 样例（9 页）版式推断全部正确：cover / section / agenda / kpi / timeline / steps / matrix / quote / closing；`validate deck.md` 通过；与上游 `resources/templates/slides.md` 写法一致
 - `--ppt sans` 生成主题含 `--slide-*` 区块（280 行 ≤ 300 行契约上限）、`validate` 报平台兼容行 + SLIDE 校验通过；不带 `--ppt` 回归无区块
-- `export-html`（Puppeteer + 2.7.12 renderer）带 PPT 主题导出成功：slide 令牌零泄漏、契约活变量完整、产物 80 KB
+- `export-html`（Puppeteer + 2.7.13 renderer）带 PPT 主题导出成功：slide 令牌零泄漏、契约活变量完整、产物 80 KB；HTML/PDF 导出冒烟测试在 2.7.13 安装态通过
 - 负例全命中：未知令牌（SLIDE-01）、裸选择器 ×2（SLIDE-02）、非 CJK 字体栈（SLIDE-03）、页中指令块（SLIDES-01）、坏字段键（SLIDES-04/05）、危险 slide-css（SLIDES-06）、未知版式名（SLIDES-03）
-- `validate` 平台兼容行在 2.7.12 安装态正确报告「幻灯片版式: 不支持」
-- 版本号升至 0.6.0
+- `validate` 平台兼容行在 2.7.13 安装态正确报告「契约 2.7.13，与主题契约一致；幻灯片版式: 支持」
+- 全部 23 个主题 `validate` 零问题（indigo-deck 饱和度修复、swiss-lemon-dark 纵向 padding 修复后）
+- 版本号 0.6.0
 
 ---
 

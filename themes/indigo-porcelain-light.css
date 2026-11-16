@@ -4,7 +4,7 @@
  *   说明：surface 由 #f1f3f5 微调为 #f1f1f2（仅差 2/255 级，肉眼不可辨），
  *   目的是满足 paradigm SL-01（底色饱和度 ≤5%）——近白底在 HSL 下色阶差 4 即超标；
  *   浅瓷白的「蓝」由文字/标题 #0a1f3d 承担，与 deck 一致。
- * 契约：ColaMD 2.7.12（:root 活变量；CM6 每行一 div；引用/代码块禁纵向 padding；
+ * 契约：ColaMD 2.7.13（:root 活变量；CM6 每行一 div；引用/代码块禁纵向 padding；
  *   .cm-md-blockquote 不写 background——2.7.11 起底色由 ::before + --blockquote-bg 绘制）
  */
 

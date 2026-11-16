@@ -1,4 +1,4 @@
-/** Theme style data models — v4.0 Seed Palette paradigm (ColaMD 2.7.12 contract). */
+/** Theme style data models — v4.0 Seed Palette paradigm (ColaMD 2.7.13 contract). */
 
 // ═══════════════════════════════════════════════════════════
 // Legacy model (kept for extractor compatibility)
@@ -111,7 +111,7 @@ export interface ThemeStyle {
   radiusLg: string;
   contentWidth: string;
   /**
-   * Optional PPT voice (ColaMD 2.7.13-rc.2 slide layout tokens). When set,
+   * Optional PPT voice (ColaMD 2.7.13 slide layout tokens). When set,
    * the generated CSS carries a `:root` SECTION with `--slide-*` overrides;
    * undefined keeps the theme document-only.
    */

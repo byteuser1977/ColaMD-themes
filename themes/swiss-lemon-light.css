@@ -1,7 +1,7 @@
 /*
  * ColaMD Theme: swiss-lemon-light
  * 瑞士国际主义 · 柠檬黄 · 亮色（对齐 guizang template-swiss.html 的亮色 .slide）
- * 契约：ColaMD 2.7.12（CodeMirror 6 + Pele）
+ * 契约：ColaMD 2.7.13（CodeMirror 6 + Pele）
  *
  * 暖白纸底 #fafaf8 + 墨黑字 #0a0a0a；柠檬黄 #FFD500 作强调。
  * 注意：纯 #FFD500 在纸底上对比仅 1.36:1，故"黄色字"（加粗/链接/强调文字）
@@ -36,6 +36,37 @@
   --font-mono: "JetBrains Mono", "IBM Plex Mono", "SF Mono", "Cascadia Code", "Consolas", "Courier New", ui-monospace, monospace;
   --editor-font-size: 16px;
   --editor-column-width: 780px;
+
+  /* ── PPT 版式令牌：与 slides.css 的公开契约对齐（瑞士亮色 · 越大越细）──
+     字体与字号严格对齐 deck（--sans Inter 200 / --sans-zh Noto Sans SC / --mono JetBrains）：
+     放映态正文基准 clamp(17px,1.35vw,26px)，1080p 全屏 26px；deck 的 vw 值按此折算 em——
+     h-xl 6vw→4.4em，h-hero-zh 8.4vw→6.2em，章节封 6.4vw→4.7em，.lead 1.55vw→1.15em，
+     .kicker 固定 14px，stat-nb 5.6vw→4.1em，h-md 2.6vw→1.9em，.slide 留白 5.5vh 5vw */
+  --slide-serif: var(--font-body);
+  --slide-mono: var(--font-mono);
+  --slide-title-font: var(--font-body);
+  --slide-title-size: 4.4em;
+  --slide-title-weight: 200;
+  --slide-subhead-weight: 300;
+  --slide-title-tracking: -0.03em;
+  --slide-title-line-height: 1.05;
+  --slide-cover-title-size: 6.2em;
+  --slide-cover-title-line-height: 0.96;
+  --slide-cover-title-tracking: -0.025em;
+  --slide-cover-text-align: center;
+  --slide-section-title-size: 4.7em;
+  --slide-closing-title-size: 4.4em;
+  --slide-lead-size: 1.15em;
+  --slide-kicker-size: 14px;
+  --slide-kicker-tracking: 0.24em;
+  --slide-kicker-transform: uppercase;
+  --slide-chrome-opacity: 0.6;
+  --slide-chrome-transform: uppercase;
+  --slide-kpi-number-size: 4.1em;
+  --slide-quote-size: 1.9em;
+  --slide-page-pad-x: 5vw;
+  --slide-page-top-pad: 5.5vh;
+  --slide-page-top-pad-print: 48px;
 
   /* ── Pele 图表：纸底 + 柠檬黄 ── */
   --pele-bg: #f0f0ee;
@@ -298,6 +329,35 @@
 .colamd-document th p,
 .colamd-document blockquote p {
   text-indent: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 3 — 幻灯片版式覆盖（仅放映/打印作用域，SLIDE-02）
+   ═══════════════════════════════════════════════════════════ */
+
+/* steps 版式：步骤名做成细线描边胶囊（deck .tag 语义——
+   纸底上纯黄 #FFD500 描边对比不足，描边与文字用可读柠檬派生色） */
+body.presenting #editor .cm-content .cm-md-slide-steps .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-listmark {
+  display: none;
+}
+
+body.presenting #editor .cm-content .cm-md-slide-steps .cm-md-strong,
+body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 2.4em;
+  padding: 0.22em 0.9em;
+  border: 1.5px solid var(--link-color);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--link-color);
+  font-family: var(--slide-title-font);
+  font-size: 0.95em;
+  line-height: 1.25;
+  white-space: nowrap;
 }
 
 /* ═══════════════════════════════════════════════════════════

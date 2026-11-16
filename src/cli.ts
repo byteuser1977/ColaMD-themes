@@ -228,7 +228,7 @@ function addExtractOptions(cmd: Command): Command {
     .option("-d, --themes-dir <dir>", "Themes directory", "themes")
     .option("-c, --color-system <id>", "Force a color system (use `color-systems` to list)")
     .option("-A, --auto-match", "Auto-match a color system from the extracted palette")
-    .option("--ppt [style]", "Also emit PPT --slide-* tokens (ColaMD 2.7.13-rc.2 slides); optional preset: serif|sans|mono");
+    .option("--ppt [style]", "Also emit PPT --slide-* tokens (ColaMD 2.7.13 slides); optional preset: serif|sans|mono");
 }
 
 async function runExtraction(
@@ -259,7 +259,7 @@ async function runExtraction(
       style.colorSystemId = cs.id;
     }
     if (options.autoMatch) style.colorSystemId = "";
-    spinner.text = "Generating CSS (2.7.12 contract)...";
+    spinner.text = "Generating CSS (2.7.13 contract)...";
     const outputPath = writeThemeFile(style, options.output || options.themesDir);
     spinner.succeed(chalk.green(`Theme "${style.name}" generated: ${outputPath}`));
     printSummary(style);
@@ -313,7 +313,7 @@ addExtractOptions(
 // ── to-slides ──
 program
   .command("to-slides")
-  .description("Convert a Markdown document into slide-deck Markdown (ColaMD 2.7.13-rc.2 slide layouts)")
+  .description("Convert a Markdown document into slide-deck Markdown (ColaMD 2.7.13 slide layouts)")
   .argument("<input>", "Path to .md file")
   .option("-o, --output <path>", "Output .md file path (default: <input>.slides.md)")
   .option("--deck-brand <text>", "Deck chrome brand (footer-left serif text)")
@@ -383,7 +383,7 @@ program
 // ── validate ──
 program
   .command("validate")
-  .description("Validate a theme CSS (2.7.12 contract + slide tokens) or slides markdown (directive contract)")
+  .description("Validate a theme CSS (2.7.13 contract + slide tokens) or slides markdown (directive contract)")
   .argument("<file>", "Path to a .css theme file or a .md slides file")
   .action((file: string) => {
     if (!existsSync(file)) { console.error(chalk.red(`File not found: ${file}`)); process.exit(1); }
@@ -391,7 +391,7 @@ program
 
     // Slides markdown: directive contract checks.
     if (file.toLowerCase().endsWith(".md")) {
-      console.log(chalk.bold("Slides directives (ColaMD 2.7.13-rc.2):"));
+      console.log(chalk.bold("Slides directives (ColaMD 2.7.13):"));
       const issues = validateSlidesMarkdown(css);
       console.log(issues.length === 0
         ? chalk.green("  ✔ 指令语法、页首规则与 slide-css 白名单校验通过")
@@ -412,7 +412,7 @@ program
       inkDim: extract("--seed-ink-dim"), border: extract("--seed-border"),
       borderStrong: extract("--seed-border-strong"),
     };
-    console.log(chalk.bold("CSS contract (ColaMD 2.7.12):"));
+    console.log(chalk.bold("CSS contract (ColaMD 2.7.13):"));
     const cssIssues = validateThemeCss(css);
     console.log(cssIssues.length === 0 ? chalk.green("  ✔ :root 根块与选择器契约通过") : summarizeIssues(cssIssues));
 

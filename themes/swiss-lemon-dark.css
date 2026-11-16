@@ -1,7 +1,7 @@
 /*
  * ColaMD Theme: swiss-lemon-dark
  * 瑞士国际主义 · 柠檬黄 · 深色
- * 契约：ColaMD 2.7.12（CodeMirror 6 + Pele）
+ * 契约：ColaMD 2.7.13（CodeMirror 6 + Pele）
  *
  * 配色保持本主题自己的深墨底 + 暖白字 + 柠檬黄，不套用参考稿的绿色。
  * 参考稿只提供布局与字体的抽象：
@@ -238,11 +238,9 @@
   padding: 0 1.2em;
 }
 #editor .cm-content .cm-md-codeblock-first {
-  padding-top: 0.8em;
   border-radius: var(--layout-radius);
 }
 #editor .cm-content .cm-md-codeblock-last {
-  padding-bottom: 0.8em;
   border-radius: var(--layout-radius);
 }
 

@@ -37,7 +37,7 @@ After installation, open a `.md` file and run **ColaView MD: Show Preview** from
 - **DOCX** — read Word document styles (H1–H6, tables, code blocks) via mammoth, map to theme variables
 - **PDF** — extract typography metadata from PDF text using multi-layer heuristic analysis
 - **Auto‑detect** — `extract` command automatically routes to the right extractor
-- **PPT styling (`--ppt`, v0.6.0+, optional)** — extraction can also emit the `--slide-*` token section (ColaMD 2.7.13-rc.2 slide layouts) into the generated theme. Presets mirror upstream voices: `serif` (magazine default), `sans` (Notion-like), `mono` (Writer-like); only the brand layer is derived (title font / mono font / title weight, CJK fallback ensured) while the layout size ladder stays at upstream defaults
+- **PPT styling (`--ppt`, v0.6.0+, optional)** — extraction can also emit the `--slide-*` token section (ColaMD 2.7.13 slide layouts) into the generated theme. Presets mirror upstream voices: `serif` (magazine default), `sans` (Notion-like), `mono` (Writer-like); only the brand layer is derived (title font / mono font / title weight, CJK fallback ensured) while the layout size ladder stays at upstream defaults
 
 ### Markdown → PPT Markdown (v0.6.0+)
 
@@ -51,7 +51,7 @@ After installation, open a `.md` file and run **ColaView MD: Show Preview** from
 - **`export-pdf`** — render Markdown to PDF via Puppeteer (Chromium); theme colors are preserved with `print-color-adjust: exact`
 - **`export`** — batch export multiple files or entire directories to HTML, PDF, or both at once (`--format html,pdf` renders both artifacts in a single renderer/browser lifecycle)
 - **Token-saving exports (v0.5.8+, default on)** — when the source markdown contains no math (`$$`, `$...$`, `\(..\)`, `\begin{..}`), the inlined base64 KaTeX math fonts (≈96% of the embedded CSS) are stripped from the export artifact, shrinking a typical export from ~1.5 MB (~400k tokens) to ~57 KB (~15k tokens) — ideal when an AI/LLM agent reads the output back. Math documents keep their fonts automatically; `--keep-fonts` forces full font embedding. Money mentions like `$1.5M` are correctly ignored by the math detector
-- Powered by `@bytechain.cn/colamd/renderer` (2.x library build, requires `@bytechain.cn/colamd@^2.7.12`) — the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations, `buildExportHTML({ title })` serializes only contract live variables, and mermaid diagrams (Pele SVG) / KaTeX math stay fully rendered offline. Built-in theme names resolve their local contract CSS first. Generated themes target the **2.7.12 contract**, so they carry over unchanged.
+- Powered by `@bytechain.cn/colamd/renderer` (2.x library build, requires `@bytechain.cn/colamd@^2.7.13`) — the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations, `buildExportHTML({ title })` serializes only contract live variables, and mermaid diagrams (Pele SVG) / KaTeX math stay fully rendered offline. Built-in theme names resolve their local contract CSS first. Generated themes target the **2.7.13 contract**, so they carry over unchanged.
 
 ### Theme Management
 
@@ -65,11 +65,11 @@ After installation, open a `.md` file and run **ColaView MD: Show Preview** from
 - **Contrast Engine** — WCAG 2.1 relative luminance & contrast ratio calculations
 - **Paradigm Validator** — 15+ design constraint rules (CR, HR, SL, NT, BD, MP, FP, FS, SH) with auto-fix suggestions
 - **Color System Library** — 15 predefined seed palettes across 5 families (Morandi, Macaron, Nordic, Vintage, Mint)
-- **2.7.12 CSS Contract Validator** — flags dead selectors (`#write`, `.ProseMirror`, `body.theme-custom`), dead variables (`--mermaid-*`, `--radius-*`, `--font-size-root`…), `pt` units, and vertical padding on quote/code lines
+- **2.7.13 CSS Contract Validator** — flags dead selectors (`#write`, `.ProseMirror`, `body.theme-custom`), dead variables (`--mermaid-*`, `--radius-*`, `--font-size-root`…), `pt` units, and vertical padding on quote/code lines
 - **Slide rule validators (v0.6.0+)** — theme side: unknown `--slide-*` tokens (SLIDE-01), structure selectors must live under `body.presenting` / `body.slides-printing` (SLIDE-02), CJK + generic title font stacks (SLIDE-03); deck side (`validate <deck.md>`): page-first directive placement (SLIDES-01), layout-name syntax (SLIDES-02), unknown-layout warning (SLIDES-03), field-key whitelists (SLIDES-04/05), `slide-css` safety subset rejecting `position: absolute/fixed` / `z-index` / pseudo-protocol URLs (SLIDES-06)
-- **Contract verified** — all 16 shipped themes audited against the frozen live-variable set (contract unchanged through 2.7.12) and smoke-tested on the 2.7.11 export pipeline: zero `.cm-md-*` hook drift, all `:root` live variables and `--pele-*` overrides consumed, exports carry exactly the 27 contract live variables
+- **Contract verified** — all 16 shipped themes audited against the frozen live-variable set (contract unchanged through 2.7.13) and smoke-tested on the 2.7.13 export pipeline: zero `.cm-md-*` hook drift, all `:root` live variables and `--pele-*` overrides consumed, exports carry exactly the 27 contract live variables
 - **Pele Diagram Colors** — 9 `--pele-*` variables derived from `--code-block-bg` / `--code-block-text` / `--link-color`, replacing the 20 Mermaid variables
-- **Platform backward compatibility (v0.5.3+, dual contract v0.6.0+)** — [`src/compat.ts`](src/compat.ts) probes the installed `@bytechain.cn/colamd` version and its `themes/contract.json` for contract drift (both `2.7.12` and `2.7.13-rc.2` are accepted — rc.2 adds no live variables, themes carry over unchanged), and detects the **slide layout system** (`slidesSupported`: version ≥ `2.7.13-rc.1` or rc.2-specific CSS markers); `validate` prints a "平台兼容" report line including 幻灯片版式 support, and the renderer verifies the export API surface (`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`) before rendering. Platform upgrades produce actionable diagnostics (version + fix command) instead of cryptic mid-render failures
+- **Platform backward compatibility (v0.5.3+, single contract v0.6.0+)** — [`src/compat.ts`](src/compat.ts) probes the installed `@bytechain.cn/colamd` version and its `themes/contract.json` for contract drift (only `2.7.13` is accepted — the live/dead variable set is identical to the previous anchor, themes carry over unchanged), and detects the **slide layout system** (`slidesSupported`: version ≥ `2.7.13-rc.1` or rc.2-specific CSS markers); `validate` prints a "平台兼容" report line including 幻灯片版式 support, and the renderer verifies the export API surface (`applyTheme` / `setMarkdown` / `ensureAllPluginsRendered` / `buildExportHTML`) before rendering. Platform upgrades produce actionable diagnostics (version + fix command) instead of cryptic mid-render failures
 
 ### Security & Performance (v0.4.0+)
 
@@ -82,12 +82,12 @@ After installation, open a `.md` file and run **ColaView MD: Show Preview** from
 
 ### CSS Template Engine
 
-Handlebars-powered template produces ColaMD 2.7.12 contract CSS (≤300 lines):
+Handlebars-powered template produces ColaMD 2.7.13 contract CSS (≤300 lines):
 
 | Section | Content |
 |---------|---------|
 | 1 | Design Tokens — `:root` seed palette (11 vars), 14 semantic colors, fonts, metrics, 9 `--pele-*` |
-| 1.5 | PPT / Slides (optional, `--ppt`) — `--slide-*` tokens (2.7.13-rc.2), preset voice + brand fonts |
+| 1.5 | PPT / Slides (optional, `--ppt`) — `--slide-*` tokens (2.7.13), preset voice + brand fonts |
 | 2 | Editor DOM — `#editor .cm-content` + `.cm-md-*` (headings, inline, quote, code block, table, indent) |
 | 3 | Exported HTML — `.colamd-document` color layer for semantic tags |
 | 4 | `@media print` — print-color fidelity only (screen rules already apply) |
@@ -338,7 +338,7 @@ cthemes set-theme my-brand --remove
 | `-d, --themes-dir` | Themes directory (default: `themes/`) |
 | `-c, --color-system` | Force a color system |
 | `-A, --auto-match` | Auto-match a color system from the extracted palette |
-| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13-rc.2 slides); optional preset `serif` (default) / `sans` / `mono`. Off by default |
+| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13 slides); optional preset `serif` (default) / `sans` / `mono`. Off by default |
 
 ### to-slides options
 
@@ -376,12 +376,12 @@ Source (URL / .docx / .pdf)
            ▼
 ┌─────────────────────┐
 │  Color System       │  Match → 15 built-in palettes
-│  Validators         │  WCAG contrast + paradigm + 2.7.12 contract
+│  Validators         │  WCAG contrast + paradigm + 2.7.13 contract
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────┐
-│  Template Engine    │  Handlebars → 2.7.12 CSS (≤300 lines)
+│  Template Engine    │  Handlebars → 2.7.13 CSS (≤300 lines)
 └──────────┬──────────┘
            │
            ▼
@@ -414,7 +414,7 @@ Markdown file
 └─────────────────────────────────────────────┘
 ```
 
-## Design Paradigm (2.7.12 contract)
+## Design Paradigm (2.7.13 contract)
 
 Full specification: [`templates/theme-paradigm.md`](src/templates/theme-paradigm.md).
 
@@ -466,7 +466,7 @@ ColaMD-themes/
 │   ├── theme-store.ts                       # Theme config persistence (async API)
 │   ├── dsh-plugin.ts                        # DSH host entry (Cordis skill provider)
 │   ├── compat.ts                            # Platform compat layer (dual contract + slides probe + renderer API probe)
-│   ├── slides.ts                            # PPT --slide-* tokens, presets & brand derivation (2.7.13-rc.2)
+│   ├── slides.ts                            # PPT --slide-* tokens, presets & brand derivation (2.7.13)
 │   ├── slides-markdown.ts                   # Markdown → slide-deck conversion + directive contract validation
 │   ├── utils/
 │   │   └── cli-utils.ts                     # Shared utilities & error handling
@@ -482,7 +482,7 @@ ColaMD-themes/
 │   │   └── pdf-extractor.ts                 # PDF → ThemeStyle
 │   └── templates/
 │       ├── template.css                     # Paradigm companion CSS
-│       ├── theme-paradigm.md               # v4.0 design specification (2.7.12 contract)
+│       ├── theme-paradigm.md               # v4.0 design specification (2.7.13 contract)
 │       └── theme-template.hbs              # Handlebars CSS template
 └── tests/
 ```
@@ -493,14 +493,14 @@ ColaMD-themes/
 |-----------|---------|---------|
 | Runtime | Node.js + TypeScript | ESM modules, strict typing |
 | CLI framework | Commander.js | Argument parsing, subcommands |
-| CSS templating | Handlebars | 2.7.12 contract CSS generation |
+| CSS templating | Handlebars | 2.7.13 contract CSS generation |
 | HTML parsing | Cheerio | DOM traversal for URL extraction |
 | CSS parsing | css-tree | CSS rule AST parsing |
 | DOCX parsing | Mammoth | Word → HTML conversion |
 | PDF parsing | pdf-parse | PDF text extraction |
 | HTTP client | Axios | Web page fetching |
 | Browser engine | Puppeteer | Headless Chromium for HTML/PDF export |
-| Editor engine | @bytechain.cn/colamd | CM6-based Markdown renderer (2.7.12 anchor + 2.7.13-rc.2 slides) |
+| Editor engine | @bytechain.cn/colamd | CM6-based Markdown renderer (2.7.13 anchor; slide layouts stable) |
 | Slide parsing | @lezer/markdown | Markdown → slide-deck conversion (same parser family as upstream) |
 | Terminal output | Chalk + Ora | Colored text + spinners |
 

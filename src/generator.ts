@@ -1,4 +1,4 @@
-/** CSS theme file generator — v4.0 seed palette pipeline (ColaMD 2.7.12 contract). */
+/** CSS theme file generator — v4.0 seed palette pipeline (ColaMD 2.7.13 contract). */
 
 import Handlebars from "handlebars";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from "node:fs";
@@ -161,11 +161,11 @@ export function generateCss(style: ThemeStyle): string {
   const css = template({
     ...style,
     codeBlockText: pickCodeBlockText(style.seed.panelAlt, style.seed),
-    // PPT voice (2.7.13-rc.2 slide tokens) — only when the extraction asked for it.
+    // PPT voice (2.7.13 slide tokens) — only when the extraction asked for it.
     slideTokens: style.slidePreset ? buildSlideTokens(style, style.slidePreset) : undefined,
   });
 
-  // 6. Self-check the rendered CSS against the 2.7.12 contract
+  // 6. Self-check the rendered CSS against the 2.7.13 contract
   const cssIssues = validateThemeCss(css).filter(
     (i) => i.level === "MUST" || i.level === "MUST_NOT"
   );
