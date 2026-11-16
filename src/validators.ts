@@ -6,6 +6,7 @@
 
 import { parse, walk, generate } from "css-tree";
 import { contrastRatio, hslSaturation, hslLightness, hslHue, sameHueAxis, isLightMode } from "./contrast.js";
+import { SLIDE_TOKENS } from "./slides.js";
 
 export interface ValidationIssue {
   ruleId: string;
@@ -159,7 +160,7 @@ export function validateSeedPalette(palette: SeedPalette): ValidationIssue[] {
 }
 
 // ═══════════════════════════════════════════════════════════
-// CSS contract validation (ColaMD 2.7.12)
+// CSS contract validation (ColaMD 2.7.12) + slide tokens (2.7.13-rc.2)
 // ═══════════════════════════════════════════════════════════
 
 /** 2.7 编辑器不再消费的变量：留着只会让人照抄。 */
@@ -202,6 +203,76 @@ function hasVerticalPadding(rule: { block: { children: { forEach: (cb: (node: an
     }
   });
   return found;
+}
+
+// ── Slide token checks（ColaMD 2.7.13-rc.2 幻灯片版式）──
+
+/** 幻灯片结构钩子：主题里裸写会污染编辑视图，必须包在放映/打印作用域下。 */
+const SLIDE_STRUCTURE_SELECTOR_RE =
+  /\.cm-md-(?:page|slide)-[\w-]*|\.slide-(?:chrome|foot|ghost)\b/;
+const SLIDE_SCOPE_RE = /body\.(?:presenting|slides-printing)\b/;
+
+/** 中文字族：幻灯片标题栈缺它时中文标题会掉进 Georgia 兜底。 */
+const SLIDE_CJK_RE =
+  /[\u4e00-\u9fff]|Songti|SimSun|STSong|Noto (?:Serif|Sans) (?:CJK|SC)|Source Han (?:Serif|Sans)|思源|宋体|PingFang|Microsoft YaHei/i;
+
+/** 校验 `--slide-*` 区块与幻灯片选择器（无 slide 区块时全部静默通过）。 */
+function validateSlideDeclarationsAndSelectors(
+  css: string,
+  push: (issue: ValidationIssue) => void
+): void {
+  const slideTokenSet = new Set(SLIDE_TOKENS);
+  const ast = parse(css, { positions: false });
+
+  walk(ast, (node) => {
+    if (node.type === "Declaration") {
+      const name = node.property;
+      // SLIDE-01：未知令牌会被上游 slides.css 静默忽略，多半是拼写错误。
+      if (name.startsWith("--slide-") && !slideTokenSet.has(name)) {
+        push({
+          ruleId: "SLIDE-01",
+          level: "SHOULD",
+          message: `未知幻灯片令牌 ${name}（2.7.13-rc.2 slides.css 不消费它，会被静默忽略）`,
+          fix: "核对令牌名拼写，完整清单见 colamd-themes skill 幻灯片章节",
+        });
+      }
+      // SLIDE-03：标题/衬线字体栈须含中文字族并以 generic family 结尾。
+      if ((name === "--slide-title-font" || name === "--slide-serif") && node.value?.type === "Value") {
+        const value = generate(node.value).trim();
+        if (!SLIDE_CJK_RE.test(value)) {
+          push({
+            ruleId: "SLIDE-03",
+            level: "SHOULD",
+            message: `${name} 字体栈缺少中文字族，中文标题会回退到拉丁兜底字体：${value}`,
+            fix: '追加 "Songti SC" / "Noto Serif SC" / 宋体 等中文字族',
+          });
+        }
+        if (!/(?:^|,)\s*(?:serif|sans-serif|monospace)\s*$/i.test(value)) {
+          push({
+            ruleId: "SLIDE-03",
+            level: "SHOULD",
+            message: `${name} 字体栈未以 generic family 结尾：${value}`,
+            fix: "在栈尾补 serif / sans-serif / monospace",
+          });
+        }
+      }
+    }
+
+    if (node.type === "Rule" && node.prelude.type === "SelectorList") {
+      for (const raw of generate(node.prelude).split(",")) {
+        const selector = raw.trim();
+        if (!selector || !SLIDE_STRUCTURE_SELECTOR_RE.test(selector)) continue;
+        if (!SLIDE_SCOPE_RE.test(selector)) {
+          push({
+            ruleId: "SLIDE-02",
+            level: "MUST_NOT",
+            message: `幻灯片结构选择器未包裹在 body.presenting / body.slides-printing 作用域下：${selector}`,
+            fix: "裸写会污染编辑视图；放映/导出样式必须带 body.presenting 或 body.slides-printing 前缀",
+          });
+        }
+      }
+    }
+  });
 }
 
 /** 校验生成的 CSS 是否符合 ColaMD 2.7.12 契约。 */
@@ -274,6 +345,9 @@ export function validateThemeCss(css: string): ValidationIssue[] {
       fix: "把变量块写到 :root 上",
     });
   }
+
+  // 幻灯片区块（2.7.13-rc.2）：无 --slide-* / 幻灯片选择器时静默通过。
+  validateSlideDeclarationsAndSelectors(css, (issue) => issues.push(issue));
 
   return issues;
 }

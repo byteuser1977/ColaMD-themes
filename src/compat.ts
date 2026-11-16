@@ -25,6 +25,19 @@ import { fileURLToPath } from "node:url";
 /** Contract version this package's themes and validators are written against. */
 export const SUPPORTED_CONTRACT = "2.7.12";
 
+/**
+ * Contracts we accept as "exact" — 2.7.12 plus the 2.7.13-rc.2 slide layout
+ * line (its contract.json adds no live variables, so themes carry over
+ * unchanged; only the `-rc.2` string differs).
+ */
+export const SUPPORTED_CONTRACTS: readonly string[] = Object.freeze([
+  "2.7.12",
+  "2.7.13-rc.2",
+]);
+
+/** Minimum platform version with the slide layout system (2.7.13-rc.1+). */
+export const SLIDES_MIN_VERSION = "2.7.13-rc.1";
+
 /** Minimum renderer entry (dist/lib/colamd-renderer.js) with the 2.x API. */
 export const MIN_RENDERER_VERSION = "2.7.8-rc.2";
 
@@ -51,6 +64,12 @@ export interface ColamdCompat {
   status: CompatStatus;
   /** Live variables our themes need that the installed contract lacks. */
   missingLiveVariables: string[];
+  /**
+   * Whether the installed platform ships the slide layout system
+   * (slides.css + cm-md-page/slide editor hooks). Theme PPT sections are
+   * inert without it — presentation styling only applies in-app.
+   */
+  slidesSupported: boolean;
 }
 
 /** Live variables our themes must be able to set (frozen 2.7.12 anchor). */
@@ -98,13 +117,52 @@ function readContractFrom(root: string): ColamdContract | null {
 }
 
 /**
+ * Compare two 2.x versions, understanding the `-rc.N` suffix used by the
+ * upstream release line (2.7.13-rc.1 < 2.7.13). Unparseable versions compare
+ * as equal so callers degrade to non-fatal diagnostics instead of crashing.
+ */
+export function compareColamdVersions(a: string, b: string): number {
+  const parse = (v: string) => {
+    const m = /^(\d+)\.(\d+)\.(\d+)(?:-rc\.(\d+))?$/.exec(v.trim());
+    return m
+      ? { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]), rc: m[4] ? Number(m[4]) : Infinity }
+      : null;
+  };
+  const pa = parse(a);
+  const pb = parse(b);
+  if (!pa || !pb) return 0;
+  for (const key of ["major", "minor", "patch"] as const) {
+    if (pa[key] !== pb[key]) return pa[key] - pb[key];
+  }
+  return pa.rc - pb.rc;
+}
+
+/**
+ * Detect the slide layout system (ColaMD 2.7.13-rc.1+). Primary signal is the
+ * installed version; fallback greps colamd.css for slide markers, so a future
+ * release that renames versions (or a locally linked build) still probes.
+ */
+function detectSlidesSupport(root: string | null, version: string | null): boolean {
+  if (version && compareColamdVersions(version, SLIDES_MIN_VERSION) >= 0) return true;
+  if (!root) return false;
+  const cssPath = join(root, "dist", "lib", "colamd.css");
+  if (!existsSync(cssPath)) return false;
+  try {
+    const css = readFileSync(cssPath, "utf-8");
+    return css.includes("--slide-") || css.includes("cm-md-page-start");
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Probe the installed platform. Never throws — every failure degrades to a
  * status that callers can report or ignore.
  */
 export function getColamdCompat(): ColamdCompat {
   const root = findColamdRoot();
   if (!root) {
-    return { version: null, packageRoot: null, contract: null, status: "not-installed", missingLiveVariables: [] };
+    return { version: null, packageRoot: null, contract: null, status: "not-installed", missingLiveVariables: [], slidesSupported: false };
   }
   let version: string | null = null;
   try {
@@ -112,14 +170,15 @@ export function getColamdCompat(): ColamdCompat {
   } catch {
     /* keep null */
   }
+  const slidesSupported = detectSlidesSupport(root, version);
   const contract = readContractFrom(root);
   if (!contract) {
-    return { version, packageRoot: root, contract: null, status: "no-contract", missingLiveVariables: [] };
+    return { version, packageRoot: root, contract: null, status: "no-contract", missingLiveVariables: [], slidesSupported };
   }
-  const status: CompatStatus = contract.contractVersion === SUPPORTED_CONTRACT ? "exact" : "drift";
+  const status: CompatStatus = SUPPORTED_CONTRACTS.includes(contract.contractVersion) ? "exact" : "drift";
   const installed = new Set(contract.liveVariables);
   const missingLiveVariables = SUPPORTED_LIVE_VARIABLES.filter((v) => !installed.has(v));
-  return { version, packageRoot: root, contract, status, missingLiveVariables };
+  return { version, packageRoot: root, contract, status, missingLiveVariables, slidesSupported };
 }
 
 /**
@@ -128,21 +187,24 @@ export function getColamdCompat(): ColamdCompat {
  * it unconditionally.
  */
 export function formatColamdCompat(compat: ColamdCompat = getColamdCompat()): string {
+  const slides = compat.slidesSupported
+    ? "幻灯片版式: 支持"
+    : "幻灯片版式: 不支持（放映样式需 ColaMD ≥ 2.7.13-rc.1，PPT 令牌将保持惰性）";
   if (compat.status === "not-installed") {
-    return "@bytechain.cn/colamd 未安装";
+    return `@bytechain.cn/colamd 未安装；${slides}`;
   }
   const ver = compat.version ?? "(版本未知)";
   if (compat.status === "no-contract") {
-    return `@bytechain.cn/colamd ${ver}（themes/contract.json 缺失或格式不符，无法核对契约）`;
+    return `@bytechain.cn/colamd ${ver}（themes/contract.json 缺失或格式不符，无法核对契约）；${slides}`;
   }
   const contract = compat.contract!;
   if (compat.status === "exact") {
-    return `@bytechain.cn/colamd ${ver}（契约 ${contract.contractVersion}，与主题契约一致）`;
+    return `@bytechain.cn/colamd ${ver}（契约 ${contract.contractVersion}，与主题契约一致）；${slides}`;
   }
   const drift = compat.missingLiveVariables.length > 0
     ? `，缺失活变量: ${compat.missingLiveVariables.join(", ")}`
     : "，活变量无缺失";
-  return `@bytechain.cn/colamd ${ver}（契约 ${contract.contractVersion} ≠ 主题契约 ${SUPPORTED_CONTRACT}${drift}）`;
+  return `@bytechain.cn/colamd ${ver}（契约 ${contract.contractVersion} ≠ 主题契约 ${SUPPORTED_CONTRACT}${drift}）；${slides}`;
 }
 
 /** Renderer API surface the export pipeline depends on. */

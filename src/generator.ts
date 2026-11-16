@@ -10,6 +10,7 @@ import { toRgba, normalizeThemeStyle } from "./color-utils.js";
 import { matchColorSystem } from "./color-systems.js";
 import { contrastRatio } from "./contrast.js";
 import { validateSeedPalette, validateThemeCss, summarizeIssues } from "./validators.js";
+import { buildSlideTokens } from "./slides.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const templatePath = join(__dirname, "templates", "theme-template.hbs");
@@ -23,7 +24,7 @@ Handlebars.registerHelper("rgba", (hex: unknown, alpha: unknown) => {
 // ── Template Cache with Size Limits and Auto-Invalidation ──
 
 /** 模板上下文：ThemeStyle + 生成阶段算出的派生值。 */
-type TemplateContext = ThemeStyle & { codeBlockText: string };
+type TemplateContext = ThemeStyle & { codeBlockText: string; slideTokens?: Record<string, string> };
 
 interface CachedTemplate {
   compiled: HandlebarsTemplateDelegate<TemplateContext>;
@@ -160,6 +161,8 @@ export function generateCss(style: ThemeStyle): string {
   const css = template({
     ...style,
     codeBlockText: pickCodeBlockText(style.seed.panelAlt, style.seed),
+    // PPT voice (2.7.13-rc.2 slide tokens) — only when the extraction asked for it.
+    slideTokens: style.slidePreset ? buildSlideTokens(style, style.slidePreset) : undefined,
   });
 
   // 6. Self-check the rendered CSS against the 2.7.12 contract

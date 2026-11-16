@@ -110,6 +110,12 @@ export interface ThemeStyle {
   radiusMd: string;
   radiusLg: string;
   contentWidth: string;
+  /**
+   * Optional PPT voice (ColaMD 2.7.13-rc.2 slide layout tokens). When set,
+   * the generated CSS carries a `:root` SECTION with `--slide-*` overrides;
+   * undefined keeps the theme document-only.
+   */
+  slidePreset?: "serif" | "sans" | "mono";
 }
 
 // ═══════════════════════════════════════════════════════════

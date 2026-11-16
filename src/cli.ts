@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, isAbsolute, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
@@ -18,6 +18,7 @@ import type { ThemeStyle } from "./models.js";
 import { registerExportCommands } from "./export-cli.js";
 import { BUILTIN_THEMES } from "./theme-store.js";
 import { getColamdCompat, formatColamdCompat } from "./compat.js";
+import { markdownToSlides, validateSlidesMarkdown } from "./slides-markdown.js";
 
 /**
  * Dynamically read version from package.json to avoid hardcoding.
@@ -226,7 +227,8 @@ function addExtractOptions(cmd: Command): Command {
     .option("-o, --output <path>", "Output CSS file path")
     .option("-d, --themes-dir <dir>", "Themes directory", "themes")
     .option("-c, --color-system <id>", "Force a color system (use `color-systems` to list)")
-    .option("-A, --auto-match", "Auto-match a color system from the extracted palette");
+    .option("-A, --auto-match", "Auto-match a color system from the extracted palette")
+    .option("--ppt [style]", "Also emit PPT --slide-* tokens (ColaMD 2.7.13-rc.2 slides); optional preset: serif|sans|mono");
 }
 
 async function runExtraction(
@@ -236,8 +238,20 @@ async function runExtraction(
 ) {
   const spinner = ora("Extracting styles...").start();
   try {
+    // --ppt [serif|sans|mono]: validate the preset before running extraction.
+    let slidePreset: "serif" | "sans" | "mono" | undefined;
+    if (options.ppt) {
+      const { parseSlidePreset } = await import("./slides.js");
+      const preset = parseSlidePreset(typeof options.ppt === "string" ? options.ppt : undefined);
+      if (!preset) {
+        spinner.fail(chalk.red(`Unknown PPT preset: "${options.ppt}". Valid presets: serif, sans, mono`));
+        process.exit(1);
+      }
+      slidePreset = preset;
+    }
     const style = await extractor.extract(source);
     if (options.name) style.name = options.name;
+    if (slidePreset) style.slidePreset = slidePreset;
     if (options.colorSystem) {
       const cs = getColorSystem(options.colorSystem);
       if (!cs) { spinner.fail(`Unknown color system: ${options.colorSystem}`); process.exit(1); }
@@ -296,6 +310,40 @@ addExtractOptions(
   await runExtraction(ext, source, options);
 });
 
+// ── to-slides ──
+program
+  .command("to-slides")
+  .description("Convert a Markdown document into slide-deck Markdown (ColaMD 2.7.13-rc.2 slide layouts)")
+  .argument("<input>", "Path to .md file")
+  .option("-o, --output <path>", "Output .md file path (default: <input>.slides.md)")
+  .option("--deck-brand <text>", "Deck chrome brand (footer-left serif text)")
+  .option("--deck-title <text>", "Deck chrome title (overrides frontmatter/first h1)")
+  .option("--deck-meta <text>", "Deck chrome meta (chrome-right fallback, e.g. date)")
+  .option("--deck-logo <path>", "Deck chrome logo path (relative to the output file)")
+  .action((input: string, options: { output?: string; deckBrand?: string; deckTitle?: string; deckMeta?: string; deckLogo?: string }) => {
+    if (!existsSync(input)) { console.error(chalk.red(`File not found: ${input}`)); process.exit(1); }
+    const md = readFileSync(input, "utf-8");
+    const slides = markdownToSlides(md, {
+      brand: options.deckBrand,
+      title: options.deckTitle,
+      meta: options.deckMeta,
+      logo: options.deckLogo,
+    });
+
+    // Self-check the generated deck against the directive contract.
+    const issues = validateSlidesMarkdown(slides);
+    const errors = issues.filter((i) => i.level === "MUST" || i.level === "MUST_NOT");
+    if (issues.length > 0) {
+      console.log(chalk.yellow(summarizeIssues(issues)));
+    }
+
+    const outputPath = options.output || input.replace(/\.md$/i, "") + ".slides.md";
+    writeFileSync(outputPath, slides, "utf-8");
+    const pageCount = slides.split("\n").filter((l) => /^ {0,3}---\s*$/.test(l)).length + 1;
+    console.log(chalk.green(`Slides deck generated: ${outputPath} (${pageCount} pages)`));
+    if (errors.length > 0) process.exit(1);
+  });
+
 // ── color-systems ──
 program
   .command("color-systems")
@@ -335,11 +383,23 @@ program
 // ── validate ──
 program
   .command("validate")
-  .description("Validate a theme CSS against the 2.7.12 contract and paradigm rules")
-  .argument("<file>", "Path to theme CSS file")
+  .description("Validate a theme CSS (2.7.12 contract + slide tokens) or slides markdown (directive contract)")
+  .argument("<file>", "Path to a .css theme file or a .md slides file")
   .action((file: string) => {
     if (!existsSync(file)) { console.error(chalk.red(`File not found: ${file}`)); process.exit(1); }
     const css = readFileSync(file, "utf-8");
+
+    // Slides markdown: directive contract checks.
+    if (file.toLowerCase().endsWith(".md")) {
+      console.log(chalk.bold("Slides directives (ColaMD 2.7.13-rc.2):"));
+      const issues = validateSlidesMarkdown(css);
+      console.log(issues.length === 0
+        ? chalk.green("  ✔ 指令语法、页首规则与 slide-css 白名单校验通过")
+        : summarizeIssues(issues));
+      if (issues.some((i) => i.level === "MUST" || i.level === "MUST_NOT")) process.exit(1);
+      return;
+    }
+
     const extract = (name: string) => {
       const m = css.match(new RegExp(`${name}:\\s*([^;]+);`));
       return m ? m[1].trim() : "";
@@ -480,6 +540,9 @@ function printSummary(style: ThemeStyle): void {
   console.log(`  ${chalk.white("panel:")} ${s.panel}  ${chalk.white("panel-alt:")} ${s.panelAlt}`);
   if (style.colorSystemId) {
     console.log(chalk.dim(`  Color system: ${style.colorSystemId}`));
+  }
+  if (style.slidePreset) {
+    console.log(chalk.dim(`  PPT style: ${style.slidePreset} (--slide-* tokens emitted)`));
   }
 }
 
