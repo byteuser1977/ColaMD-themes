@@ -158,3 +158,88 @@ export function parseSlidePreset(value: string | undefined): SlidePreset | null 
   const v = value.toLowerCase();
   return (SLIDE_PRESET_IDS as readonly string[]).includes(v) ? (v as SlidePreset) : null;
 }
+
+// ═══════════════════════════════════════════════════════════
+// Full slide token derivation (per-layout PPT styling)
+// ═══════════════════════════════════════════════════════════
+
+const MOOD_BOLD = /bold|punchy|graphic|loud|energetic|playful|neon|cyber|retro|maximal|geeky|rebellious|sci-fi/i;
+const MOOD_QUIET = /quiet|scholarly|calm|minimal|considered|soft|gentle|elegant|literary|patient|intelligent|intellectual/i;
+const MOOD_TECH = /tech|geek|cyber|pixel|retro-tech|sci-fi|neon/i;
+
+function clampNum(v: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, v));
+}
+
+function reorderTokens(tokens: Record<string, string>): Record<string, string> {
+  const ordered: Record<string, string> = {};
+  for (const name of SLIDE_TOKENS) {
+    if (name in tokens) ordered[name] = tokens[name];
+  }
+  return ordered;
+}
+
+/**
+ * Derive the FULL slide token set for a theme: preset voice + brand layer
+ * (via buildSlideTokens), then — when the source provided design hints —
+ * per-layout overrides so each page type (cover / section / KPI / quote /
+ * kicker / chrome / padding) carries the template's own typographic voice.
+ * Without hints this degrades gracefully to buildSlideTokens output.
+ */
+export function buildFullSlideTokens(style: ThemeStyle, preset: SlidePreset): Record<string, string> {
+  const tokens = buildSlideTokens(style, preset);
+  const d = style.slideDesign;
+  if (!d) return tokens;
+
+  const moods = d.mood ?? [];
+  const bold = moods.some((m) => MOOD_BOLD.test(m));
+  const quiet = moods.some((m) => MOOD_QUIET.test(m));
+  const tech = moods.some((m) => MOOD_TECH.test(m));
+  const dark = d.scheme === "dark";
+
+  // ── 标题阶梯：模板 display/body 比例 → 封面/章节/收尾/页标题字号 ──
+  // 无字号阶梯信息时按气质取锚点：大胆海报 ≈ 10.5，安静编辑 ≈ 7.5
+  const r = d.displayRatio && d.displayRatio > 2 ? d.displayRatio : bold ? 10.5 : 7.5;
+  const cover = clampNum(r * 0.58, 4.6, 6.6);
+  const titleTracking = bold ? "-0.03em" : quiet ? "-0.01em" : preset === "sans" ? "-0.02em" : "-0.015em";
+
+  tokens["--slide-cover-title-size"] = `${cover.toFixed(2)}em`;
+  tokens["--slide-cover-title-line-height"] = bold ? "0.95" : "1.05";
+  tokens["--slide-cover-title-tracking"] = titleTracking;
+  tokens["--slide-section-title-size"] = `${(cover * 0.82).toFixed(2)}em`;
+  tokens["--slide-closing-title-size"] = `${(cover * 0.92).toFixed(2)}em`;
+  tokens["--slide-title-size"] = `${clampNum(r * 0.3, 2.2, 3.1).toFixed(2)}em`;
+  tokens["--slide-title-tracking"] = titleTracking;
+  tokens["--slide-title-line-height"] = "1.12";
+  tokens["--slide-subhead-weight"] = preset === "mono" ? "500" : bold ? "800" : "600";
+
+  // ── 导语与 kicker ──
+  const leadR = d.leadRatio && d.leadRatio > 1 ? d.leadRatio : 1.4;
+  tokens["--slide-lead-size"] = `${clampNum(leadR * 0.92, 1.05, 1.6).toFixed(2)}em`;
+  tokens["--slide-kicker-size"] = bold
+    ? "clamp(11px, 0.72vw, 14px)"
+    : quiet
+      ? "clamp(9px, 0.6vw, 12px)"
+      : "clamp(10px, 0.64vw, 13px)";
+  tokens["--slide-kicker-tracking"] = preset === "mono" ? "0.18em" : quiet ? "0.12em" : "0.16em";
+  // serif 上游默认即 uppercase；sans/mono 预设保持 none，仅科技/大胆气质改写
+  if (preset === "serif" || tech || bold) tokens["--slide-kicker-transform"] = "uppercase";
+
+  // ── 页眉页脚 chrome ──
+  tokens["--slide-chrome-opacity"] = String(bold ? 0.75 : dark ? 0.45 : 0.6);
+  if (preset === "serif" || tech) tokens["--slide-chrome-transform"] = "uppercase";
+
+  // ── KPI 大字与引言 ──
+  tokens["--slide-kpi-number-size"] = bold ? "4.8em" : "4.2em";
+  tokens["--slide-quote-size"] = quiet ? "2.3em" : "2.1em";
+
+  // ── 页面留白：density low → 大留白 ──
+  tokens["--slide-page-pad-x"] = d.density === "low" ? "6.5vw" : d.density === "high" ? "4.5vw" : "5.5vw";
+  tokens["--slide-page-top-pad"] = d.density === "low" ? "15vh" : "12vh";
+  tokens["--slide-page-top-pad-print"] = d.density === "low" ? "13vh" : "10vh";
+
+  // serif 封面左对齐 + 导语内联（杂志式）；sans 封面居中来自预设，不覆盖
+  if (preset === "serif") tokens["--slide-cover-lead-inline"] = "auto";
+
+  return reorderTokens(tokens);
+}

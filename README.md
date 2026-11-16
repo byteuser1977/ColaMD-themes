@@ -34,10 +34,11 @@ After installation, open a `.md` file and run **ColaView MD: Show Preview** from
 ### Theme Extraction
 
 - **URL** — fetch a web page, parse its CSS rules (via `css-tree`), resolve inline styles with specificity calculation, and derive a coherent theme palette
+- **Local HTML template (`from-html`, v0.6.1+)** — extract from a local `.html` file; a sibling `template.json` (when present) supplies authoritative metadata (name, tagline, fonts, scheme, mood, density). Colors come from the template's `:root` custom properties via semantic-name matching with luminance/saturation heuristics as fallback; the palette is sanitized to satisfy the paradigm's luminance ordering (SL-04) and contrast rules (CR-02)
 - **DOCX** — read Word document styles (H1–H6, tables, code blocks) via mammoth, map to theme variables
 - **PDF** — extract typography metadata from PDF text using multi-layer heuristic analysis
-- **Auto‑detect** — `extract` command automatically routes to the right extractor
-- **PPT styling (`--ppt`, v0.6.0+, optional)** — extraction can also emit the `--slide-*` token section (ColaMD 2.7.13 slide layouts) into the generated theme. Presets mirror upstream voices: `serif` (magazine default), `sans` (Notion-like), `mono` (Writer-like); only the brand layer is derived (title font / mono font / title weight, CJK fallback ensured) while the layout size ladder stays at upstream defaults
+- **Auto‑detect** — `extract` command automatically routes to the right extractor (local HTML, URL, DOCX, PDF)
+- **PPT styling (`--ppt`, v0.6.0+, optional)** — extraction can also emit the `--slide-*` token section (ColaMD 2.7.13 slide layouts) into the generated theme. Presets mirror upstream voices: `serif` (magazine default), `sans` (Notion-like), `mono` (Writer-like). Since v0.6.1, `from-html` auto-detects the preset from the template's display font and, when the source provides design hints, derives a **full per-layout token set** (24 tokens): cover/section/closing title ladder from the template's own type scale, page title / KPI / quote / kicker / chrome / page padding tuned by mood (bold/quiet/tech), density, formality and scheme. Themes without design hints keep the brand-voice-only output
 
 ### Markdown → PPT Markdown (v0.6.0+)
 
@@ -220,11 +221,27 @@ cthemes from-docx report.docx --name corporate-theme
 cthemes from-pdf paper.pdf --name academic-theme
 ```
 
+### Extract from a local HTML template (v0.6.1+)
+
+```bash
+# A sibling template.json (name/tagline/typography/scheme/mood) is used when present
+cthemes from-html templates/vellum/template.html -n vellum --ppt -o themes/vellum.css
+
+# Batch: extract every template in a directory (--ppt with no value trusts the
+# preset auto-detected from each template's display font)
+Get-ChildItem templates -Directory | ForEach-Object {
+  cthemes from-html "$($_.FullName)\template.html" -n $_.Name --ppt -o "themes/$($_.Name).css"
+}
+```
+
 ### Extract with PPT slide styling (optional, off by default)
 
 ```bash
 # Also emit --slide-* tokens with the sans preset (serif | sans | mono)
 cthemes from-url "https://example.com" --name my-brand --ppt sans
+
+# --ppt with no preset: keep the extractor's auto-detected preset (from-html templates)
+cthemes from-html template.html --ppt
 ```
 
 ### Convert Markdown into slide-deck Markdown
@@ -318,8 +335,9 @@ cthemes set-theme my-brand --remove
 |---------|-------------|
 | `from-url <url>` | Extract theme from a web page URL |
 | `from-docx <file>` | Extract theme from a .docx document |
+| `from-html <file>` | Extract theme from a local HTML file (sibling `template.json` used as metadata when present) |
 | `from-pdf <file>` | Extract theme from a PDF document |
-| `extract <source>` | Auto-detect source type and extract theme |
+| `extract <source>` | Auto-detect source type (local HTML / URL / .docx / .pdf) and extract theme |
 | `to-slides <input>` | Convert a Markdown document into slide-deck Markdown (auto-inferred layouts) |
 | `color-systems` | List 15 built-in color systems |
 | `list` | List all generated themes |
@@ -338,7 +356,7 @@ cthemes set-theme my-brand --remove
 | `-d, --themes-dir` | Themes directory (default: `themes/`) |
 | `-c, --color-system` | Force a color system |
 | `-A, --auto-match` | Auto-match a color system from the extracted palette |
-| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13 slides); optional preset `serif` (default) / `sans` / `mono`. Off by default |
+| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13 slides); optional preset `serif` (default) / `sans` / `mono`. Off by default. A valueless `--ppt` keeps the preset auto-detected by the extractor (from-html templates) |
 
 ### to-slides options
 

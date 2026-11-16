@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-11-16
+
+### Added — 本地 HTML 模板提取（`from-html`）与全量 PPT 版式令牌
+
+- **新提取器 `from-html <file>`（本地 HTML 文件）**：新增 `LocalHtmlExtractor`，把 `UrlExtractor` 的解析核心抽为 protected `extractFromHtml()` 复用；`extract` 自动检测链同步纳入本地 `.html/.htm`。配套读取同目录 `template.json` 作为元数据覆盖层——`slug`/`tagline` 作主题名与描述，`typography.display/body/mono` + `serif_cn/sans_cn` 生成含中文字族回退、generic family 结尾的字体栈（SLIDE-03）
+- **颜色提取：语义 token + 明度/饱和度启发式**：从模板 `<style>` 的 `:root` 自定义属性提取颜色——先按语义名单（`--bg`/`--text`/`--accent` 等）精确匹配，再按子串（`--c-bg`/`--fg`/`--ink` 等命名变体）兜底；无语义命名时按明度排序出背景/前景、与两端拉开距离的最饱和色作强调色。`normalizeColor` 对 `var()` 引用返回空值（改由范式默认兜底），杜绝 `var(--x)` 进入下游 `hexToRgb` 抛错
+- **调色板清洗（sanitizePalette）**：模板原色为权威值覆盖范式默认后，无效值/不符合明度方向的派生色按背景-前景线性插值重推——SL-04 明度排序（暗色 surface < panel < panelAlt）、CR-02 次要文字对比度 ≥ 4.5:1（保前景色相轴，NT-01）、NT-02 边框可见性
+- **全量 PPT 版式令牌（`buildFullSlideTokens`）**：`--slide-*` 从 0.6.0 的"品牌声音"（标题字体/等宽/字重 + 预设覆盖）扩展为按页类型全量定制的 24 个令牌——封面/章节/收页字号阶梯取自模板 display/body 比例，页标题/KPI/引言/kicker/chrome/页边距按模板气质标签（mood：bold/quiet/tech）与 density/formality/scheme 推导。设计提示经 `ThemeStyle.slideDesign`（`SlideDesignHints`：displayRatio/leadRatio/density/formality/scheme/mood）传递，无提示的主题自动降级为原 buildSlideTokens 行为（完全向后兼容）
+- **PPT 预设自动判定**：`--ppt` 无值 flag 时信任提取器按模板 display 字体判定的预设（衬线字体名 → serif，等宽 → mono，其余 → sans），仅显式 `--ppt <style>` 才覆盖；`ThemeStyle.slideDesign` 承载模板密度/正式度/明暗/情绪与 `--sz-*` 字号阶梯比例
+- **34 个 beautiful-html-templates 模板主题**（`themes/*.css`，产物）：从 `D:\workspace\git\beautiful-html-templates\templates` 的 34 个幻灯片模板批量提取，17 个 sans（Space Grotesk/Bebas Neue/Barlow 系）+ 17 个 serif（Cormorant/Bodoni Moda/Playfair 系），全部 ≤ 300 行契约上限；目录说明见 `themes/README.md`
+
+### Changed
+
+- `UrlExtractor.parseCssRules` / `extractAllStyles` 由 private 放宽为 protected（子类复用）；`normalizeColor` 识别 `var(` 前缀返回空串（网络来源同样受益）
+- `generator.ts` 渲染管线改用 `buildFullSlideTokens`（slideDesign 缺省时输出与 0.6.0 一致）
+
+### Verified
+
+- `npx tsc --noEmit` 通过；34 个模板批量提取零失败
+- 全量 `validate`：`:root` 根块与选择器契约通过、平台兼容 `@bytechain.cn/colamd 2.7.13（契约 2.7.13）`、幻灯片版式： 支持
+- 抽样导出（vellum 深色 / coral mixed / 8-bit-orbit 霓虹暗色）HTML 成功，种子色忠实还原模板调色板（vellum：#2a3870 深蓝 + #e8d85c 暖黄 + #3a7878 灰蓝点缀）
+- 高饱和模板（8-bit-orbit neon void 等）按设计保留 SL-01/SL-02 饱和度范式警告（模板刻意气质，非契约错误）
+
 ## [0.6.0] - 2026-11-16
 
 ### Added — ColaMD 2.7.13 幻灯片版式（PPT）支持

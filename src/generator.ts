@@ -10,7 +10,7 @@ import { toRgba, normalizeThemeStyle } from "./color-utils.js";
 import { matchColorSystem } from "./color-systems.js";
 import { contrastRatio } from "./contrast.js";
 import { validateSeedPalette, validateThemeCss, summarizeIssues } from "./validators.js";
-import { buildSlideTokens } from "./slides.js";
+import { buildFullSlideTokens } from "./slides.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const templatePath = join(__dirname, "templates", "theme-template.hbs");
@@ -162,7 +162,7 @@ export function generateCss(style: ThemeStyle): string {
     ...style,
     codeBlockText: pickCodeBlockText(style.seed.panelAlt, style.seed),
     // PPT voice (2.7.13 slide tokens) — only when the extraction asked for it.
-    slideTokens: style.slidePreset ? buildSlideTokens(style, style.slidePreset) : undefined,
+    slideTokens: style.slidePreset ? buildFullSlideTokens(style, style.slidePreset) : undefined,
   });
 
   // 6. Self-check the rendered CSS against the 2.7.13 contract

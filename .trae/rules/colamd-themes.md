@@ -16,10 +16,20 @@ Generate, validate, export, and manage ColaMD **2.7 contract** CSS themes (2.7.1
 
 ```bash
 colamd-themes from-url <URL> [options]
+colamd-themes from-html <file> [options]
 colamd-themes from-docx <file> [options]
 colamd-themes from-pdf <file> [options]
 colamd-themes extract <source> [options]
 ```
+
+`from-html` extracts from a **local HTML file** (v0.6.1+). A sibling
+`template.json` — when present — supplies authoritative metadata: slug/tagline
+as theme name/description, `typography.display/body/mono` (+ `serif_cn` /
+`sans_cn`) as CJK-safe font stacks, `scheme`/`density`/`formality`/`mood` as
+slide design hints. Colors come from the template's `:root` custom properties
+(semantic-name matching first, luminance/saturation heuristics as fallback);
+the palette is sanitized to satisfy the paradigm's luminance ordering (SL-04)
+and contrast rules (CR-02). `extract` auto-detects local `.html/.htm` too.
 
 ### Export to HTML / PDF
 
@@ -66,7 +76,7 @@ colamd-themes validate <file.css | file.md>
 | `-d, --themes-dir` | Themes directory (default: `themes/`) |
 | `-c, --color-system` | Force a color system |
 | `-A, --auto-match` | Auto-match a color system from the extracted palette |
-| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13 slides); optional preset `serif` (default) / `sans` / `mono`. Off by default |
+| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13 slides); optional preset `serif` (default) / `sans` / `mono`. Off by default. A valueless `--ppt` keeps the preset auto-detected by the extractor (from-html templates) |
 
 ### Export options
 
@@ -143,6 +153,10 @@ Export uses Puppeteer (headless Chromium) with `@bytechain.cn/colamd/renderer`:
 9. For PDF: load the export HTML in a fresh page + `page.pdf()` — do NOT `emulateMediaType('screen')`, the theme's `@media print` rules (with `print-color-adjust: exact`) must apply
 
 ## Slide Layouts (ColaMD 2.7.13 幻灯片版式)
+
+> 逐页复刻参考模板（`beautiful-html-templates/templates/<slug>/`）时，先读
+> `docs/slide-theme-replication.md`（七步流程 / 页面映射 / 26px 换算 / 五要素检查单 /
+> 陷阱清单）；技能 `colamd-themes` 内含同名 playbook。
 
 Upstream 2.7.13 adds a slide deck system. A deck is plain markdown: pages split on `---`, each page may open with a header comment block.
 
@@ -224,6 +238,7 @@ colamd-themes from-url <URL> -n my-brand --ppt sans   # presets: serif | sans | 
 ```
 
 - serif = 上游杂志衬线默认；sans = Notion 气质（无衬线、居中封面）；mono = Writer 气质（等宽标题）。品牌层只派生 `--slide-title-font` / `--slide-mono` / `--slide-title-weight`，版式字号阶梯保持上游默认。
+- **v0.6.1 全量版式令牌**：`from-html` 模板来源提供设计提示（`--sz-*` 字号阶梯 + template.json 的 mood/density/formality/scheme）时，生成 **24 个按页类型定制的令牌**——封面/章节/收页字号阶梯取自模板 display/body 比例，页标题 / KPI / 引言 / kicker / chrome / 页边距按气质（bold/quiet/tech）与密度调校；`--ppt` 不带值时信任按 display 字体自动判定的预设。无设计提示的主题保持仅品牌层输出（向后兼容）。
 - 自定义主题 CSS 在 slides.css 之后加载，`:root` 同权重后到先赢；不要写 `body.theme-custom`（文档契约死选择器）。
 - 手写主题里的幻灯片规则须遵守：**SLIDE-01** (SHOULD) 只用已知令牌；**SLIDE-02** (MUST_NOT) `.cm-md-page-*` / `.cm-md-slide-*` / `.slide-chrome|foot|ghost` 必须包裹在 `body.presenting` 或 `body.slides-printing` 作用域下（裸写污染编辑视图）；**SLIDE-03** (SHOULD) 标题字体栈含中文字族并以 generic family 结尾。
 - 平台需 ≥ 2.7.13 才消费这些令牌（compat 行「幻灯片版式」）；旧平台下令牌惰性。导出的 HTML/PDF 仍为文档式排版，放映版式在 ColaMD 应用内查看。

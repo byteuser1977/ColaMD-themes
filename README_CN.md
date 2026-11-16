@@ -34,10 +34,11 @@
 ### 主题提取
 
 - **URL 提取** — 抓取网页，通过 `css-tree` 解析 CSS 规则，结合选择器特异性计算与内联样式合并，推导协调的主题色板
+- **本地 HTML 模板提取（`from-html`，v0.6.1+）** — 从本地 `.html` 文件提取主题；同目录 `template.json`（存在时）提供权威元数据（名称、tagline、字体、scheme、mood、density）。颜色取自模板 `:root` 自定义属性——语义 token 名精确匹配优先，明度/饱和度启发式兜底；调色板经清洗满足范式明度排序（SL-04）与对比度规则（CR-02）
 - **DOCX 提取** — 通过 mammoth 读取 Word 文档完整样式（H1–H6、表格、代码块），映射为主题变量
 - **PDF 提取** — 采用多层启发式分析从 PDF 文本中提取排版元数据
-- **自动检测** — `extract` 命令根据文件类型或 URL 协议自动路由到对应提取器
-- **PPT 样式（`--ppt`，v0.6.0+，默认关闭）** — 提取时可选在生成主题中追加 `--slide-*` 令牌区块（ColaMD 2.7.13 幻灯片版式）。预设对齐上游气质：`serif`（杂志衬线默认）、`sans`（Notion 风：无衬线标题、居中封面）、`mono`（Writer 风：等宽标题）；品牌层只派生标题字体 / 等宽字体 / 字重（保证中文字族回退），版式字号阶梯沿用上游默认
+- **自动检测** — `extract` 命令根据文件类型或 URL 协议自动路由到对应提取器（本地 HTML / URL / DOCX / PDF）
+- **PPT 样式（`--ppt`，v0.6.0+，默认关闭）** — 提取时可选在生成主题中追加 `--slide-*` 令牌区块（ColaMD 2.7.13 幻灯片版式）。预设对齐上游气质：`serif`（杂志衬线默认）、`sans`（Notion 风：无衬线标题、居中封面）、`mono`（Writer 风：等宽标题）。v0.6.1 起，`from-html` 按模板 display 字体自动判定预设，且当来源提供设计提示时推导**全量按页类型定制的令牌组**（24 个）：封面/章节/收页字号阶梯取自模板自身字号阶梯，页标题 / KPI / 引言 / kicker / chrome / 页边距按气质（bold/quiet/tech）、密度、正式度与明暗调校；无设计提示的主题保持仅品牌层的输出
 
 ### Markdown → PPT Markdown (v0.6.0+)
 
@@ -196,11 +197,26 @@ cthemes from-docx 报告.docx --name 企业主题
 cthemes from-pdf 论文.pdf --name 学术主题
 ```
 
+### 从本地 HTML 模板提取（v0.6.1+）
+
+```bash
+# 同目录 template.json（名称/tagline/字体/scheme/mood）存在时自动采用
+cthemes from-html templates/vellum/template.html -n vellum --ppt -o themes/vellum.css
+
+# 批量：逐个提取目录下全部模板（--ppt 不带值时信任按模板 display 字体自动判定的预设）
+Get-ChildItem templates -Directory | ForEach-Object {
+  cthemes from-html "$($_.FullName)\template.html" -n $_.Name --ppt -o "themes/$($_.Name).css"
+}
+```
+
 ### 提取时附带 PPT 幻灯片样式（可选，默认关闭）
 
 ```bash
 # 同时生成 --slide-* 令牌，sans 预设（serif | sans | mono）
 cthemes from-url "https://example.com" --name 我的品牌 --ppt sans
+
+# --ppt 不带预设：保留提取器自动判定的预设（from-html 模板）
+cthemes from-html template.html --ppt
 ```
 
 ### 将 Markdown 转换为幻灯片 Markdown（PPT）
@@ -294,8 +310,9 @@ cthemes set-theme 我的品牌 --remove
 |------|------|
 | `from-url <url>` | 从网页 URL 提取主题 |
 | `from-docx <file>` | 从 .docx 文档提取主题 |
+| `from-html <file>` | 从本地 HTML 文件提取主题（同目录 `template.json` 存在时作为元数据来源） |
 | `from-pdf <file>` | 从 PDF 文档提取主题 |
-| `extract <source>` | 自动检测来源类型并提取主题 |
+| `extract <source>` | 自动检测来源类型（本地 HTML / URL / .docx / .pdf）并提取主题 |
 | `to-slides <input>` | 将 Markdown 文档转换为幻灯片 Markdown（自动推断版式） |
 | `color-systems` | 列出 15 套内置色彩系统 |
 | `list` | 列出所有生成的主题 |
@@ -314,7 +331,7 @@ cthemes set-theme 我的品牌 --remove
 | `-d, --themes-dir` | 主题目录（默认：`themes/`） |
 | `-c, --color-system` | 强制指定色彩系统 |
 | `-A, --auto-match` | 从提取的色板自动匹配色彩系统 |
-| `--ppt [style]` | 同时生成 PPT `--slide-*` 令牌（2.7.13 幻灯片版式）；可选预设 `serif`（默认）/ `sans` / `mono`。默认关闭 |
+| `--ppt [style]` | 同时生成 PPT `--slide-*` 令牌（2.7.13 幻灯片版式）；可选预设 `serif`（默认）/ `sans` / `mono`。默认关闭。`--ppt` 不带值时保留提取器自动判定的预设（from-html 模板） |
 
 ### to-slides 选项
 

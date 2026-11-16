@@ -1,0 +1,642 @@
+/*
+ * ColaMD Theme: Creative Mode（创意模式 · 新粗野主义 · 手工精修逐页版式复刻版）
+ * Cream 纸面 + 4px 墨框 + 硬偏移投影 + 四色高饱和撞色（green/pink/orange/yellow），
+ * Archivo Black 大写紧排 display + JetBrains Mono 技术标签 + Space Grotesk 正文。
+ * 来源：D:\workspace\git\beautiful-html-templates\templates\creative-mode\template.html
+ *   + design.md + template.json（1920×1080 八页 neo-brutalist deck）
+ *   colors: cream #EFE9D9 / cream-2 #E4DCC4 / ink #0F0F0F / ink-2 #2A2A2A
+ *           green #1F8A4C / green-dark #136636 / pink #F06CA8 / orange #E85A1F
+ *           yellow #F5C518
+ *   fonts:  Archivo Black（display，仅 400，大写锁）/ JetBrains Mono（标签 chrome）
+ *           Space Grotesk（正文）；CJK 落 Noto Sans SC（design.md Strategy A）
+ *
+ * paradigm 备案（模板刻意身份，有意保留，validate exit 1 属预期）：
+ *   SL-01  —— 底色 cream #EFE9D9 HSL 饱和度 40.7% > 5%：暖纸黄调是模板唯一
+ *            画布色（八页无一例外），高明度（L 89%）下感知为中性暖纸；
+ *            与 biennale-yellow / pin-and-paper 的黄纸备案同类。
+ *   SL-02  —— panel #E4DCC4 37.2% / panelAlt #CDC8BB 15.3% > 10%：均为 cream
+ *            同族降档纸面（表格底/代码底），模板 cream-2 即此色，不改。
+ *   NT-01  —— 四色离轴并置（green 150° / pink 330° / orange 20° / yellow 45°）
+ *            是模板的设计语言（"四色撞色即设计"）；契约只有一个 accent 位，
+ *            seed 层只收 green 主轴 + yellow 高亮，pink/orange 仅存在于色块
+ *            装饰（本主题未复刻的逐格填充），永不入文字色。
+ *   CR-04  —— seed-accent green 对 cream 3.64:1：green 只做色块/边框/Pele 条形，
+ *            文字强调走 --link-color = green-dark #136636（5.8:1 过线）。
+ *            生成版 link=yellow（1.35:1 不可读）已修复。
+ *   CR-02  —— 收页 green 满页上 cream 文字 3.64:1：标题 220px / strap 32px /
+ *            chrome 24px 均属 WCAG large-text（3:1 过线）；模板 .s8 身份即
+ *            green 满页，按原样保留。
+ * 生成版修复（§3 文档层）：h1-h6 爆字号 4.12em 阶梯 → 常规阶梯；Archivo Black
+ *   字重 700 → 400（仅 400 一档，§6-7）；--editor-font-size 34px → 17px；
+ *   ink-muted/ink-dim 重复 #666 → ink-2 #2A2A2A / #5A5A5A 分档；strong
+ *   yellow → 正文墨色；标题下划线移除（模板标题无边线）。
+ *
+ * 版式复刻见 SECTION 1.5/1.6（八页逐页对照、换算式与未复刻清单均在其注释中）。
+ *
+ * 契约：ColaMD 2.7.13（CodeMirror 6 编辑器 + Pele 图表引擎 + 幻灯片版式）
+ *
+ * 两条硬规矩：
+ *   1. 变量一律写在 :root。没写的活变量继承 Light 主题默认值；写在别的选择器里
+ *      编辑器继承不到。
+ *   2. 编辑器里没有 <h1>/<blockquote> 这种元素：标题是「一行」带一个类，引用与
+ *      代码块是每一行一个 div，加粗是一个 span。所以选择器只认 .cm-md-* 钩子，
+ *      并且引用/代码块**不能加纵向 padding**——那会按行累加。
+ *
+ * ═══════════════════════════════════════════════════════════
+ *   SECTION 1 — Design Tokens
+ *   改 11 个种子色 + 3 组字体即可换一套主题
+ * ═══════════════════════════════════════════════════════════ */
+
+:root {
+
+  /* ── 1.1 Seed Palette ──
+     本工具的再生成与校验读这一层；编辑器不消费。
+     明度排序（SL-04 亮色范式）：surface 0.82 > panel 0.72 > panelAlt 0.58；
+     四 accent 明度 green 0.19 < yellow 0.59（同族升档）。 */
+  --seed-accent:        #1f8a4c;   /* green —— 模板主 accent（满页收页/面板/条形） */
+  --seed-accent-light:  #f5c518;   /* yellow —— 暖 punct 色（荧光/装饰圆） */
+  --seed-accent-dark:   #136636;   /* green-dark —— 文字级强调档（cream 上 5.8:1） */
+  --seed-surface:       #efe9d9;   /* cream —— 全 deck 纸面 */
+  --seed-panel:         #e4dcc4;   /* cream-2 —— 表格底/引用面板 */
+  --seed-panel-alt:     #cdc8bb;   /* 代码块降档纸面（SL-04） */
+  --seed-ink:           #0f0f0f;   /* ink —— 边框/正文/规则线 */
+  --seed-ink-muted:     #2a2a2a;   /* ink-2 —— 次要正文 */
+  --seed-ink-dim:       #5a5a5a;   /* 辅助文字（cream 上 5.7:1） */
+  --seed-border:        #0f0f0f;   /* 模板：4px/3px solid ink 边框体系 */
+  --seed-border-strong: #0f0f0f;
+
+  /* ── 1.2 Semantic Colors（活变量）── */
+  --bg-color:         var(--seed-surface);
+  --text-color:       var(--seed-ink);
+  --text-secondary:   var(--seed-ink-muted);
+  --text-muted:       var(--seed-ink-dim);
+  --border-color:     var(--seed-border);
+  /* 模板 green-dark（5.8:1）；green 原色只承担色块（CR-04 备案见文件头） */
+  --link-color:       #136636;
+
+  --code-bg:          var(--seed-panel);
+  --code-block-bg:    var(--seed-panel-alt);
+  --code-block-text:  #0f0f0f;
+
+  --blockquote-border: var(--seed-ink);            /* neo-brutalist 4px 墨轨 */
+  --blockquote-bg:     var(--seed-panel);          /* cream-2 面板 */
+  --table-header-bg:   #0f0f0f;                    /* 模板 .head：ink 表头 cream 字 */
+
+  --selection-bg:  rgba(245, 197, 24, 0.4);
+  --highlight-bg:  #f5c518;                        /* yellow 荧光笔（ink 字 11.7:1） */
+
+  /* ── 1.3 Typography & Metrics（活变量）── */
+  --font-body: "Space Grotesk", "Noto Sans SC", sans-serif;
+  --font-mono: "JetBrains Mono", "Noto Sans Mono CJK SC", monospace;
+  --editor-font-size:    17px;
+  --editor-column-width: 820px;
+
+  /* ── 1.4 Pele Diagram（9 个变量，全部可省略）──
+     图直接画在代码块底色上，所以底色与字色都从 --code-block-* 推导。 */
+  --pele-bg:          var(--code-block-bg);
+  --pele-fg:          var(--code-block-text);
+  --pele-muted:       color-mix(in srgb, var(--code-block-text) 70%, var(--code-block-bg));
+  --pele-line:        var(--code-block-text);
+  --pele-surface:     color-mix(in srgb, var(--code-block-text) 18%, var(--code-block-bg));
+  --pele-surface-alt: color-mix(in srgb, var(--code-block-text) 28%, var(--code-block-bg));
+  --pele-border:      color-mix(in srgb, var(--code-block-text) 45%, var(--code-block-bg));
+  --pele-accent:      var(--seed-accent);   /* 模板条形图 green 主色 */
+  --pele-radius:      0px;                  /* 模板：零圆角（唯一例外是 chrome pill） */
+}
+
+/* ── 1.5 PPT / Slides（ColaMD 2.7.13 · 按 creative-mode 八页逐页复刻）──
+   换算锚点：放映基准字号 clamp(17px,1.35vw,26px)，1080p ≈ 26px/em；
+   模板 1920 画布 px ÷ 26 = em（clamp 取 1920×1080 实际落点）；行内元素先定
+   li 基准（说明文字 ÷26）再对行题/序号除以 li 缩放补偿。字体体系：
+   Archivo Black 400（display，大写锁 -.01em / .92 行高）/ JetBrains Mono
+   （chrome+kicker 24px）/ Space Grotesk（正文）。页面对照：
+     cover←P1  section←P2  kpi←P3  figure←P4  steps←P6  closing←P8(green 满页)
+   （P5 条形图 / P7 对照表与 figure 同形不单列——表格形态由 SECTION 2.4 的
+     ink 表头 + cream-2 表底承担；agenda/timeline/quote/matrix/two-col 无对应
+     页保持上游默认，--slide-quote-size 不设。）
+   未复刻（绝对定位装饰，行式 DOM 无挂点）：P1 海报开关与双行双色标题、
+   P2 PRESS PLAY 粉块 + 绿方黄圆、P3 四格逐格异色（green/pink/cream/orange
+   填充，行式 DOM 无法按 nth 稳定定位）、P4 iso 堆叠块与图例色板、P5 坐标轴
+   与条形、P6 卡间箭头、P7 旋转贴纸、P8 斜置印章；chrome pill 徽章与 meta
+   墨点分隔。能近似者：P4 图卡 → Pele 托 cream-2 底 + 4px 墨框 + 18px 硬投影；
+   P6 header-line 虚线 → 页题底线近似。 */
+:root {
+  --slide-mono: "JetBrains Mono", "Noto Sans Mono CJK SC", monospace;
+  --slide-title-font: "Archivo Black", "Noto Sans SC", sans-serif;
+  --slide-title-size: 3.23em;                 /* 内容页题 84px（display-sm）÷26 */
+  --slide-title-weight: 400;                  /* Archivo Black 仅 400（§6-7） */
+  --slide-subhead-weight: 400;
+  --slide-title-tracking: -0.01em;            /* .display -.01em */
+  --slide-title-line-height: 0.92;            /* display 紧排 .92（大写锁） */
+  --slide-cover-title-size: 6.15em;           /* P1 .title 160px ÷26 */
+  --slide-cover-title-line-height: 0.92;
+  --slide-cover-title-tracking: -0.01em;
+  --slide-section-title-size: 5.38em;         /* P2 .h 140px ÷26 */
+  --slide-closing-title-size: 8.46em;         /* P8 .h 220px ÷26 */
+  --slide-lead-size: 1.08em;                  /* .body-col 28px ÷26 */
+  --slide-kicker-size: clamp(12px, 1.25vw, 24px);   /* .kicker 24px @1920 */
+  --slide-kicker-tracking: 0.14em;            /* .kicker .14em */
+  --slide-kicker-transform: uppercase;
+  --slide-chrome-opacity: 1;                  /* topbar/meta 全墨不淡出 */
+  --slide-chrome-transform: uppercase;
+  --slide-kpi-number-size: 4.01em;            /* P3 .num 96px ÷26 ÷0.92(li) */
+  --slide-page-pad-x: 5vw;                    /* 内容沟距 96px @1920 */
+  --slide-page-top-pad: 90px;                 /* 内容顶 96px − chrome 安全区 */
+  --slide-page-top-pad-print: 80px;
+  --slide-cover-text-align: left;             /* P1 标题左对齐（垂直居中） */
+  --slide-cover-lead-inline: auto;
+}
+
+/* ═══════════════ SECTION 1.6 — 版式页复刻（SLIDE-02：全部包裹在
+   body.presenting / body.slides-printing 作用域） ═══════════════ */
+
+/* 1.6.1 页标题声部对齐：Archivo Black 400 大写紧排墨色；并压掉文档式 h1/h2
+   的 border-bottom（编辑器规则带 id 权重会漏进放映，陷阱3） */
+body.presenting #editor .cm-content .cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-page-title {
+  font-family: var(--slide-title-font);
+  font-size: var(--slide-title-size);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;                  /* display 大写锁（Hanzi 无害） */
+  color: var(--text-color);
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0.45em;
+}
+
+/* 1.6.2 cover · P1（poster）：标题 160px 垂直居中左对齐；mono tagline .16em
+   （前置短横线 span 与右栏海报开关为绝对定位装饰——未复刻；"MODE 橙"双行
+   双色为模板排版，单行 DOM 不复刻）；footnote 24px ink-2 */
+body.presenting #editor[data-slide-layout='cover'] .cm-content {
+  justify-content: center;
+}
+body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title,
+body.slides-printing .cm-md-slide-cover.cm-md-page-title {
+  font-size: var(--slide-cover-title-size);
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  max-width: 6em;                             /* .title width 900px @160px */
+}
+body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title[data-slide-kicker]::before,
+body.slides-printing .cm-md-slide-cover .cm-md-page-title[data-slide-kicker]::before {
+  letter-spacing: 0.16em;                     /* .tagline .16em */
+}
+body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-lead,
+body.slides-printing .cm-md-slide-cover.cm-md-page-lead {
+  font-size: 0.92em;                          /* .footnote 24px ÷26 */
+  line-height: 1.4;
+  color: var(--text-secondary);               /* ink-2 */
+  max-width: 27em;                            /* footnote max-width 640px @24px */
+}
+
+/* 1.6.3 section · P2（chapter opener）：kicker 反白墨块（ink 底 cream 字
+   .14em）；标题 140px；导语 28px ink-1.4（PRESS PLAY 粉块与绿方黄圆未复刻） */
+body.presenting #editor .cm-content .cm-md-slide-section .cm-md-page-title,
+body.slides-printing .cm-md-slide-section.cm-md-page-title {
+  font-size: var(--slide-section-title-size);
+  max-width: 6em;                             /* .h right:1000px @140px */
+}
+body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title[data-slide-kicker]::before,
+body.slides-printing .cm-md-slide-section .cm-md-page-title[data-slide-kicker]::before {
+  background: var(--seed-ink);                /* .kicker 反白墨块 */
+  color: var(--seed-surface);
+  letter-spacing: 0.14em;
+  padding: 0.12em 0.4em;
+}
+body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-lead,
+body.slides-printing .cm-md-slide-section.cm-md-page-lead {
+  font-size: 1.08em;                          /* .body-col 28px ÷26 */
+  line-height: 1.4;
+  color: var(--text-secondary);
+  max-width: 32ch;
+}
+
+/* 1.6.4 kpi · P3（stat grid 2×2）：页题 72px；四格 = 4px 墨框透明卡（c3 奶油
+   格形态；逐格异色填充未复刻）；裸排大数字 96px（.9 行高）；mono 角标 /01 =
+   listmark；mono 标签行与 desc 在行式 DOM 中合流为行说明 */
+body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-page-title,
+body.slides-printing .cm-md-slide-kpi.cm-md-page-title {
+  font-size: 2.77em;                          /* .h 72px ÷26 */
+  line-height: 0.95;
+}
+body.presenting #editor .cm-content .cm-md-slide-kpi.cm-md-li,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-li {
+  display: inline-block;
+  width: 47%;
+  margin: 0 2% 1.2em 0;                       /* 2×2：47+2=49%×2 留白兜底 */
+  vertical-align: top;
+  background: transparent;
+  border: 4px solid var(--seed-ink);          /* .cell 4px ink */
+  border-radius: 0;
+  box-shadow: none;
+  padding: 1.17em 1.23em;                     /* 28px 32px ÷26 ÷0.92 */
+  font-size: 0.92em;                          /* .desc 24px ÷26 */
+  list-style: none;
+}
+body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-listmark {
+  font-family: var(--slide-mono);
+  font-size: 1em;                             /* .corner 24px ÷26 ÷0.92 */
+  letter-spacing: 0.1em;
+  color: var(--text-color);
+}
+body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-strong,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-strong {
+  font-size: var(--slide-kpi-number-size);    /* 96px ÷26 ÷0.92 */
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: 0;
+  color: var(--text-color);
+}
+
+/* 1.6.5 figure · P4（iso diagram）：左栏标题 100px + 导语 24px ink-2；右栏
+   绿色 iso 面板为绝对定位装饰——未复刻；Pele 图卡近似版式面板：cream-2 托底
+   + 4px 墨框 + 18px 硬投影（.blk 18px 18px 0 ink）。P5 条形图 / P7 对照表
+   同形不单列（坐标轴/条形/图例/图注为模板专用 DOM；表格形态由 SECTION 2.4
+   承担：ink 表头 cream 字 + cream-2 表底） */
+body.presenting #editor .cm-content .cm-md-slide-figure .cm-md-page-title,
+body.slides-printing .cm-md-slide-figure.cm-md-page-title {
+  font-size: 3.85em;                          /* .h 100px ÷26 */
+  max-width: 9.2em;                           /* .h right:900px @100px */
+}
+body.presenting #editor[data-slide-layout='figure'] .cm-content .cm-md-page-lead,
+body.slides-printing .cm-md-slide-figure.cm-md-page-lead {
+  font-size: 0.92em;                          /* .sub 24px ÷26 */
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+body.presenting #editor .cm-content svg.pele,
+body.slides-printing #editor .cm-content svg.pele {
+  background: var(--seed-panel);
+  border: 4px solid var(--seed-ink);
+  border-radius: 0;
+  box-shadow: 18px 18px 0 var(--seed-ink);    /* .blk 硬偏移投影 */
+}
+
+/* 1.6.6 steps · P6（process flow）：页题 96px + 3px 虚线分隔（.header-line
+   以页题底线近似）；四列 4px 墨框卡（s-1 奶油形态；s-2/3/4 逐卡异色与卡间
+   箭头未复刻）；AB 序号 140px（.85 行高）+ 卡题 34px 大写 + 说明 24px ink-2 */
+body.presenting #editor .cm-content .cm-md-slide-steps .cm-md-page-title,
+body.slides-printing .cm-md-slide-steps.cm-md-page-title {
+  font-size: 3.69em;                          /* .h 96px ÷26 */
+  border-bottom: 3px dashed var(--seed-ink);  /* .header-line 3px dashed ink */
+  padding-bottom: 0.35em;
+}
+body.presenting #editor .cm-content .cm-md-slide-steps.cm-md-li,
+body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-li {
+  display: inline-block;
+  width: 22.5%;
+  margin: 0 1.5% 1.2em 0;                     /* 四列：22.5+1.5=24%×4=96% */
+  vertical-align: top;
+  background: transparent;
+  border: 4px solid var(--seed-ink);          /* .step 4px ink */
+  border-radius: 0;
+  box-shadow: none;
+  padding: 1.17em;                            /* .step 28px ÷26 ÷0.92 */
+  font-size: 0.92em;                          /* .d 24px ÷26 */
+  color: var(--text-secondary);               /* .d ink-2 */
+  list-style: none;
+}
+body.presenting #editor .cm-content .cm-md-slide-steps .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-listmark {
+  display: inline;
+  font-family: var(--slide-title-font);
+  font-weight: 400;
+  font-size: 5.85em;                          /* .n 140px ÷26 ÷0.92 */
+  line-height: 0.85;
+  letter-spacing: 0;
+  color: var(--text-color);
+  margin-right: 0.15em;
+}
+body.presenting #editor .cm-content .cm-md-slide-steps .cm-md-strong,
+body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-strong {
+  display: block;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  min-width: 0;
+  font-family: var(--slide-title-font);
+  font-size: 1.42em;                          /* .t 34px ÷26 ÷0.92 */
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--text-color);
+}
+
+/* 1.6.7 closing · P8（big mark，green 满页）：原页面底色 = --green 整页
+   （.s8 background green）——底色打满整条层叠链（陷阱1：只挂 body 会被平台
+   给 #editor 画的 cream 底反盖）；文字与 chrome 全 cream 声部；strap 32px；
+   斜置印章为绝对定位装饰未复刻。cream-on-green 3.64:1 属 large-text 过线
+   （文件头 CR-02 备案） */
+body.presenting:has(#editor[data-slide-layout='closing']),
+body.slides-printing:has(.cm-md-slide-closing) {
+  background: var(--seed-accent);             /* --green #1F8A4C */
+}
+body.presenting #editor[data-slide-layout='closing'],
+body.slides-printing:has(.cm-md-slide-closing) #editor,
+body.presenting #editor[data-slide-layout='closing'] .cm-editor,
+body.presenting #editor[data-slide-layout='closing'] .cm-scroller,
+body.presenting #editor[data-slide-layout='closing'] .cm-content,
+body.slides-printing:has(.cm-md-slide-closing) .cm-editor,
+body.slides-printing:has(.cm-md-slide-closing) .cm-scroller,
+body.slides-printing:has(.cm-md-slide-closing) .cm-content {
+  background: var(--seed-accent);
+}
+body.presenting #editor[data-slide-layout='closing'] .cm-content,
+body.slides-printing .cm-md-slide-closing .cm-md-page-title ~ * {
+  color: var(--seed-surface);                 /* cream 文字声部 */
+}
+body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-page-title,
+body.slides-printing .cm-md-slide-closing.cm-md-page-title {
+  font-size: var(--slide-closing-title-size); /* .h 220px ÷26 */
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  color: var(--seed-surface);
+  max-width: 6em;                             /* .h right:700px @220px */
+}
+body.presenting #editor[data-slide-layout='closing'] .cm-content .cm-md-page-lead,
+body.slides-printing .cm-md-slide-closing.cm-md-page-lead {
+  font-size: 1.23em;                          /* .strap 32px ÷26 */
+  line-height: 1.4;
+}
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-li,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-li {
+  border-top: 3px solid var(--seed-surface);  /* cream 顶线（模板 P8 无清单，
+                                                 按 chrome 3px 线体系弱化承担） */
+  border-bottom: none;
+  padding: 0.6em 0;
+  margin: 0;
+  color: var(--seed-surface);
+}
+body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-closing .cm-md-listmark {
+  color: var(--seed-surface);
+}
+body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-strong,
+body.slides-printing #editor .cm-content .cm-md-slide-closing .cm-md-strong {
+  color: var(--seed-surface);
+}
+/* 同色隐形（陷阱2）：ghost 页码 = ink 声部落 green 页脏读 → 整页隐藏 */
+body.presenting:has(#editor[data-slide-layout='closing']) .slide-ghost,
+body.slides-printing:has(.cm-md-slide-closing) .slide-ghost {
+  opacity: 0;
+}
+/* 换底页表格：td 换纸面 cream（th 自带 ink 底不受影响） */
+body.presenting #editor[data-slide-layout='closing'] .cm-content .cm-md-table-widget td,
+body.slides-printing:has(.cm-md-slide-closing) .cm-content .cm-md-table-widget td {
+  color: var(--seed-surface);
+  background: transparent;
+}
+body.presenting [data-slide-layout='closing'] .slide-chrome,
+body.slides-printing [data-slide-layout='closing'] .slide-chrome,
+body.presenting [data-slide-layout='closing'] .slide-foot,
+body.slides-printing [data-slide-layout='closing'] .slide-foot {
+  color: var(--seed-surface);
+}
+
+/* 1.6.8 chrome · topbar/meta：JetBrains Mono 24px 大写（.topbar .08em /
+   .slide-meta .06em）；pill 徽章与墨点分隔为 chrome 装饰——未复刻 */
+body.presenting .slide-chrome,
+body.slides-printing .slide-chrome {
+  font-family: var(--slide-mono);
+  font-size: clamp(12px, 1.25vw, 24px);       /* .topbar 24px @1920 */
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-color);
+}
+body.presenting .slide-foot,
+body.slides-printing .slide-foot {
+  font-family: var(--slide-mono);
+  font-size: clamp(12px, 1.25vw, 24px);       /* .slide-meta 24px @1920 */
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 1;
+  color: var(--text-color);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 2 — Editor DOM（#editor .cm-content + .cm-md-*）
+   ═══════════════════════════════════════════════════════════ */
+
+#editor .cm-content {
+  font-family: var(--font-body);
+  line-height: 1.7;
+}
+
+/* ── 2.1 Headings（Archivo Black 大写锁；字重 400——display 仅 400 一档，
+   生成版 700 为合成加粗错误）── */
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2,
+#editor .cm-content .cm-md-atxheading3,
+#editor .cm-content .cm-md-atxheading4,
+#editor .cm-content .cm-md-atxheading5,
+#editor .cm-content .cm-md-atxheading6 {
+  font-family: "Archivo Black", "Noto Sans SC", sans-serif;
+  color: var(--text-color);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+#editor .cm-content .cm-md-atxheading1 { font-size: 2.6em; line-height: 1.05; }
+#editor .cm-content .cm-md-atxheading2 { font-size: 2.1em; }
+#editor .cm-content .cm-md-atxheading3 { font-size: 1.6em; }
+#editor .cm-content .cm-md-atxheading4 { font-size: 1.3em; }
+#editor .cm-content .cm-md-atxheading5 { font-size: 1.12em; }
+#editor .cm-content .cm-md-atxheading6 {
+  font-size: 1em;
+  font-family: var(--font-mono);              /* h6 = mono-label 眉标声部 */
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+}
+
+/* ── 2.2 Inline（strong 永远正文墨色，不用 accent——§5）── */
+#editor .cm-content .cm-md-strong { color: var(--text-color); font-weight: 400; }
+#editor .cm-content .cm-md-em { font-style: italic; }
+#editor .cm-content .cm-md-strike { text-decoration: line-through; }
+#editor .cm-content .cm-md-highlight { background: var(--highlight-bg); }
+#editor .cm-content .cm-md-link { color: var(--link-color); }
+#editor .cm-content .cm-md-url { color: var(--text-muted); }
+
+#editor .cm-content .cm-md-inlinecode {
+  font-family: var(--font-mono);
+  background: var(--code-bg);
+  color: var(--text-color);
+  border-radius: 0;                     /* 模板：零圆角 */
+}
+
+#editor .cm-content .cm-md-marker,
+#editor .cm-content .cm-md-quotemark,
+#editor .cm-content .cm-md-listmark {
+  color: var(--text-muted);
+}
+
+/* ── 2.3 Blockquote / Code Block（每行一个 div，禁用纵向 padding）──
+   引用底色由编辑器按 --blockquote-bg 画在选区下方，这里不要写 background，
+   否则引用里的代码行会盖住代码块底色。 */
+#editor .cm-content .cm-md-blockquote {
+  color: var(--text-secondary);
+  border-left: 4px solid var(--blockquote-border);   /* neo-brutalist 墨轨 */
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+#editor .cm-content .cm-md-codeblock {
+  background: var(--code-block-bg);
+  color: var(--code-block-text);
+  border-radius: 0;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* ── 2.4 Table / Rule（模板：4px ink 外框体系，ink 表头 cream 字，cream-2 表底）── */
+#editor .cm-content .cm-md-table-widget th,
+#editor .cm-content .cm-md-table-widget td {
+  padding: 10px 14px;
+  border-color: var(--seed-ink);
+}
+#editor .cm-content .cm-md-table-widget td {
+  background: var(--seed-panel);              /* .table cream-2 底 */
+}
+#editor .cm-content .cm-md-table-widget th {
+  background: var(--table-header-bg);         /* .head ink 底 */
+  color: var(--seed-surface);                 /* cream 字 */
+  font-family: "Archivo Black", "Noto Sans SC", sans-serif;
+  font-size: 0.85em;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+#editor .cm-content .cm-md-hr {
+  border-top: 3px solid var(--seed-ink);      /* --rule = ink */
+}
+
+/* ── 2.5 中文首行缩进 ──
+   CM6 里一行就是一个 div：段落缩进落在 .cm-line 上，标题/引用/代码/列表行归零。 */
+#editor .cm-content .cm-line { text-indent: 2em; }
+
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2,
+#editor .cm-content .cm-md-atxheading3,
+#editor .cm-content .cm-md-atxheading4,
+#editor .cm-content .cm-md-atxheading5,
+#editor .cm-content .cm-md-atxheading6,
+#editor .cm-content .cm-md-blockquote,
+#editor .cm-content .cm-md-codeblock,
+#editor .cm-content .cm-md-hr,
+#editor .cm-content .cm-md-mermaid,
+#editor .cm-content .cm-md-li-0,
+#editor .cm-content .cm-md-li-1,
+#editor .cm-content .cm-md-li-2,
+#editor .cm-content .cm-md-li-3,
+#editor .cm-content .cm-md-li-4,
+#editor .cm-content .cm-md-li-5,
+#editor .cm-content .cm-md-li-6 {
+  text-indent: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 3 — Exported HTML（.colamd-document，语义标签）
+   HTML/PDF 导出不走编辑器 DOM；这段让导出件沿用同一套配色。
+   ═══════════════════════════════════════════════════════════ */
+
+.colamd-document {
+  font-family: var(--font-body);
+  font-size: var(--editor-font-size);
+  line-height: 1.7;
+}
+
+.colamd-document h1,
+.colamd-document h2,
+.colamd-document h3,
+.colamd-document h4,
+.colamd-document h5,
+.colamd-document h6 {
+  font-family: "Archivo Black", "Noto Sans SC", sans-serif;
+  color: var(--text-color);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  margin: 1.4em 0 0.5em;
+}
+.colamd-document h1 { font-size: 2.6em; line-height: 1.05; margin-top: 0.4em; }
+.colamd-document h2 { font-size: 2.1em; }
+.colamd-document h3 { font-size: 1.6em; }
+.colamd-document h4 { font-size: 1.3em; }
+.colamd-document h5 { font-size: 1.12em; }
+.colamd-document h6 {
+  font-size: 1em;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+}
+
+.colamd-document strong { color: var(--text-color); font-weight: 400; }
+.colamd-document code {
+  background: var(--code-bg);
+  color: var(--text-color);
+  font-family: var(--font-mono);
+  border-radius: 0;
+}
+/* Pele SVG 不自绘背景，编辑器里浮在代码块行上；导出后无类名 div 托底，需补回 */
+.colamd-document svg.pele {
+  background: var(--pele-bg);
+  border: 4px solid var(--seed-ink);
+  border-radius: var(--pele-radius);
+  box-shadow: 18px 18px 0 var(--seed-ink);
+}
+.colamd-document pre { background: var(--code-block-bg); border-radius: 0; }
+.colamd-document pre code { color: var(--code-block-text); }
+.colamd-document blockquote {
+  background: var(--blockquote-bg);
+  color: var(--text-secondary);
+  border-left: 4px solid var(--blockquote-border);
+  padding: 0.5em 1.2em;
+}
+.colamd-document mark { background: var(--highlight-bg); }
+.colamd-document th,
+.colamd-document td {
+  padding: 10px 14px;
+  border-color: var(--seed-ink);
+}
+.colamd-document td { background: var(--seed-panel); }
+.colamd-document th {
+  background: var(--table-header-bg);
+  color: var(--seed-surface);
+  font-family: "Archivo Black", "Noto Sans SC", sans-serif;
+  font-size: 0.85em;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+.colamd-document hr { border-top: 3px solid var(--seed-ink); }
+
+.colamd-document p { text-indent: 2em; }
+.colamd-document li p,
+.colamd-document td p,
+.colamd-document th p,
+.colamd-document blockquote p {
+  text-indent: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION 4 — Print
+   应用直接对当前窗口 printToPDF，屏幕规则原样生效；这里只补保真。
+   ═══════════════════════════════════════════════════════════ */
+
+@media print {
+  html,
+  body {
+    background: var(--bg-color);
+    color: var(--text-color);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

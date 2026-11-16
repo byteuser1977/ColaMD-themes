@@ -116,6 +116,29 @@ export interface ThemeStyle {
    * undefined keeps the theme document-only.
    */
   slidePreset?: "serif" | "sans" | "mono";
+  /**
+   * Optional slide design hints from template sources (local-html extractor).
+   * Lets the slide token layer derive per-layout sizes (cover/section/KPI/
+   * quote/kicker/chrome/padding) from the source template's own type scale
+   * and mood, instead of staying at upstream defaults.
+   */
+  slideDesign?: SlideDesignHints;
+}
+
+/** Slide design hints captured from a template source. */
+export interface SlideDesignHints {
+  /** display/body font size ratio from the source template's type scale (e.g. 10.5) */
+  displayRatio?: number;
+  /** lead/body font size ratio (e.g. 1.43) */
+  leadRatio?: number;
+  /** template density: low | medium | high */
+  density?: string;
+  /** template formality: high | medium | low */
+  formality?: string;
+  /** template color scheme: dark | light | mixed */
+  scheme?: string;
+  /** template mood tags (e.g. ["scholarly","quiet","bold","retro-tech"]) */
+  mood?: string[];
 }
 
 // ═══════════════════════════════════════════════════════════

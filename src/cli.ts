@@ -8,6 +8,7 @@ import { execSync } from "node:child_process";
 import chalk from "chalk";
 import ora from "ora";
 import { UrlExtractor } from "./extractors/url-extractor.js";
+import { LocalHtmlExtractor } from "./extractors/local-html.js";
 import { DocxExtractor } from "./extractors/docx-extractor.js";
 import { PdfExtractor } from "./extractors/pdf-extractor.js";
 import type { Extractor } from "./extractors/base.js";
@@ -239,10 +240,11 @@ async function runExtraction(
   const spinner = ora("Extracting styles...").start();
   try {
     // --ppt [serif|sans|mono]: validate the preset before running extraction.
+    // 显式指定预设时提前校验；无值 flag 则信任提取器自带的 slidePreset（如按模板字体自动判定）。
     let slidePreset: "serif" | "sans" | "mono" | undefined;
-    if (options.ppt) {
+    if (typeof options.ppt === "string") {
       const { parseSlidePreset } = await import("./slides.js");
-      const preset = parseSlidePreset(typeof options.ppt === "string" ? options.ppt : undefined);
+      const preset = parseSlidePreset(options.ppt);
       if (!preset) {
         spinner.fail(chalk.red(`Unknown PPT preset: "${options.ppt}". Valid presets: serif, sans, mono`));
         process.exit(1);
@@ -252,6 +254,7 @@ async function runExtraction(
     const style = await extractor.extract(source);
     if (options.name) style.name = options.name;
     if (slidePreset) style.slidePreset = slidePreset;
+    else if (options.ppt && !style.slidePreset) style.slidePreset = "serif";
     if (options.colorSystem) {
       const cs = getColorSystem(options.colorSystem);
       if (!cs) { spinner.fail(`Unknown color system: ${options.colorSystem}`); process.exit(1); }
@@ -298,13 +301,23 @@ addExtractOptions(
   await runExtraction(new PdfExtractor(), file, options);
 });
 
+// ── from-html ──
+addExtractOptions(
+  program.command("from-html")
+    .description("Extract theme from a local HTML file (uses sibling template.json as metadata when present)")
+    .argument("<file>", "Path to the .html file")
+).action(async (file: string, options: Record<string, string | boolean>) => {
+  if (!existsSync(file)) { console.error(chalk.red(`File not found: ${file}`)); process.exit(1); }
+  await runExtraction(new LocalHtmlExtractor(), file, options as Record<string, string>);
+});
+
 // ── extract (auto-detect) ──
 addExtractOptions(
   program.command("extract")
     .description("Auto-detect source type and extract theme")
-    .argument("<source>", "URL, .docx file, or .pdf file")
+    .argument("<source>", "URL, .html file, .docx file, or .pdf file")
 ).action(async (source: string, options: Record<string, string>) => {
-  const extractors: Extractor[] = [new UrlExtractor(), new DocxExtractor(), new PdfExtractor()];
+  const extractors: Extractor[] = [new LocalHtmlExtractor(), new UrlExtractor(), new DocxExtractor(), new PdfExtractor()];
   const ext = extractors.find((e) => e.canHandle(source));
   if (!ext) { console.error(chalk.red(`Cannot detect source type for: ${source}`)); process.exit(1); }
   await runExtraction(ext, source, options);

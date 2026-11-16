@@ -1,5 +1,36 @@
 # Release Notes
 
+## Version 0.6.1 (2026-11-16) — Local HTML Template Extraction & Full Slide Tokens 🎨
+
+### 🎨 Added
+
+- **`from-html <file>` extractor** — extract a theme from a local HTML file. The URL extractor's parsing core is refactored into a reusable protected `extractFromHtml()`, and a sibling `template.json` (when present) supplies authoritative metadata: slug/tagline as theme name/description, `typography.display/body/mono` + `serif_cn/sans_cn` as font stacks with CJK fallback and a trailing generic family (SLIDE-03). The `extract` auto-detect chain now recognizes local `.html/.htm` files too
+- **Color extraction: semantic tokens + luminance/saturation heuristics** — colors come from the template's `:root` custom properties: exact semantic-name matches first (`--bg`/`--text`/`--accent`…), then substring variants (`--c-bg`/`--fg`/`--ink`…), then luminance-sorted background/foreground with the most saturated well-separated chroma as accent. `normalizeColor` now treats `var()` references as unknown (empty → paradigm defaults), so they can never reach downstream `hexToRgb`
+- **Palette sanitizer** — after template colors override the paradigm defaults, invalid or wrongly-ordered derived colors are re-derived by linear interpolation: SL-04 luminance ordering (dark: surface < panel < panelAlt), CR-02 muted-text contrast ≥ 4.5:1 (preserving the foreground hue axis, NT-01), NT-02 border visibility
+- **Full slide token derivation (`buildFullSlideTokens`)** — the `--slide-*` section grows from 0.6.0's brand voice (title font / mono / weight + preset overrides) to 24 per-layout tokens: cover/section/closing title ladder from the template's own display/body ratio, page title / KPI / quote / kicker / chrome / page padding derived from mood tags (bold/quiet/tech), density, formality and scheme. Design hints travel via `ThemeStyle.slideDesign` (`SlideDesignHints`); themes without hints degrade to the exact 0.6.0 output (fully backward compatible)
+- **Auto slide-preset detection** — a valueless `--ppt` flag trusts the preset the extractor picked from the template's display font (serif names → serif, mono → mono, otherwise sans); an explicit `--ppt <style>` still overrides
+- **34 themes from beautiful-html-templates** — batch-extracted from 34 slide-deck templates: 17 sans (Space Grotesk / Bebas Neue / Barlow families) + 17 serif (Cormorant / Bodoni Moda / Playfair families), all within the 300-line contract limit. Catalog with per-theme style notes: `themes/README.md`
+
+### 🔧 Changed
+
+- `UrlExtractor.parseCssRules` / `extractAllStyles` relaxed from private to protected (subclass reuse); `normalizeColor` recognizes `var(` prefixes (benefits network sources equally)
+- The generator pipeline now calls `buildFullSlideTokens`; output is identical when `slideDesign` is absent
+
+### Verified
+
+- `tsc --noEmit` clean; batch extraction of all 34 templates with zero failures
+- Full `validate` run: `:root` contract pass, platform compat `@bytechain.cn/colamd 2.7.13`, slide layouts supported
+- Sample exports (vellum dark / coral mixed / 8-bit-orbit neon dark) render faithfully (vellum: `#2a3870` navy + `#e8d85c` warm yellow + `#3a7878` dusty teal)
+- Highly saturated templates keep their intentional SL-01/SL-02 paradigm warnings by design (not contract errors)
+
+### Upgrade
+
+```bash
+npm install @bytechain.cn/colamd-themes@0.6.1
+```
+
+---
+
 ## Version 0.6.0 (2026-11-16) — PPT Slide Layout Support (ColaMD 2.7.13) 🎞️
 
 ### 🎞️ Added

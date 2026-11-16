@@ -113,6 +113,14 @@ export class UrlExtractor implements Extractor {
     }
 
     const html = typeof response.data === "string" ? response.data : String(response.data);
+    return this.extractFromHtml(html, source);
+  }
+
+  /**
+   * 从 HTML 文本提取 ThemeStyle（网络请求之后的公共解析核心）。
+   * 子类（如 LocalHtmlExtractor）可复用并在结果上做二次覆盖。
+   */
+  protected async extractFromHtml(html: string, source: string): Promise<ThemeStyle> {
     const $ = cheerio.load(html);
     const theme = makeThemeStyle(this.detectName($, source), "url", source);
 
@@ -155,7 +163,7 @@ export class UrlExtractor implements Extractor {
   /**
    * 提取所有 <style> 标签内的 CSS 文本
    */
-  private extractAllStyles($: cheerio.CheerioAPI): string {
+  protected extractAllStyles($: cheerio.CheerioAPI): string {
     const parts: string[] = [];
     $("style").each((_, el) => {
       const text = $(el).text().trim();
@@ -169,7 +177,7 @@ export class UrlExtractor implements Extractor {
   /**
    * 使用 css-tree 将 CSS 文本解析为结构化规则映射
    */
-  private parseCssRules(css: string): CssRuleMap {
+  protected parseCssRules(css: string): CssRuleMap {
     const result = new Map<string, Map<string, string>>();
     try {
       const ast = parse(css, {
@@ -818,6 +826,11 @@ export class UrlExtractor implements Extractor {
    */
   private normalizeColor(colorStr: string): string {
     const trimmed = colorStr.trim().toLowerCase();
+
+    // CSS 变量引用无法在此解析，返回空让范式默认值兜底
+    if (trimmed.startsWith("var(")) {
+      return "";
+    }
 
     // 已经是 hex 格式
     if (/^#[0-9a-f]{3,8}$/.test(trimmed)) {
