@@ -130,31 +130,52 @@ body.slides-printing #editor .cm-content .cm-md-page-title .cm-md-em {
 }
 
 /* 1.6.2 cover · After Hours：居中粉字巨题 + 80px halo + .42em 宽字距 pre +
-   Inter 300 大写副题（s-cover .pre/.title/.sub） */
+   Inter 300 大写副题（s-cover .pre/.title/.sub）。
+   导出作用域必须带 #editor .cm-content 提到 id 权重：data-slide-layout 属性
+   只在放映时写上，导出纸面靠行类 .cm-md-slide-cover 命中；不带 id 的选择器
+   会被 1.6.1 的纸面页题规则压掉，粉色巨题退化成纸色普通页题。 */
 body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-cover.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-size: var(--slide-cover-title-size);
+  line-height: var(--slide-cover-title-line-height, 1.02);
+  letter-spacing: var(--slide-cover-title-tracking, -0.015em);
   color: var(--seed-accent);
   text-shadow: 0 0 80px rgba(237, 61, 140, 0.18);
+}
+/* 放映的封面居中靠 flex 容器，导出是块流，只能逐行对齐；
+   导语块再按 --slide-cover-lead-inline 收进中线。 */
+body.slides-printing #editor .cm-content .cm-md-slide-cover {
+  text-align: var(--slide-cover-text-align, center);
+}
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-lead {
+  margin-inline: var(--slide-cover-lead-inline, auto);
+}
+/* 放映的封面是整页垂直居中，导出块流只能给页首垫一个近似值，
+   让巨题落在纸面中上而不是贴顶（页首行可能是隐藏的指令行，
+   所以要 !important 压过 slides.css 的安全区规则）。 */
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-start {
+  padding-top: 140px !important;
 }
 body.presenting #editor .cm-content .cm-md-page-title[data-slide-kicker]::before,
 body.slides-printing #editor .cm-content .cm-md-page-title[data-slide-kicker]::before {
   color: var(--text-color);
   opacity: 0.75;
 }
-body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title[data-slide-kicker]::before {
+body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title[data-slide-kicker]::before,
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title[data-slide-kicker]::before {
   letter-spacing: 0.42em;
 }
 body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-atxheading2,
 body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-atxheading3,
-body.slides-printing .cm-md-slide-cover .cm-md-atxheading2,
-body.slides-printing .cm-md-slide-cover .cm-md-atxheading3 {
+body.slides-printing #editor .cm-content .cm-md-slide-cover .cm-md-atxheading2,
+body.slides-printing #editor .cm-content .cm-md-slide-cover .cm-md-atxheading3 {
   font-family: var(--font-body);
   font-weight: 300;
   font-size: 1.1em;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-color);
+  border-bottom: none;   /* 导出侧去掉文档式 h2 的粉色发丝线 */
 }
 
 /* 1.6.3 section · 参照模板第 4 页 s-section（Movements）：
