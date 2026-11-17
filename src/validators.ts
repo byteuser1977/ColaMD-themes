@@ -315,7 +315,14 @@ export function validateThemeCss(css: string): ValidationIssue[] {
         }
       }
 
-      if (/\.cm-md-(blockquote|codeblock)\b/.test(selector) && hasVerticalPadding(node)) {
+      // CSS-03 只看「命中的元素」：排除 :not() / :has() 里的否定条件后仍有
+      // .cm-md-blockquote / .cm-md-codeblock，才说明这条规则确实落在引用/代码块行上。
+      // （否则 `:not(.cm-md-blockquote)` 这类反向选择器会被误报；见 editorial-forest
+      //  / pink-script-dark 的 quote 署名行。）
+      const subject = selector
+        .replace(/:not\([^()]*\)/g, "")
+        .replace(/:has\([^()]*\)/g, "");
+      if (/\.cm-md-(blockquote|codeblock)\b/.test(subject) && hasVerticalPadding(node)) {
         issues.push({
           ruleId: "CSS-03",
           level: "MUST_NOT",

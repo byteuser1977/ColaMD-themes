@@ -102,7 +102,8 @@
      cover←P1  agenda←P2  section←P3  default←P4（去图框，取文字栏版式）
      figure←P5  steps←P6  matrix←P6  kpi←P7  timeline←P8
      closing←参考 cover 视觉语言（不做 P8 三列清单）
-   quote 保留 P3 的粉底 statement 语言，与 section 同源。
+   quote 参照 P8 的双栏构图（左栏巨引号 + 右栏金句 + 顶线署名），
+   底色沿用 P3 的粉底 statement 语言，与 section 同源。
    近似项在各节注释中标注：monogram 圆章 / 页级右侧 label / 双列页脚 /
    图表内部（柱宽、网格线、图例、单位后缀）/ agenda 首卡跨行（导出退化为等宽）/
    step 底部 marker 行 / kpi 单位后缀拆色。 */
@@ -126,7 +127,7 @@
   --slide-chrome-opacity: 1;                  /* chrome 全色 accent，不靠透明度 */
   --slide-chrome-transform: uppercase;
   --slide-kpi-number-size: 7.33em;            /* P7 big 220 ÷26 ÷1.15(li 缩放) */
-  --slide-quote-size: 5.38em;                 /* P3 blockquote 140px ÷26 */
+  --slide-quote-size: 3.5em;                  /* P8 双栏金句 92px ÷26 */
   --slide-page-pad-x: 6.25vw;                 /* 模板默认页边距 120px @1920 */
   --slide-page-top-pad: 96px;                 /* 模板默认正文顶 96px */
   --slide-page-top-pad-print: 88px;
@@ -367,8 +368,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-section .cm-md-url,
 body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-url,
 body.slides-printing #editor .cm-content .cm-md-slide-section .cm-md-strong,
 body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-strong,
-body.slides-printing #editor .cm-content .cm-md-slide-section .cm-md-page-kicker,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-page-kicker {
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-kicker,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-kicker {
   color: var(--forest-green-deep);
 }
 /* 换底页 ghost 页码与底同族隐形 → 隐藏 */
@@ -641,41 +642,65 @@ body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-li:nth-child(
   font-size: 3.23em;
 }
 
-/* 1.6.5 quote · P3（与 section 同源；pink 底 statement）
-   复位上游 quote 的三处残留：斜体、大引号 ::before、pele-accent 字色。
-   金句 140px/1.02、max 11.1em；署名 44px/600 上距 60px（只走 margin，CSS-03）。
-   近似：attrib 双列布局无挂点，署名保留单行右对齐语感。 */
-body.presenting #editor[data-slide-layout='quote'] .cm-content {
-  --slide-page-pad-x: 8.33vw;
-  --slide-page-top-pad: 130px;
-}
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote {
+/* 1.6.5 quote · 参照 pink-script-dark 第 8 页「Voices」的双栏实现：
+   左栏 320px 巨引号（挂在页首空行的 ::after 浮动，宽 22%），
+   右栏 92px 金句（26% 起、最宽 68%，无底衬无左轨），
+   署名行 = 26% 起的发丝顶线 + 48px 衬线。
+   配色沿用 forest 自身：pink 底（--seed-accent）+ green-deep 墨色，
+   不引入 pink-script 的 #ed3d8c 玫红与近黑底。
+   另复位上游 quote 的三处残留：斜体、大引号 ::before、pele-accent 字色。 */
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-page-start::after,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-start::after {
+  content: "\201C";
+  visibility: visible;
+  display: block;
+  float: left;
+  width: 22%;
   font-family: var(--slide-title-font);
-  font-size: 5.38em;                          /* blockquote 140px ÷26 */
-  font-weight: 500;
+  font-size: 320px;                           /* 模板 320px；导出在 1.7 收成 213px */
+  line-height: 0.65;
+  color: var(--forest-green-deep);
+}
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote {
+  --blockquote-bg: transparent;               /* 模板 P8 无底衬：只留右栏金句 */
+  margin-left: 26%;
+  max-width: 68%;
+  font-family: var(--slide-title-font);
+  font-size: var(--slide-quote-size);         /* 3.5em = 92px */
+  font-weight: 400;
   font-style: normal;                         /* 复位上游 italic */
-  line-height: 1.02;
-  letter-spacing: -0.02em;
+  line-height: 1.05;
+  letter-spacing: -0.005em;
   color: var(--forest-green-deep);
   background: transparent;
   border-left: none;
   padding-left: 0;
   padding-right: 0;
-  max-width: 11.1em;                          /* 1560px ÷140 */
 }
 /* 复位上游大引号（slides.css：.cm-md-slide-directive + .cm-md-blockquote::before） */
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote::before,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote::before {
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote::before,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote::before {
   content: none;
   display: none;
 }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line {
-  margin-top: 1.36em;                         /* .attrib 60px ÷44 */
+/* 金句内强调词：粉底上 pink-bright 不可读，沿用 forest 的 ink 加深 */
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote .cm-md-em,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote .cm-md-em {
+  color: var(--seed-ink);
+  font-style: normal;
+}
+/* 署名行：模板 .attr —— 26% 起的 green 发丝顶线 + 48px 衬线。
+   排除空行（CM6 空行 = <div class="cm-line"><br></div>），否则引文上下的
+   空行也会各画一条发丝线。 */
+body.presenting #editor .cm-content .cm-md-slide-quote:not(.cm-md-blockquote):not(.cm-md-page-start):not(.cm-md-slide-directive):not(:has(> br:only-child)),
+body.slides-printing #editor .cm-content .cm-md-slide-quote:not(.cm-md-blockquote):not(.cm-md-page-start):not(.cm-md-slide-directive):not(:has(> br:only-child)) {
+  margin: 1.1em 0 0 26%;
+  padding-top: 0.6em;
+  border-top: 1px solid color-mix(in srgb, var(--forest-green-deep) 55%, transparent);
   font-family: var(--slide-title-font);
-  font-size: 1.69em;                          /* .name 44px ÷26 */
-  font-weight: 600;
+  font-size: 1.85em;                          /* 48px ÷26 */
+  font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
   color: var(--forest-green-deep);
@@ -683,9 +708,10 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + 
 body.presenting #editor[data-slide-layout='quote'] .cm-content .cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-title {
   font-size: var(--slide-quote-size);
-  line-height: 1.02;
+  line-height: 1.05;
   color: var(--forest-green-deep);
-  max-width: 11.1em;
+  max-width: 68%;
+  margin-left: 26%;
 }
 
 /* 1.6.5b section · P3（pink 底 statement）
@@ -1103,7 +1129,7 @@ body.slides-printing {
   --slide-cover-title-size: 5.9em;            /* 220px → 146px（6.11 − 安全余量） */
   --slide-section-title-size: 3.6em;          /* 140px → 93px */
   --slide-closing-title-size: 5.8em;          /* 220px → 141px */
-  --slide-quote-size: 3.7em;                  /* 140px → 93px */
+  --slide-quote-size: 2.45em;                 /* 92px × 2/3 ≈ 61px，留一字余量 */
   --slide-kicker-size: 17px;                  /* clamp 收敛为定值 */
   --slide-page-top-pad-print: 64px;           /* 96px → 64px */
 }
@@ -1169,16 +1195,17 @@ body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-title {
 body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-page-title {
   font-size: 2.33em;                          /* 84px → 56px */
 }
-/* quote 金句为硬编码 5.38em（未走 --slide-quote-size 令牌），纸面单独换算 */
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote {
-  font-size: 3.7em;                           /* 140px → 89px */
-}
-/* 导语（30px）与 quote 署名（26px）纸面换算 */
+/* 导语（30px）纸面换算 */
 body.slides-printing #editor .cm-content .cm-md-page-lead {
   font-size: 0.833em;                         /* 30px → 20px */
 }
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote::after {
-  font-size: 0.667em;                         /* 26px → 17.3px */
+/* quote 双栏构图的纸面换算：巨引号 320px→213px、署名 48px→32px
+   （金句本身走 --slide-quote-size 令牌，见上方 1.7 令牌块） */
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-start::after {
+  font-size: 213px;                           /* 320px × 2/3 */
+}
+body.slides-printing #editor .cm-content .cm-md-slide-quote:not(.cm-md-blockquote):not(.cm-md-page-start):not(.cm-md-slide-directive):not(:has(> br:only-child)) {
+  font-size: 1.33em;                          /* 32px ÷24 */
 }
 /* chrome/foot 的 padding 为固定 px，纸面 ×0.667 */
 body.slides-printing .slide-chrome {
