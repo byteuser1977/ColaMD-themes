@@ -244,7 +244,7 @@ colamd-themes validate deck.md
 - **SLIDES-04/05** (MUST_NOT)：页头块字段键 ∉ kicker/label/chapter、deck 键 ∉ logo/brand/title/meta
 - **SLIDES-06** (MUST_NOT)：slide-css 含 `position: absolute/fixed`、`z-index`、伪协议 URL
 
-### Export PDF content checks (PDF-01…05, v0.6.1)
+### Export PDF content checks (PDF-01…05, v0.6.2)
 
 导出产物的内容契约（CSS 契约管「进渲染器的」，PDF 契约管「出渲染器的」）。
 `export-pdf` 每次导出后**自动执行**并打印报告；也可对任何已有 PDF 单独检查：

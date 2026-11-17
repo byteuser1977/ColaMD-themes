@@ -17,6 +17,12 @@
 - **Per-page background fidelity on export** — upstream slides-export paints the whole sheet with a single body background (`!important`), so the old `body.slides-printing:has(...)` page recoloring lost the cascade and green/pink pages dropped their background. Backgrounds now paint at line level (every line carries `cm-md-slide-<layout>`), with ±77px negative margins restoring full bleed; vertical spacing on green pages converts margin → padding (margin areas don't receive the line background); leftover `~ *` sibling selectors replaced by direct line-class hits
 - **New 1.7 export paper calibration** — 1280×720 @24px/em conversion: cover/section/closing/quote/title token overrides, list font-size calibration (26px-base → 0.667em, 30px-base → 0.833em, 32px-base → 0.89em), hardcoded kpi/figure/quote sizes converted, density block (line-height 1.62 / compressed empty lines / table & code), chrome/foot fixed-px scaling; the old ×0.88 double-shrink block removed
 
+### 📦 Install
+
+```bash
+npm install @bytechain.cn/colamd-themes@0.6.2
+```
+
 ## Version 0.6.1 (2026-11-16) — Local HTML Template Extraction & Full Slide Tokens 🎨
 
 ### 🎨 Added

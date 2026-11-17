@@ -1,5 +1,5 @@
 /**
- * Export-PDF content checks — the artifact-side contract (v0.6.1).
+ * Export-PDF content checks — the artifact-side contract (v0.6.2).
  *
  * The theme CSS contract guards what goes INTO the renderer; these checks
  * guard what comes OUT of `page.pdf()`. They parse the produced PDF directly
