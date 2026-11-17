@@ -62,6 +62,7 @@ colamd-themes set-theme <name> --remove
 colamd-themes color-systems [-j]
 colamd-themes list [-d <dir>]
 colamd-themes validate <file.css | file.md>
+colamd-themes check-pdf <file.pdf> [-d <deck.md>]
 ```
 
 `validate` accepts theme CSS **and** slides markdown (`.md` → directive contract checks). It prints a **platform compat line** ("平台兼容") — it reports the installed `@bytechain.cn/colamd` version, whether its `themes/contract.json` matches the theme contract (2.7.13 and 2.7.13 are both accepted), and whether the **slide layout system** is available (幻灯片版式: 支持/不支持). On drift it lists missing live variables; treat that as a signal to check the platform changelog or pin `@bytechain.cn/colamd@^2.7.13`.
@@ -225,6 +226,31 @@ colamd-themes validate deck.md
 - **SLIDES-03** (SHOULD)：未知版式名（无害降级）
 - **SLIDES-04/05** (MUST_NOT)：页头块字段键 ∉ kicker/label/chapter、deck 键 ∉ logo/brand/title/meta
 - **SLIDES-06** (MUST_NOT)：slide-css 含 `position: absolute/fixed`、`z-index`、伪协议 URL
+
+### Export PDF content checks (PDF-01…05, v0.6.1)
+
+导出产物的内容契约（CSS 契约管「进渲染器的」，PDF 契约管「出渲染器的」）。
+`export-pdf` 每次导出后**自动执行**并打印报告；也可对任何已有 PDF 单独检查：
+
+```bash
+colamd-themes check-pdf out.pdf                    # 自动判定文档/幻灯片
+colamd-themes check-pdf out.pdf -d deck.md         # 提供配对 deck → 页数/chrome 检查
+```
+
+- **PDF-01** (MUST)：PDF 可解析（pdf-parse 子进程页文本提取，≥1 页）
+- **PDF-02** (MUST)：页面尺寸一致；幻灯片导出必须是 16:9 纸型
+  （1280×720 @96dpi = **960×540pt**；文档式导出为 A4/Letter，仅查一致性）
+- **PDF-03** (MUST)：slide 页数 = deck 页数（提供 `-d deck.md` 或 deck 指令时）——
+  最常见的失真是内容溢出把一页挤出两张纸
+- **PDF-04** (SHOULD)：无空白页（某页文本抽取 < 5 字符）
+- **PDF-05** (SHOULD)：deck 标题（chrome）出现在 PDF 文本中（去空白比对，
+  规避 Chromium 字形切分插空格）
+
+实现要点：pdf-parse 必须跑在**干净的 `node -e` 子进程**里——pdf.js v1.10 的
+worker 在 tsx/esbuild 转换环境下会确定性误报 `bad XRef entry`（对真实
+Chromium 导出文件同样成立）；buffer 走 stdin，结果走 stdout JSON，
+pdf-parse 的解析路径由 CLI 侧 `createRequire` 解析后经环境变量传入。
+MUST 违规使命令以退出码 1 结束。
 
 ### PPT style tokens (--slide-*)
 

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.2] - 2026-11-17
+
+### Added — 导出 PDF 内容契约检查（PDF-01…05）
+
+- **产物侧契约检查 `src/pdf-check.ts`**：CSS 契约管「进渲染器的」，PDF 契约管「出渲染器的」。`export-pdf` 每次导出后自动执行内容检查并打印报告；新增 `check-pdf <file.pdf> [-d <deck.md>]` 命令可对任何已有 PDF 单独检查。规则：PDF-01 (MUST) PDF 可解析且 ≥1 页；PDF-02 (MUST) 页面尺寸一致 + 幻灯片导出必须 16:9（1280×720 @96dpi = 960×540pt）；PDF-03 (MUST) slide 页数 = deck 页数（最常见失真是内容溢出把一页挤出两张纸）；PDF-04 (SHOULD) 无空白页（页文本 < 5 字符）；PDF-05 (SHOULD) deck 标题（chrome）出现在 PDF 文本中（去空白比对，规避 Chromium 字形切分插空格）。MUST 违规退出码 1
+- **pdf-parse 必须跑在干净 `node -e` 子进程**：pdf.js v1.10 的 worker 在 tsx/esbuild 模块转换环境下会对完全合法的 PDF（含真实 Chromium 导出）确定性误报 `bad XRef entry`——纯 `node` 下同一文件解析正常。buffer 走 stdin、结果走 stdout JSON，pdf-parse 解析路径由 CLI 侧 `createRequire` 解析后经环境变量传入子进程
+- **deck 内省辅助**：`slides-markdown.ts` 新增导出 `countDeckPages()`（deck 页数 = 分页数）与 `extractDeckChrome()`（deck 块 logo/brand/title/meta 解析，无块时回退首个 h1）
+- **契约说明同步**：SKILL.md 新增「Export PDF content checks (PDF-01…05)」章节，`build:skills` 同步 7 个 agent 目标与 `.trae/rules`
+
+### Fixed — editorial-forest 绿底 slide 可读性与导出保真
+
+- **导出侧文字不可读（根因）**：大量 `body.slides-printing` 行内修色规则缺 `#editor .cm-content` id 权重，被文档规则（`.cm-md-strong{ink}` 等）压掉 → PPT-PDF 里绿底落墨字（1.77:1）不可读。所有导出行内选择器补 id 权重（对齐 pink-script-dark 实现规约）
+- **放映侧小字对比度**：绿底小号粉字 #e89cb1（4.61:1）换 `--forest-pink-bright` #f6c9d6（≥5.28:1）——封面副标题/导语、kicker、chrome/foot、KPI tag、timeline 条目标题、closing 清单符号、议程卡 1 文字；大字号元素（220px 封面标题、KPI 大数字）保留品牌粉（大字 3:1 达标）
+- **行级颜色收口（关键修复）**：上游把颜色直接写在版式行元素上（kpi/timeline = `--text-secondary`、closing = `--text-muted`、page-lead = `--text-secondary`），**行元素自带的颜色永远赢过从 `.cm-content` 继承的颜色**——只在上层设色时，绿底上「数字/年份下方的说明小字」仍是深灰（≈2.7:1）。主题改为把颜色直接写回行（`.cm-md-slide-kpi.cm-md-li` 等，`#editor .cm-content` id 提权）：kpi/timeline 说明 = cream 88%（6.6:1）、closing 行 = 提亮粉（5.28:1）、figure/粉页导语同页取色。经 Puppeteer 计算色实测：绿底 8 类文本全部 ≥ 4.5:1
+- **换底页导出保真**：上游 slides-export 把整张纸涂成导出瞬间 body 的单一底色（`!important`），原 `body.slides-printing:has(...)` 换底压不过 → 绿/粉页在纸上掉底。改为行级画底色（每行都带 `cm-md-slide-<版式>` 类），负边距 ±77px 补回纸面边距实现全出血；绿页纵向间距 margin → padding（margin 区不落底色露纸缝）；残留 `~ *` 兄弟选择器全部改为行类直接命中
+- **新增 1.7 导出纸面校准**：1280×720 @24px/em 换算——cover/section/closing/quote/title 令牌收敛 + 列表字号校准（26px 基 → 0.667em / 30px 基 → 0.833em / 32px 基 → 0.89em）+ kpi/figure/quote 硬编码字号纸面换算 + 行高密度块（1.62/空行压扁/表格代码压缩）+ chrome/foot 定值缩放；删除原 ×0.88 二次缩小块避免双重缩小
+
 ## [0.6.1] - 2026-11-16
 
 ### Added — 本地 HTML 模板提取（`from-html`）与全量 PPT 版式令牌

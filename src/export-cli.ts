@@ -205,6 +205,25 @@ function registerExportPDF(program: Command): void {
           const { writeFileSync } = await import("node:fs");
           writeFileSync(outputPath, pdfBuffer);
           spinner.succeed(chalk.green(`Exported: ${outputPath}`));
+
+          // Artifact-side contract: content-check the produced PDF
+          // (paper size / page count / blank pages / deck chrome).
+          const { checkExportedPdf } = await import("./pdf-check.js");
+          const { summarizeIssues } = await import("./validators.js");
+          const isDeck = /<!--\s*(?:deck|slide[\s:])/.test(md);
+          const check = await checkExportedPdf(pdfBuffer, isDeck ? { deckMd: md } : {});
+          const mustFail = check.issues.some((i) => i.level === "MUST" || i.level === "MUST_NOT");
+          console.log(
+            chalk.dim(
+              `  PDF 内容检查: ${check.pageCount} 页 · 纸型 ${check.paperSizes.map((s) => `${s.w.toFixed(0)}×${s.h.toFixed(0)}pt`).join(" / ") || "?"}${isDeck ? " · slide deck" : ""}`
+            )
+          );
+          if (check.issues.length === 0) {
+            console.log(chalk.green("  ✔ PDF-01~05 内容契约通过"));
+          } else {
+            console.log(summarizeIssues(check.issues));
+          }
+          if (mustFail) process.exitCode = 1;
         } catch (renderErr) {
           spinner.fail(chalk.red(`Export failed: ${(renderErr as Error).message}`));
           throw new CLIError(

@@ -357,6 +357,32 @@ program
     if (errors.length > 0) process.exit(1);
   });
 
+// ── check-pdf ──
+program
+  .command("check-pdf")
+  .description("Content-check an exported PDF (paper size, page count, blank pages, deck chrome)")
+  .argument("<file>", "Path to exported .pdf")
+  .option("-d, --deck <md>", "Companion deck markdown (enables page-count & chrome checks)")
+  .action(async (file: string, options: { deck?: string }) => {
+    if (!existsSync(file)) { console.error(chalk.red(`File not found: ${file}`)); process.exit(1); }
+    const { checkExportedPdf } = await import("./pdf-check.js");
+    const buffer = readFileSync(file);
+    const deckMd = options.deck && existsSync(options.deck) ? readFileSync(options.deck, "utf-8") : undefined;
+    const check = await checkExportedPdf(buffer, { deckMd });
+    console.log(chalk.bold(`PDF 内容检查: ${file}`));
+    console.log(
+      chalk.dim(
+        `  ${check.pageCount} 页 · 纸型 ${check.paperSizes.map((s) => `${s.w.toFixed(0)}×${s.h.toFixed(0)}pt`).join(" / ") || "?"}`
+      )
+    );
+    if (check.issues.length === 0) {
+      console.log(chalk.green("  ✔ PDF-01~05 内容契约通过"));
+    } else {
+      console.log(summarizeIssues(check.issues));
+    }
+    if (check.issues.some((i) => i.level === "MUST" || i.level === "MUST_NOT")) process.exit(1);
+  });
+
 // ── color-systems ──
 program
   .command("color-systems")

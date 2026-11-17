@@ -566,3 +566,42 @@ export function markdownToSlides(md: string, deck: DeckOptions = {}): string {
   const headText = head.length > 0 ? head.join("\n\n") + "\n\n" : "";
   return headText + pageStrings.join("\n\n---\n\n") + "\n";
 }
+
+// ── Deck introspection（PDF 内容检查用）─────────────────────────────────────
+
+/** Number of slide pages in a deck markdown (frontmatter merges into page 1). */
+export function countDeckPages(md: string): number {
+  return scanDocument(md).pages.size;
+}
+
+/** Deck chrome fields (logo/brand/title/meta) from the deck block, with the
+ * first h1 as title fallback. */
+export function extractDeckChrome(md: string): { logo: string; brand: string; title: string; meta: string } {
+  const normalized = md.replace(/\r\n?/g, "\n");
+  const chrome = { logo: "", brand: "", title: "", meta: "" };
+  const tree = mdParser.parse(normalized);
+  tree.iterate({
+    enter: (node) => {
+      if (node.name === "Document") return true;
+      if (node.name === "HTMLBlock" || node.name === "CommentBlock") {
+        const source = normalized.slice(node.from, node.to).trim();
+        const deck = DECK_BLOCK_RE.exec(source);
+        if (deck) {
+          for (const raw of (deck[1] ?? "").split("\n")) {
+            const field = FIELD_LINE_RE.exec(raw.trim());
+            if (field && DECK_FIELD_KEYS.has(field[1])) {
+              chrome[field[1] as keyof typeof chrome] = field[2].trim();
+            }
+          }
+        }
+      }
+      return false;
+    },
+  });
+  if (!chrome.title) {
+    const lines = normalized.split("\n");
+    const firstH1 = lines.find((l) => /^#\s+\S/.test(l));
+    if (firstH1) chrome.title = headingTitle(firstH1);
+  }
+  return chrome;
+}

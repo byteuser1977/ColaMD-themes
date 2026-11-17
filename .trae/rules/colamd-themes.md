@@ -61,6 +61,7 @@ colamd-themes set-theme <name> --remove
 colamd-themes color-systems [-j]
 colamd-themes list [-d <dir>]
 colamd-themes validate <file.css | file.md>
+colamd-themes check-pdf <file.pdf> [-d <deck.md>]
 ```
 
 `validate` accepts theme CSS **and** slides markdown (`.md` → directive contract checks). It prints a **platform compat line** ("平台兼容") — it reports the installed `@bytechain.cn/colamd` version, whether its `themes/contract.json` matches the theme contract (2.7.13 and 2.7.13 are both accepted), and whether the **slide layout system** is available (幻灯片版式: 支持/不支持). On drift it lists missing live variables; treat that as a signal to check the platform changelog or pin `@bytechain.cn/colamd@^2.7.13`.
@@ -154,10 +155,6 @@ Export uses Puppeteer (headless Chromium) with `@bytechain.cn/colamd/renderer`:
 
 ## Slide Layouts (ColaMD 2.7.13 幻灯片版式)
 
-> 逐页复刻参考模板（`beautiful-html-templates/templates/<slug>/`）时，先读
-> `docs/slide-theme-replication.md`（七步流程 / 页面映射 / 26px 换算 / 五要素检查单 /
-> 陷阱清单）；技能 `colamd-themes` 内含同名 playbook。
-
 Upstream 2.7.13 adds a slide deck system. A deck is plain markdown: pages split on `---`, each page may open with a header comment block.
 
 ### Directive syntax
@@ -229,6 +226,31 @@ colamd-themes validate deck.md
 - **SLIDES-04/05** (MUST_NOT)：页头块字段键 ∉ kicker/label/chapter、deck 键 ∉ logo/brand/title/meta
 - **SLIDES-06** (MUST_NOT)：slide-css 含 `position: absolute/fixed`、`z-index`、伪协议 URL
 
+### Export PDF content checks (PDF-01…05, v0.6.1)
+
+导出产物的内容契约（CSS 契约管「进渲染器的」，PDF 契约管「出渲染器的」）。
+`export-pdf` 每次导出后**自动执行**并打印报告；也可对任何已有 PDF 单独检查：
+
+```bash
+colamd-themes check-pdf out.pdf                    # 自动判定文档/幻灯片
+colamd-themes check-pdf out.pdf -d deck.md         # 提供配对 deck → 页数/chrome 检查
+```
+
+- **PDF-01** (MUST)：PDF 可解析（pdf-parse 子进程页文本提取，≥1 页）
+- **PDF-02** (MUST)：页面尺寸一致；幻灯片导出必须是 16:9 纸型
+  （1280×720 @96dpi = **960×540pt**；文档式导出为 A4/Letter，仅查一致性）
+- **PDF-03** (MUST)：slide 页数 = deck 页数（提供 `-d deck.md` 或 deck 指令时）——
+  最常见的失真是内容溢出把一页挤出两张纸
+- **PDF-04** (SHOULD)：无空白页（某页文本抽取 < 5 字符）
+- **PDF-05** (SHOULD)：deck 标题（chrome）出现在 PDF 文本中（去空白比对，
+  规避 Chromium 字形切分插空格）
+
+实现要点：pdf-parse 必须跑在**干净的 `node -e` 子进程**里——pdf.js v1.10 的
+worker 在 tsx/esbuild 转换环境下会确定性误报 `bad XRef entry`（对真实
+Chromium 导出文件同样成立）；buffer 走 stdin，结果走 stdout JSON，
+pdf-parse 的解析路径由 CLI 侧 `createRequire` 解析后经环境变量传入。
+MUST 违规使命令以退出码 1 结束。
+
 ### PPT style tokens (--slide-*)
 
 Upstream `slides.css` defines ~26 `--slide-*` tokens on `:root` (title font/size/weight/tracking, kicker, chrome, page padding, KPI/quote sizes). Themes can override them — **`--ppt [style]`** emits a token section into the generated theme:
@@ -255,6 +277,52 @@ colamd-themes from-url <URL> -n my-brand --ppt sans   # presets: serif | sans | 
 - Export DOM styling goes on `.colamd-document` (semantic tags), not `.cm-md-*`
 - Generated CSS ≤ 300 lines
 - Font stacks must include CJK fallback and end with generic family
+
+## Reference-Template Refinement (page-by-page replication)
+
+Use when the task is to reproduce a multi-page PPT template
+(`beautiful-html-templates/templates/<slug>/template.html`) as a ColaMD 2.7.13
+slide theme (`themes/<slug>.css`) with strict fidelity. Full methodology:
+`docs/slide-theme-replication.md`. Reference themes: `themes/biennale-yellow.css`
+(header / token / section-1.6 structure) and `themes/pin-and-paper.css`
+(page-background layer chain).
+
+### Workflow
+
+1. **Read the template**: `:root` palette + fonts, then every page section's
+   background / title / subtitle / body / object box (padding, radius, shadow).
+2. **Map pages to layouts**: cover / section / agenda / kpi / timeline / steps /
+   matrix / two-col / figure / quote / closing. A mapping supplied by the user
+   always wins over your own inference; record it in the file header and §1.5.
+3. **Convert**: 26px per em (presenting base `clamp(17px,1.35vw,26px)` @1920×1080);
+   template px ÷ 26, taking clamp() landing points at 1920. For inline children,
+   fix the li base size first, then divide by that scale.
+4. **Write**: §1.5 `--slide-*` tokens (formula in every comment) → §1.6 scoped
+   per-layout rules (composite selectors, SLIDE-02 scopes) → §2/§3 mirrored
+   editor/export rules → §4 print.
+5. **Validate**: `npx tsx src/cli.ts validate themes/<slug>.css` must report
+   contract pass + slide-layout support + zero SLIDE- / SLIDES- / CSS-03
+   findings. Paradigm errors are allowed only for identity items documented in
+   the file header.
+
+### Fidelity checklist (walk every page)
+
+- **Background**: swapped-background pages need the full 5-layer chain; ordinary
+  pages must not paint a page-level background.
+- **Title**: family / weight / size / line-height / tracking / color / alignment /
+  max-width.
+- **Subtitle & kicker**: size, tracking, transform, opacity.
+- **Body**: li base scale + `.cm-md-strong` row title + `.cm-md-listmark`
+  number/date; redraw card borders instead of keeping capsule defaults.
+- **Position**: page-level vertical centering, page padding, object-box width
+  (border-box, padding included), inter-row gaps.
+
+### Batch runs
+
+One theme = one file, so templates can be dispatched in parallel (max 5
+concurrent sub-agents). After each batch verify the file's size/mtime actually
+changed — an unchanged file means a lost run, so re-dispatch it. Run `validate`
+once over every theme at the end.
 
 ## CSS Pitfall Quick Reference
 
@@ -283,6 +351,34 @@ colamd-themes from-url <URL> -n my-brand --ppt sans   # presets: serif | sans | 
 ### 6. Pele Diagram Colors
 
 **Pitfall:** Writing `themeVariables` or Mermaid `classDef` in the theme. **Correct:** override `--pele-*` on `:root`; the SVG reads them at render time.
+
+### 7. Layout class and line-role class share one div
+
+**Pitfall:** `.cm-md-slide-quote .cm-md-blockquote` (descendant form). **Correct:** `.cm-md-slide-quote.cm-md-blockquote` — the layout class is a line decoration stamped on the same div, so upstream descendant selectors miss in the editor DOM.
+
+### 8. Page-level vertical centering
+
+**Pitfall:** The template centers every page (`.slide` = flex column + `justify-content:center`), while upstream only centers cover / section / closing / two-col. **Correct:** single-column layouts get `display:flex; flex-direction:column; justify-content:safe center; min-height:92vh`. Card grids (kpi / matrix / steps / timeline) must keep inline-block flow, so use `flex-wrap:wrap` + `align-content:safe center`, cards `flex:0 0 auto`, every other line `flex:0 0 100%`; also `display:none` the page directive and zero the first line's top padding.
+
+### 9. Per-item color rotation
+
+**Pitfall:** Painting every card with the first card's color. **Correct:** target index N with `:nth-child(2 of .cm-md-slide-kpi.cm-md-li) .cm-md-strong` (Chrome 111+); older engines fall back to the base color.
+
+### 10. No commas inside `:nth-child(... of ...)`
+
+**Pitfall:** `:nth-child(1 of A, B)` — the validator splits the selector at the comma and flags the second half as unscoped (SLIDE-02). **Correct:** one selector per rule, e.g. `:nth-child(1 of .cm-md-slide-section.cm-md-li)`.
+
+### 11. Object-box width is border-box
+
+**Pitfall:** A template `max-width:750px` already includes its 56px padding; drawing the rows at `max-width:866px` makes the box 116px too wide. **Correct:** keep the template's outer width and subtract padding from the content width — never add.
+
+### 12. Upstream `.cm-md-li` margins
+
+**Pitfall:** Adding `padding-block` for list gaps while upstream keeps `margin:0.45em 0` turns an 18px gap into 29px. **Correct:** zero `margin-block` first; detect first/last rows with `:has(~ .cm-md-slide-x.cm-md-li)` (not `+`) so blank lines do not break detection.
+
+### 13. Verify before inventing
+
+**Pitfall:** Assuming a decorative or motion layer exists on a page. **Correct:** full-text search the template first; when it is absent, say so in the header's "not replicated" note instead of inventing a layout.
 
 ## Architecture
 

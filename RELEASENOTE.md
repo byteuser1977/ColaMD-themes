@@ -1,5 +1,22 @@
 # Release Notes
 
+## Version 0.6.2 (2026-11-17) — Export PDF Content Contract & Slide PDF Fidelity 📄
+
+### 📄 Added — Export PDF content checks (PDF-01…05)
+
+- **Artifact-side contract (`src/pdf-check.ts`)** — the CSS contract guards what goes INTO the renderer; the PDF contract guards what comes OUT. `export-pdf` now auto-runs a content check after every export and prints a report; a new `check-pdf <file.pdf> [-d <deck.md>]` command inspects any existing PDF standalone. Rules: **PDF-01** (MUST) the PDF parses with ≥1 page; **PDF-02** (MUST) page size consistent, and slide exports must be 16:9 paper (1280×720 @96dpi = 960×540pt); **PDF-03** (MUST) slide page count = deck page count (the most common fidelity failure is one overflowing page spilling onto two sheets); **PDF-04** (SHOULD) no blank pages (< 5 chars of page text); **PDF-05** (SHOULD) the deck title (chrome) appears in the PDF text (whitespace-stripped matching, immune to Chromium glyph-run splitting). MUST violations exit 1
+- **pdf-parse must run in a clean `node -e` subprocess** — pdf.js v1.10's worker deterministically mis-reports `bad XRef entry` under tsx/esbuild module transforms on perfectly valid PDFs (including real Chromium exports) that plain `node` parses fine. The buffer goes over stdin, results come back as one JSON line on stdout, and the pdf-parse module path is resolved by the CLI via `createRequire` and passed through the environment
+- **Deck introspection helpers** — `slides-markdown.ts` exports `countDeckPages()` and `extractDeckChrome()` (deck block logo/brand/title/meta, first-h1 fallback)
+- **Contract docs synced** — SKILL.md gains the "Export PDF content checks (PDF-01…05)" section; `build:skills` regenerated all 7 agent targets and `.trae/rules`
+
+### 🎨 Fixed — editorial-forest green-slide readability & export fidelity
+
+- **Export-side invisible text (root cause)** — many `body.slides-printing` color rules lacked the `#editor .cm-content` id weight and were overridden by document rules (`.cm-md-strong{ink}` etc.), leaving ink text on the deep-green pages in PPT-PDF (1.77:1). All export inline selectors now carry the id weight (matching the pink-script-dark implementation conventions)
+- **Presenting-side small text** — small pink-on-green text (#e89cb1, 4.61:1) switched to `--forest-pink-bright` #f6c9d6 (≥5.28:1): cover subtitle/lead, kicker, chrome/foot, KPI tag, timeline entry titles, closing list marks, agenda card 1. Large brand elements (220px cover title, KPI numbers) keep the accent (large-text 3:1 met)
+- **Row-level color override (key fix)** — upstream sets colors directly on the layout line elements (kpi/timeline = `--text-secondary`, closing = `--text-muted`, page-lead = `--text-secondary`), and **a color set on the element always beats a color inherited from `.cm-content`** — so with colors only on the ancestor, the descriptions under KPI numbers / timeline years stayed dark grey on green (≈2.7:1). The theme now writes the color back onto the rows themselves (`.cm-md-slide-kpi.cm-md-li` etc., `#editor .cm-content` id weight): kpi/timeline descriptions = cream 88% (6.6:1), closing rows = brightened pink (5.28:1), figure and pink-page leads take their page's color. Verified with a Puppeteer computed-color probe: all 8 green-page text roles now ≥ 4.5:1
+- **Per-page background fidelity on export** — upstream slides-export paints the whole sheet with a single body background (`!important`), so the old `body.slides-printing:has(...)` page recoloring lost the cascade and green/pink pages dropped their background. Backgrounds now paint at line level (every line carries `cm-md-slide-<layout>`), with ±77px negative margins restoring full bleed; vertical spacing on green pages converts margin → padding (margin areas don't receive the line background); leftover `~ *` sibling selectors replaced by direct line-class hits
+- **New 1.7 export paper calibration** — 1280×720 @24px/em conversion: cover/section/closing/quote/title token overrides, list font-size calibration (26px-base → 0.667em, 30px-base → 0.833em, 32px-base → 0.89em), hardcoded kpi/figure/quote sizes converted, density block (line-height 1.62 / compressed empty lines / table & code), chrome/foot fixed-px scaling; the old ×0.88 double-shrink block removed
+
 ## Version 0.6.1 (2026-11-16) — Local HTML Template Extraction & Full Slide Tokens 🎨
 
 ### 🎨 Added
