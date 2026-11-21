@@ -11,7 +11,8 @@
  *                  surface/panel 全部近中性，SL-01/SL-02 实测通过；
  *   SL-03   —— surface 微调 #111111→#111110（H0→H60，视觉无差），与 panel/panel-alt
  *                  同入 60° 暖灰轴，保三层表面同色相轴（可修则修）；
- *   NT-01   —— cream 墨阶并轴：ink-muted #888880→#8a8680（H60→H36）、ink-dim 微调，
+ *   NT-01   —— cream 墨阶并轴：ink-muted #888880→#8a8680→#98938b（H60→H36，正文灰
+ *                  亮度再提 10%）、ink-dim 微调，
  *                  三档 ΔH≤2°（可修则修，视觉无差）；
  *   CR-03   —— ink-dim 模板 #505048 只有 2.3:1，提亮到 #6b6862（3.4:1）保 MUST（可修则修）；
  *   NT-02   —— 模板 hairline #282826 与 panel 明度差 0.055<0.08（边框不可见），提亮到
@@ -133,7 +134,7 @@
   --seed-panel:         #1a1a18;   /* bg-alt 次表面 */
   --seed-panel-alt:     #282826;   /* border-dark 档 */
   --seed-ink:           #f0ece5;
-  --seed-ink-muted:     #8a8680;   /* 模板 #888880 并轴微调（NT-01） */
+  --seed-ink-muted:     #98938b;   /* 模板 #888880 并轴微调（NT-01）；正文灰再提亮 10% */
   --seed-ink-dim:       #6b6862;   /* 模板 #505048 提亮保 CR-03 ≥3:1 */
   --seed-border:        #7a7770;   /* 模板 #282826 提亮保 NT-02（见头注） */
   --seed-border-strong: #57534d;   /* hr/th 强线档（暖灰） */
@@ -968,6 +969,11 @@ body:not(.presenting):not(.slides-printing) #editor .cm-content .cm-md-atxheadin
   color: var(--seed-accent);
 }
 #editor .cm-content .cm-md-atxheading3 { font-size: 1.5em; font-weight: 600; line-height: 1.2; }
+/* h3/h4 = 强调白（cream），与 h1/h2 橙、正文灰分层 */
+body:not(.presenting):not(.slides-printing) #editor .cm-content .cm-md-atxheading3,
+body:not(.presenting):not(.slides-printing) #editor .cm-content .cm-md-atxheading4 {
+  color: var(--text-color);
+}
 #editor .cm-content .cm-md-atxheading4 { font-size: 1.25em; font-weight: 600; }
 #editor .cm-content .cm-md-atxheading5 { font-size: 1.1em; font-weight: 600; }
 #editor .cm-content .cm-md-atxheading6 {
@@ -1023,17 +1029,17 @@ body:not(.presenting):not(.slides-printing) #editor .cm-content .cm-md-atxheadin
 
 /* ── 2.4 Table / Rule ──
    表格按报头排版：表头用印刷体粗体（mono 大写对中文表头无效且难读），
-   表体 cream 正文 + 斑马纹 + 等宽数字，分隔线保持 1px 暖灰 hairline */
+   表头 = 强调白 + 印刷体 700，表体 = 与正文一致的 fg-2 灰 + 斑马纹 + 等宽数字 */
 #editor .cm-content .cm-md-table-widget th,
 #editor .cm-content .cm-md-table-widget td {
   padding: 10px 14px;
   border-color: var(--border-color);
-  color: var(--text-color);
   font-variant-numeric: tabular-nums;
 }
 #editor .cm-content .cm-md-table-widget td {
   font-size: 0.95em;
   line-height: 1.65;
+  color: var(--text-secondary);           /* 与正文同色（fg-2） */
 }
 #editor .cm-content .cm-md-table-widget th {
   background: var(--table-header-bg);
@@ -1137,10 +1143,13 @@ body:not(.presenting):not(.slides-printing) #editor .cm-content .cm-md-atxheadin
 .colamd-document td {
   border-color: var(--border-color);
   padding: 10px 14px;
-  color: var(--text-color);
   font-variant-numeric: tabular-nums;
 }
-.colamd-document td { font-size: 0.95em; line-height: 1.65; }
+.colamd-document td {
+  font-size: 0.95em;
+  line-height: 1.65;
+  color: var(--text-secondary);             /* 表体与正文同为 fg-2 灰 */
+}
 .colamd-document th {
   background: var(--table-header-bg);
   color: var(--text-color);
