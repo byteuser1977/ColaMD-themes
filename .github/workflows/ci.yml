@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+env:
+  # CI 只做构建与契约校验，不渲染 PDF，跳过 Chrome 下载
+  PUPPETEER_SKIP_DOWNLOAD: "1"
+
+jobs:
+  build-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 安装 MCP 依赖
+        run: npm ci --prefix mcp-server
+
+      - name: 构建 CLI 与 MCP
+        run: npm run build:all
+
+      - name: 主题契约校验
+        run: |
+          fail=0
+          for f in themes/*.css; do
+            npx tsx src/cli.ts validate "$f" --json || { echo "::error file=$f::主题契约校验失败"; fail=1; }
+          done
+          exit $fail
+
+      - name: 幻灯片 Markdown 契约校验
+        run: npx tsx src/cli.ts validate themes-preview/demo-slides.md --json

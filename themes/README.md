@@ -19,6 +19,10 @@ colamd-themes export-html doc.md -t themes/vellum.css -o out.html
 
 在 ColaMD 应用（≥2.7.13）内：*主题 > 导入主题* 或将 `.css` 放入 `~/.colamd/themes/` 即可放映使用。
 
+本目录所有主题均通过 `colamd-themes validate`。模板刻意保留的设计身份偏差（纸底/纸面
+饱和度、装饰色对比度等）以文件内 `/* colamd-allow: SL-01, CR-04 */` 机器可读地声明，
+批量校验与 CI 因此保持绿色，豁免项仍会在 `validate --json` 的 `waived` 中列出。
+
 | slug | 名称 | 气质 | 预设 | 明暗 | 显示字体 | 正文字体 | surface | ink | accent |
 |---|---|---|---|---|---|---|---|---|---|
 | 8-bit-orbit | 8-Bit Orbit | retro-tech · playful · cyberpunk | sans | dark | Tektur | Chakra Petch | #0a0e27 | #f0a6ca | #f4d03f |

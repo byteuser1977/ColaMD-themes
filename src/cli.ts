@@ -13,7 +13,7 @@ import { PdfExtractor } from "./extractors/pdf-extractor.js";
 import type { Extractor } from "./extractors/base.js";
 import { writeThemeFile } from "./generator.js";
 import { COLOR_SYSTEMS, getColorSystem } from "./color-systems.js";
-import { validateSeedPalette, validateThemeCss, summarizeIssues } from "./validators.js";
+import { validateSeedPalette, validateThemeCss, summarizeIssues, parseIssueWaivers } from "./validators.js";
 import type { ThemeStyle } from "./models.js";
 import { registerExportCommands } from "./export-cli.js";
 import { BUILTIN_THEMES, resolveTheme } from "./theme-store.js";
@@ -609,15 +609,19 @@ program
     };
     const cssIssues = validateThemeCss(css);
     const seedIssues = seed.accent ? validateSeedPalette(seed) : [];
-    const issues = [...cssIssues, ...seedIssues];
+    const allIssues = [...cssIssues, ...seedIssues];
+    const waivers = parseIssueWaivers(css);
+    const issues = allIssues.filter((i) => !waivers.has(i.ruleId));
+    const waived = [...new Set(allIssues.filter((i) => waivers.has(i.ruleId)).map((i) => i.ruleId))];
     const failed = hasFailures(issues);
     const compat = getColamdCompat();
     const compatLine = formatColamdCompat(compat);
 
     if (options.verbose && !options.json) {
       console.log(chalk.bold("CSS contract (ColaMD 2.7.13):"));
-      console.log(cssIssues.length === 0 ? chalk.green("  ✔ :root 根块与选择器契约通过") : summarizeIssues(cssIssues));
+      console.log(cssIssues.filter((i) => !waivers.has(i.ruleId)).length === 0 ? chalk.green("  ✔ :root 根块与选择器契约通过") : summarizeIssues(cssIssues.filter((i) => !waivers.has(i.ruleId))));
       console.log(compat.status === "exact" ? chalk.dim(`  平台兼容: ${compatLine}`) : chalk.yellow(`  平台兼容: ${compatLine}`));
+      if (waived.length > 0) console.log(chalk.dim(`  已备案豁免: ${waived.join(", ")}（文件头 colamd-allow）`));
       if (!seed.accent) {
         console.log(chalk.yellow("\nNot a seed-palette theme (no --seed-* found); seed checks skipped."));
         if (failed) process.exitCode = 1;
@@ -625,8 +629,9 @@ program
       }
       console.log(chalk.bold("\nSeed palette:"));
       for (const [k, v] of Object.entries(seed)) console.log(`  ${chalk.dim(k.padEnd(18))} ${v}`);
-      console.log(chalk.bold(`\nParadigm validation (${seedIssues.length} issues):`));
-      console.log(summarizeIssues(seedIssues));
+      const activeSeed = seedIssues.filter((i) => !waivers.has(i.ruleId));
+      console.log(chalk.bold(`\nParadigm validation (${activeSeed.length} issues):`));
+      console.log(summarizeIssues(activeSeed));
       if (failed) process.exitCode = 1;
       return;
     }
@@ -640,6 +645,7 @@ program
         file,
         compat: compatLine,
         issues: issues.map((i) => ({ rule: i.ruleId, level: i.level, message: i.message })),
+        ...(waived.length > 0 ? { waived } : {}),
       },
     });
   });

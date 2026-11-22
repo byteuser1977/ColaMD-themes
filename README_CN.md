@@ -155,10 +155,10 @@ npm run build:skills -- dsh
 - **插件契约** — `package.json` 声明 `dsh.bundle.patch`，指向 [`cordis.patch.yml`](cordis.patch.yml)，向 Profile 组合树插入 `colamd-themes` Cordis Entry
 - **宿主入口** — [`src/dsh-plugin.ts`](src/dsh-plugin.ts) 导出 Cordis 协议（`name` / `inject: ["skills"]` / `apply`），经 `ctx.skills.registerProvider` 把捆绑的 `skills/colamd-themes/SKILL.md` 注册到 Harness `skills` 服务（与内置 dsh-ppt 插件同一 provider 协议）
 - **CLI 命令** — `colamd-themes` / `cthemes` 随包分发，安装后 Profile 内 Agent 可直接调用
-- **运行时兼容** — `@deepseek-ai/dsh-skill` 声明为 *optional* peer（`^0.1.5-rc.1 || ^0.2.0-rc || ^0.2.1-rc || ^0.3.0-rc || ^0.4.0-rc`，semver 预发布规则按 patch 线枚举，新 rc 线发布时追加）：market 按 DSH 运行时版本校验，独立 `npm install` 不受影响
+- **运行时兼容** — `@deepseek-ai/dsh-skill` 声明为 *optional* peer（`^0.2.0-rc || ^0.2.1-rc || ^0.2.2-rc || ^0.2.3-rc || ^0.2.4-rc || ^0.2.5-rc || ^0.2.6-rc || ^0.2.7-rc || ^0.2.8-rc || ^0.2.9-rc`，semver 预发布规则要求每个 rc 补丁位单独枚举，现已覆盖 0.2.x 全部小版本 rc（0.2.0～0.2.9），后续 0.2 小版本 rc 无需再改；0.1.x 与 0.3+ 宿主线不在支持范围内）：market 按 DSH 运行时版本校验，独立 `npm install` 不受影响
 - **向后兼容** — 运行时只消费 dsh-skill 的稳定常量 `BUNDLED_SKILL_RANK`，宿主入口 `apply()` 对 skills 服务协议漂移容错（降级为警告，不阻塞 Profile 加载）
 - **平台兼容层** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移，渲染器初始化时校验导出 API 面；平台升级导致的契约/API 变化在 `cthemes validate` 与导出阶段给出明确诊断，而非神秘报错
-- **Bundle 内容** — `dist/`（CLI + 宿主入口）、`themes/`（16 个契约 CSS 主题）、`skills/`（捆绑 skill）、`cordis.patch.yml`
+- **Bundle 内容** — `dist/`（CLI + 宿主入口）、`themes/`（58 个契约 CSS 主题文件，全部通过 `validate`）、`skills/`（捆绑 skill）、`cordis.patch.yml`
 
 从 DSH Profile 安装（npm 发布后）：在 dsh-market 界面添加 `@bytechain.cn/colamd-themes`，或执行 `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`。
 
@@ -271,6 +271,16 @@ cthemes validate themes/我的主题.css
 # 幻灯片 Markdown：指令契约校验（页首规则、版式名、字段键、slide-css 安全子集）
 cthemes validate 报告.slides.md
 ```
+
+有意保留的设计身份偏差（纸底饱和度、低于文字对比阈值的装饰色）可在主题文件里
+机器可读地声明，让 `validate` 在批量/CI 中保持通过，同时仍在 `waived` 中如实报告：
+
+```css
+/* colamd-allow: SL-01, CR-04 */
+```
+
+仅 `SL-` / `CR-` / `NT-` 身份族可豁免；契约类规则（`CSS-*`、`SLIDE-*`、`SLIDES-*`）
+永不接受豁免，真实的对比度问题必须通过加深文字色解决，而不是列进白名单。
 
 ### 列出主题和色彩系统
 

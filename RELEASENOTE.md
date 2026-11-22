@@ -1,6 +1,6 @@
 # Release Notes
 
-## Version 0.7.1 (2026-11-23) — Publish Integrity: Always-Fresh `dist` 🔒
+## Version 0.7.1 (2026-11-23) — Publish Integrity, Theme Waivers & MCP Fixes 🔒
 
 ### 🔒 Fixed — stale `dist` shipped inside the npm package
 
@@ -13,6 +13,32 @@
 - **「总到分精炼生成（长文档 → 精炼幻灯片）」 section** — long documents no longer take the structural fast path (which copies the source block by block). Three phases: (1) 总 — read the whole document, produce a global summary + narrative arc (Hook/Context/Core/Shift/Takeaway) + section & page budget; (2) 分 — write `<name>.plan.md` (page number / layout / chapter kicker / page purpose / condensed content / layout rationale, plus a capacity check & cut list) for user review; (3) on confirmation, hand-write `<name>.slides.md` once (deck block + per-page `<!-- slide: -->` directives)
 - **Condensation & layout-selection rules** — drop background/transition/minor examples, keep conclusions/data/evidence/quotes/actions; pick from the 11 layouts by content shape (numbers→kpi, dates→timeline, ordered→agenda/steps…); dedupe kicker/chapter; avoid 3 identical layouts in a row; split over-capacity pages before shrinking type
 - **Invocation rules 1a & 7** — fixed sequence for condensed decks (`validate` once → at most one repair round → `export-slides` once); agent hand-written decks bypass `to-slides`/`ppt` to avoid re-injected directives. Synced into all 7 agent mirrors and `.trae/rules`; CLI unchanged
+
+### 🛡 Added — machine-readable theme waivers & CI
+
+- **`colamd-allow` waivers** — a theme can now declare its intentional paradigm deviations in one line, `/* colamd-allow: SL-01, CR-04 */`. `validate` stops failing on those identity items but still reports them in `--json.waived` and `--verbose`. Only the design-identity families (`SL-` / `CR-` / `NT-`) are waivable; contract/mechanical rules (`CSS-*`, `SLIDE-*`, `SLIDES-*`) are rejected (verified with a negative case: a dead variable stays a hard failure even when listed)
+- **31 reference-template themes declared** — waivers derived from each file's existing documented deviations; `themes/*.css` is now **58/58** green under `validate`
+- **GitHub Actions CI** — `.github/workflows/ci.yml`: `npm ci` (Chrome download skipped) → build CLI + MCP → per-file theme validation → sample deck validation
+- **Tags restored** — `v0.7.0` and `v0.7.1` created (the repo had stopped tagging at `v0.6.2`)
+
+### 🎨 Fixed — `pink-script` readability
+
+- **Link color `#ff66a8` → `#b3155a`** — the neon pink was used as body text color at 2.4:1 on the pink paper, making links and bold runs nearly unreadable; the darker shade reaches 5.8:1 on paper and 5.0:1 on panels, while neon pink stays on color blocks and diagram accents
+
+### 📡 Changed — DSH host compatibility
+
+- **Optional peer range narrowed to the 0.2.x line** — `@deepseek-ai/dsh-skill` now accepts every 0.2.x rc patch line (0.2.0–0.2.9) and nothing else (`^0.2.0-rc || … || ^0.2.9-rc`), so future 0.2.x rc releases need no further changes; 0.1.x and 0.3+ host lines are intentionally out of scope. Semver's prerelease rule forces one comparator per rc patch line; the runtime still consumes only the stable `BUNDLED_SKILL_RANK` constant
+
+### 🔒 Fixed — MCP publish availability
+
+- **MCP dependencies hoisted to root** — the published tarball only carries `mcp-server/dist/index.js` (bin auto-include), which imports `@modelcontextprotocol/sdk` and `zod`. Both were declared only in `mcp-server/package.json` (never packed), so an installed `colamd-themes-mcp` died with `Cannot find module`. Both are now root `dependencies`
+- **Dead `list_mermaid_presets` tool and `mermaidPreset` argument removed** — the `mermaid-presets` command and `-m` option were deleted in the 2.7.7 Pele migration, but the MCP server still forwarded them, so every call failed. Zod schema, tool list, dispatch branch and the README tool table were updated (the table now also lists the 0.7.0 `ppt` / `to_slides` / `export_slides` / `check_pdf` tools)
+
+### 🧹 Changed — repository hygiene
+
+- **`.tmp-export/` untracked** — debug scripts removed from the git index and added to `.gitignore`
+- **Selective `.trae/` ignore rules** — `rules/` and `skills/` are `build:skills` outputs that were ignored yet force-tracked, so every regeneration dirtied the tree; they are no longer ignored, while `documents/` stays local
+- **`mcp-server` marked `private: true`, version aligned to 0.7.1** — the MCP server ships inside the root package (which already exposes the `colamd-themes-mcp` bin), so it needs no separate publish; the old 0.3.0 version had drifted from the main package
 
 ### 📦 Install
 
@@ -452,7 +478,7 @@ npm run build
 | | `check_fonts` | Check font availability |
 | | `set_theme` | Register custom theme |
 | Color | `list_color_systems` | 15 built-in palettes |
-| | `list_mermaid_presets` | 3 Mermaid presets |
+| | `list_mermaid_presets` | 3 Mermaid presets — *(removed in 0.7.1; diagrams are drawn by Pele with `--pele-*` variables)* |
 | Export | `export_html` | Markdown to HTML |
 | | `export_pdf` | Markdown to PDF |
 | | `export_batch` | Batch export |
@@ -741,7 +767,7 @@ For complete details on all changes, see [CHANGELOG.md](./CHANGELOG.md).
   - Vintage (warm, retro)
   - Mint (fresh, vibrant)
 - **Auto-derived semantic mapping**: Design tokens automatically generate consistent color relationships
-- **Mermaid Integration**: 3 diagram presets with 20 customizable variables
+- **Mermaid Integration**: 3 diagram presets with 20 customizable variables *(removed in 0.7.1; Pele's 9 `--pele-*` variables take over)*
 
 ### 📚 Academic Focus
 

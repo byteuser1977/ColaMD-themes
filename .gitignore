@@ -29,4 +29,8 @@ tmp/
 .tmp-export/
 .themes/
 docs/upstream-2.7.7-requirements.md
-.trae/
+# .trae：rules/ 与 skills/ 是 build:skills 的生成产物，需要入库；
+# 其余（计划文档等本地工作文件）保持忽略
+.trae/*
+!.trae/rules/
+!.trae/skills/

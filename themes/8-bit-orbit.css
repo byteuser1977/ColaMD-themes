@@ -42,6 +42,7 @@
  * ══ 换算锚点：放映基准 clamp(17px,1.35vw,26px)，1080p ≈ 26px/em；px ÷ 26 = em，
  *   clamp 一律取 1920×1080 实际落点；行内元素先定 li 基准再除以 li 缩放补偿。
  */
+/* colamd-allow: SL-01, SL-02 */
 
 /* ═══ SECTION 1 · :root 令牌（契约活变量 + 种子色） ═══ */
 :root {

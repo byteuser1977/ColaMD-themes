@@ -182,10 +182,10 @@ The package is also a **DSH (DeepSeek Harness) plugin bundle** installable from 
 - **Plugin contract** — `package.json` declares `dsh.bundle.patch` pointing to [`cordis.patch.yml`](cordis.patch.yml), which inserts the `colamd-themes` Cordis entry into the profile's composition
 - **Host entry** — [`src/dsh-plugin.ts`](src/dsh-plugin.ts) exports the Cordis protocol (`name` / `inject: ["skills"]` / `apply`) and registers the bundled `skills/colamd-themes/SKILL.md` with the Harness `skills` service via `ctx.skills.registerProvider` (same provider protocol as the bundled dsh-ppt plugin)
 - **CLI bins** — `colamd-themes` / `cthemes` ship with the package and become available to profile agents after install
-- **Runtime compatibility** — `@deepseek-ai/dsh-skill` is declared as an *optional* peer (`^0.1.5-rc.1 || ^0.2.0-rc || ^0.2.1-rc || ^0.3.0-rc || ^0.4.0-rc`; semver's prerelease rule forces per-patch enumeration — append a comparator when a new rc line ships): the market checks it against the DSH runtime version, while standalone `npm install` is unaffected
+- **Runtime compatibility** — `@deepseek-ai/dsh-skill` is declared as an *optional* peer (`^0.2.0-rc || ^0.2.1-rc || ^0.2.2-rc || ^0.2.3-rc || ^0.2.4-rc || ^0.2.5-rc || ^0.2.6-rc || ^0.2.7-rc || ^0.2.8-rc || ^0.2.9-rc`; semver's prerelease rule forces one comparator per rc patch line, so every 0.2.x rc release (0.2.0–0.2.9) is accepted without further edits; 0.1.x and 0.3+ host lines are out of scope): the market checks it against the DSH runtime version, while standalone `npm install` is unaffected
 - **Backward compatibility** — the runtime consumes only the stable `BUNDLED_SKILL_RANK` constant, and the host entry's `apply()` tolerates skills-service protocol drift (warning instead of a broken profile load)
 - **Platform compat layer** — [`src/compat.ts`](src/compat.ts) probes the installed `@bytechain.cn/colamd` version and its `themes/contract.json` for contract drift, and the renderer verifies the export API surface at init; platform upgrades are diagnosed clearly at `cthemes validate`/export time instead of failing cryptically
-- **Bundle contents** — `dist/` (CLI + host entry), `themes/` (16 contract CSS themes), `skills/` (bundled skill), `cordis.patch.yml`
+- **Bundle contents** — `dist/` (CLI + host entry), `themes/` (58 contract CSS theme files, all passing `validate`), `skills/` (bundled skill), `cordis.patch.yml`
 
 Install from a DSH profile (once published to npm): add `@bytechain.cn/colamd-themes` through the dsh-market UI or `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`.
 
@@ -299,6 +299,18 @@ cthemes validate themes/my-theme.css
 # Slides markdown: directive contract checks (page-first, layout names, field keys, slide-css safety)
 cthemes validate report.slides.md
 ```
+
+Intentional design-identity deviations (saturation of the paper, a decorative accent
+below text-contrast thresholds) can be declared machine-readably in the theme file so
+`validate` stays green in batch/CI while still reporting them under `waived`:
+
+```css
+/* colamd-allow: SL-01, CR-04 */
+```
+
+Only `SL-` / `CR-` / `NT-` identity rules are waivable — contract rules (`CSS-*`,
+`SLIDE-*`, `SLIDES-*`) can never be waived, and a real contrast problem must be fixed
+by darkening the text color rather than waived.
 
 ### List themes and color systems
 

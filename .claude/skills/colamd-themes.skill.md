@@ -394,8 +394,19 @@ slide theme (`themes/<slug>.css`) with strict fidelity. Full methodology:
    editor/export rules → §4 print.
 5. **Validate**: `npx tsx src/cli.ts validate themes/<slug>.css` must report
    contract pass + slide-layout support + zero SLIDE- / SLIDES- / CSS-03
-   findings. Paradigm errors are allowed only for identity items documented in
-   the file header.
+   findings. Paradigm deviations (SL- / CR- / NT- rules) are allowed only for
+   identity items documented in the file header, and must be declared
+   machine-readably so `validate` stays green in batch/CI:
+
+   ```css
+   /* colamd-allow: SL-01, CR-04 */
+   ```
+
+   Only identity-rule families are waivable; contract/mechanical rules
+   (`CSS-*`, `SLIDE-*`, `SLIDES-*`) cannot be waived, and waived items are
+   still reported under `waived` in `--json`. Never waive a real contrast
+   problem — darken the text color instead (e.g. accent stays decorative,
+   links get a ≥4.5:1 shade).
 
 ### Fidelity checklist (walk every page)
 

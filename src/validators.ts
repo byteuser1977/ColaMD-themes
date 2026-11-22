@@ -381,3 +381,25 @@ export function summarizeIssues(issues: ValidationIssue[]): string {
   }
   return lines.join("\n");
 }
+
+/**
+ * 可豁免规则族：仅限设计范式身份项。契约/机械类规则（CSS-*、SLIDE-*、SLIDES-*）
+ * 不允许豁免，避免把真正的契约违规写进白名单一劳永逸地压掉。
+ */
+const WAIVABLE_RULE = /^(SL|CR|NT)-\d{2}$/;
+
+/**
+ * 解析主题文件的机器可读豁免声明：`/* colamd-allow: SL-01, CR-04 *\/`。
+ * 对应 SKILL 中「范式偏差只允许写入文件头的身份项」这条约定。
+ */
+export function parseIssueWaivers(css: string): Set<string> {
+  const waivers = new Set<string>();
+  const match = css.match(/colamd-allow\s*:\s*([^*\n]+)/i);
+  if (!match) return waivers;
+  for (const raw of match[1].split(/[,\s]+/)) {
+    const id = raw.trim().toUpperCase();
+    if (WAIVABLE_RULE.test(id)) waivers.add(id);
+  }
+  return waivers;
+}
+
