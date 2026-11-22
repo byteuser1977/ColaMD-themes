@@ -425,18 +425,18 @@ export interface LayoutContract {
 export const LAYOUT_CONTRACT: Record<string, LayoutContract> = {
   cover: { firstPage: true },
   section: {},
-  // Caps are tuned to one 16:9 sheet at the platform's print type size
-  // (1280×720 @24px). Longer lists split into continuation pages instead of
-  // spilling the page into a second printed sheet (PDF-03).
-  agenda: { items: { min: 3, max: 5 }, list: "ordered", requiresStrong: true },
+  // Counts follow the upstream layout conventions. Pages that still exceed
+  // one 16:9 sheet are handled at export time by the sheet-type auto-fit;
+  // only truly extreme lists are split into continuation pages.
+  agenda: { items: { min: 3, max: 6 }, list: "ordered", requiresStrong: true },
   kpi: { items: { min: 2, max: 6 }, list: "unordered", requiresStrong: true, requiresNumeric: true },
-  timeline: { items: { min: 3, max: 3 }, list: "unordered", requiresStrong: true, requiresDate: true },
+  timeline: { items: { min: 3, max: 6 }, list: "unordered", requiresStrong: true, requiresDate: true },
   steps: { items: { min: 3, max: 5 }, list: "ordered", requiresStrong: true },
-  matrix: { items: { min: 3, max: 6 }, list: "unordered", requiresStrong: true },
+  matrix: { items: { min: 3, max: 8 }, list: "unordered", requiresStrong: true },
   "two-col": { requiresTwoColumns: true },
   figure: { requiresFigure: true },
   quote: { requiresQuote: true },
-  closing: { items: { min: 2, max: 5 }, list: "unordered" },
+  closing: { items: { min: 2, max: 8 }, list: "unordered" },
 };
 
 /** Rough sheet capacity in text lines (chrome + padding already deducted). */
