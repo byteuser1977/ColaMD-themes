@@ -3,9 +3,9 @@ name: colamd-themes
 version: "1.0.0"
 description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF
-  with optional PPT styling; convert Markdown to slide decks; export
-  Markdown to HTML/PDF; batch export.
+  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
+  one-shot ppt command: Markdown → slide deck → validated 16:9 PDF;
+  document HTML/PDF export; batch export.
 user-invocable: true
 allowed-tools:
   - Read
@@ -16,7 +16,29 @@ allowed-tools:
   - Grep
 ---
 
-Generate, validate, export, and manage ColaMD **2.7 contract** CSS themes (2.7.13 anchor, slide layouts stable). Extract formatting from URLs, DOCX, or PDF sources (optionally with PPT `--slide-*` styling); convert Markdown into slide-deck Markdown; export Markdown to standalone HTML/PDF with themes applied; batch export; manage theme configuration.
+Generate, validate, export, and manage ColaMD **2.7 contract** CSS themes (2.7.13 anchor, slide layouts stable). Extract formatting from URLs, DOCX, or PDF sources (optionally with PPT `--slide-*` styling); convert Markdown into slide-deck Markdown; export Markdown to standalone HTML/PDF **or a 16:9 slide PDF** with themes applied; batch export; manage theme configuration.
+
+## Quick tasks — one command, no back-and-forth
+
+| 任务 | 命令 |
+|---|---|
+| markdown → 16:9 幻灯片 PDF（含生成、校验、导出、PDF 检查） | `colamd-themes ppt report.md` |
+| 只要幻灯片 markdown（不要 PDF） | `colamd-themes ppt report.md --md-only` |
+| 已有 deck markdown → 16:9 PDF | `colamd-themes export-slides deck.md` |
+| markdown → 文档式 HTML / PDF | `colamd-themes export-html doc.md` / `export-pdf doc.md` |
+| 从 URL / DOCX / PDF / HTML 提取主题 | `colamd-themes extract <source> -n my-theme` |
+| 校验主题 CSS 或 deck markdown | `colamd-themes validate <file>` |
+
+### Invocation rules (important for agents)
+
+1. **One command per task.** `ppt` already chains to-slides → directive/content contract → 16:9 PDF → PDF-01~05. Do not call `to-slides` + `export-slides` + `check-pdf` yourself unless the user explicitly wants the intermediate deck.
+2. **Do not re-validate.** Every producing command validates internally and only reports failures; a second `validate` call costs tokens and time without adding information.
+3. **Do not read the artifacts back.** Use `--json` and read the one-line result (`ok`, paths, pages, `issues`). Only open the PDF/markdown when the user asks to inspect the content.
+4. **Default output is one line.** `--json` → exactly one line of JSON; `--verbose` → detail lines; failures print only the failing items (`[RULE] message`).
+5. **Stop on failure.** If exit code is 1, report the failing rules plus the one-line fix hint — do not loop, retry, or re-run the same command with the same input.
+6. **Themes are optional.** Omit `-t` to use the configured default theme; pass a built-in name, a registered custom name, or a `.css` path.
+
+Exit codes: `0` success · `1` contract/validation failure or input file not found · `2` theme resolution · `3` render failure · `4` invalid input · `99` unexpected.
 
 ## Prerequisites
 
@@ -50,8 +72,18 @@ and contrast rules (CR-02). `extract` auto-detects local `.html/.htm` too.
 ```bash
 colamd-themes export-html <input.md> -t <theme> -o <output.html>
 colamd-themes export-pdf  <input.md> -t <theme> -o <output.pdf>
+colamd-themes export-slides <deck.md> -t <theme> -o <output.pdf>
 colamd-themes export <inputs...> --format html|pdf -t <theme> -d <dir>
 ```
+
+> **`export-slides` vs `export-pdf`**: `export-slides` prints the live editor laid out as
+> 16:9 sheets (deck chrome, hero centering, page breaks) and requires a deck markdown
+> (with `<!-- deck ... -->` or `<!-- slide: ... -->`). `export-pdf` renders the semantic
+> document DOM and produces A4/Letter/A3.
+>
+> Both check the produced PDF automatically. A deck export that would spill a page onto
+> a second sheet is rewritten at a slightly smaller sheet type size so every declared page
+> stays on exactly one sheet; `PDF-03` (pages = deck pages) must pass.
 
 > **Token-saving by default**: exports are optimized automatically. When the source
 > markdown contains no math (`$$`, `$...$`, `\(..\)`, `\begin{..}`), the inlined
@@ -207,26 +239,36 @@ chapter: Act I · 数据
 |---|---|
 | `cover` | 首页 h1 主标题 + h2 副标题 + 首段导语 |
 | `section` | 一个短标题 + 一句说明，大留白 |
-| `agenda` | 有序列表 3-6 项 `**章名** 说明` |
+| `agenda` | 有序列表 3-5 项 `**章名** 说明` |
 | `kpi` | 无序列表 2-6 项 `**数字+单位** 说明` |
-| `timeline` | 列表项带年份/日期 `**2019 年** 事件` |
+| `timeline` | 列表项带年份/日期 `**2019 年** 事件`，3 项 |
 | `steps` | 有序列表 3-5 项 `**步骤名** 说明` |
-| `matrix` | 无序列表 3-8 项 `**名称** 说明` |
+| `matrix` | 无序列表 3-6 项 `**名称** 说明` |
 | `two-col` | 两个 h2 对半（左论点/右证据） |
 | `figure` | 图片 / Mermaid / 表格为主体的页 |
 | `quote` | 引用块为主体的页，引用后一行可作署名 |
-| `closing` | 末页行动清单 |
+| `closing` | 末页行动清单，2-5 项 |
 
 未声明版式的页自动走默认文章版式；未知版式名无害降级。
 
-### Markdown → PPT Markdown
+### Markdown → PPT Markdown → 16:9 PDF
 
 ```bash
-colamd-themes to-slides <input.md> -o <output.md>
-colamd-themes to-slides report.md --deck-brand "品牌" --deck-title "报告" --deck-meta "2026.11"
+# 一键：生成 deck + 校验 + 导出 16:9 PDF + PDF 内容检查
+colamd-themes ppt report.md
+colamd-themes ppt report.md -t elegant -d out/ --deck-brand "品牌" --deck-title "年度报告" --deck-meta "2026.11"
+
+# 分步（需要中间产物时）
+colamd-themes to-slides report.md -o report.slides.md
+colamd-themes export-slides report.slides.md -t elegant
+colamd-themes check-pdf report.slides.pdf -d report.slides.md
 ```
 
-按内容结构自动分页并推断上述 11 种版式，生成 deck 块与页头块（kicker/chapter 随章节推进）。生成后自动跑指令契约校验。
+按内容结构自动分页并推断上述 11 种版式，生成 deck 块与页头块（kicker/chapter 随章节推进）。
+
+**内容适配（默认开启，`--no-adapt` 关闭）**：生成时按版式契约补齐 `**行标题**`、kpi 无数字 / timeline 无日期时降级为 matrix、列表超量拆续页（`label: 标题（续）`）、超长段落按句末拆页。版式容量按 16:9 单页实测调校（timeline ≤3 项、steps/agenda ≤5 项、kpi/matrix ≤6 项、closing ≤5 项），超出即拆页而不是让导出溢出成两张纸。
+
+导出时如果任一页在平台默认 24px 版式字号下超过单页高度，会自动按比例微调纸面字号（不低于 0.6），保证 `PDF-03`（页数 = deck 页数）通过。
 
 ### Slide rule validation
 
@@ -239,6 +281,8 @@ colamd-themes validate deck.md
 - **SLIDES-03** (SHOULD)：未知版式名（无害降级）
 - **SLIDES-04/05** (MUST_NOT)：页头块字段键 ∉ kicker/label/chapter、deck 键 ∉ logo/brand/title/meta
 - **SLIDES-06** (MUST_NOT)：slide-css 含 `position: absolute/fixed`、`z-index`、伪协议 URL
+- **SLIDES-07** (SHOULD)：版式内容不匹配——项数超出契约、缺少 `**行标题**`、kpi 无数字、timeline 无日期、figure/quote/two-col 缺少对应主体
+- **SLIDES-08** (SHOULD)：估算单页内容超容量，导出时可能把一页挤出两张纸
 
 ### Export PDF content checks (PDF-01…05, v0.6.2)
 
@@ -277,7 +321,7 @@ colamd-themes from-url <URL> -n my-brand --ppt sans   # presets: serif | sans | 
 - **v0.6.1 全量版式令牌**：`from-html` 模板来源提供设计提示（`--sz-*` 字号阶梯 + template.json 的 mood/density/formality/scheme）时，生成 **24 个按页类型定制的令牌**——封面/章节/收页字号阶梯取自模板 display/body 比例，页标题 / KPI / 引言 / kicker / chrome / 页边距按气质（bold/quiet/tech）与密度调校；`--ppt` 不带值时信任按 display 字体自动判定的预设。无设计提示的主题保持仅品牌层输出（向后兼容）。
 - 自定义主题 CSS 在 slides.css 之后加载，`:root` 同权重后到先赢；不要写 `body.theme-custom`（文档契约死选择器）。
 - 手写主题里的幻灯片规则须遵守：**SLIDE-01** (SHOULD) 只用已知令牌；**SLIDE-02** (MUST_NOT) `.cm-md-page-*` / `.cm-md-slide-*` / `.slide-chrome|foot|ghost` 必须包裹在 `body.presenting` 或 `body.slides-printing` 作用域下（裸写污染编辑视图）；**SLIDE-03** (SHOULD) 标题字体栈含中文字族并以 generic family 结尾。
-- 平台需 ≥ 2.7.13 才消费这些令牌（compat 行「幻灯片版式」）；旧平台下令牌惰性。导出的 HTML/PDF 仍为文档式排版，放映版式在 ColaMD 应用内查看。
+- 平台需 ≥ 2.7.13 才消费这些令牌（compat 行「幻灯片版式」）；旧平台下令牌惰性。文档式 `export-html` / `export-pdf` 仍是文章排版；需要真正的 16:9 幻灯片 PDF 用 `export-slides` / `ppt`（compat 行「PPT 导出」，要求 lib 暴露 `enterSlidesPrintLayout` / `exitSlidesPrintLayout`，旧平台会给出可操作的升级命令）。
 
 ## 2.7 Contract Constraints
 

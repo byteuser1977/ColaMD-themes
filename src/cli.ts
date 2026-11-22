@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, isAbsolute, dirname, resolve } from "node:path";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join, isAbsolute, basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
 import chalk from "chalk";
-import ora from "ora";
 import { UrlExtractor } from "./extractors/url-extractor.js";
 import { LocalHtmlExtractor } from "./extractors/local-html.js";
 import { DocxExtractor } from "./extractors/docx-extractor.js";
@@ -17,9 +16,10 @@ import { COLOR_SYSTEMS, getColorSystem } from "./color-systems.js";
 import { validateSeedPalette, validateThemeCss, summarizeIssues } from "./validators.js";
 import type { ThemeStyle } from "./models.js";
 import { registerExportCommands } from "./export-cli.js";
-import { BUILTIN_THEMES } from "./theme-store.js";
+import { BUILTIN_THEMES, resolveTheme } from "./theme-store.js";
 import { getColamdCompat, formatColamdCompat } from "./compat.js";
 import { markdownToSlides, validateSlidesMarkdown } from "./slides-markdown.js";
+import { emit, startTask, formatFailures, formatWarnings, hasFailures } from "./utils/output.js";
 
 /**
  * Dynamically read version from package.json to avoid hardcoding.
@@ -237,7 +237,7 @@ async function runExtraction(
   source: string,
   options: Record<string, string>
 ) {
-  const spinner = ora("Extracting styles...").start();
+  const spinner = startTask("Extracting styles...", {});
   try {
     // --ppt [serif|sans|mono]: validate the preset before running extraction.
     // 显式指定预设时提前校验；无值 flag 则信任提取器自带的 slidePreset（如按模板字体自动判定）。
@@ -262,7 +262,7 @@ async function runExtraction(
       style.colorSystemId = cs.id;
     }
     if (options.autoMatch) style.colorSystemId = "";
-    spinner.text = "Generating CSS (2.7.13 contract)...";
+    spinner.setText("Generating CSS (2.7.13 contract)...");
     const outputPath = writeThemeFile(style, options.output || options.themesDir);
     spinner.succeed(chalk.green(`Theme "${style.name}" generated: ${outputPath}`));
     printSummary(style);
@@ -333,7 +333,13 @@ program
   .option("--deck-title <text>", "Deck chrome title (overrides frontmatter/first h1)")
   .option("--deck-meta <text>", "Deck chrome meta (chrome-right fallback, e.g. date)")
   .option("--deck-logo <path>", "Deck chrome logo path (relative to the output file)")
-  .action((input: string, options: { output?: string; deckBrand?: string; deckTitle?: string; deckMeta?: string; deckLogo?: string }) => {
+  .option("--no-adapt", "Do not adapt page content to the layout contracts (default: adapt)")
+  .option("--json", "Print a one-line JSON result")
+  .option("--verbose", "Print detail lines")
+  .action((input: string, options: {
+    output?: string; deckBrand?: string; deckTitle?: string; deckMeta?: string; deckLogo?: string;
+    adapt?: boolean; json?: boolean; verbose?: boolean;
+  }) => {
     if (!existsSync(input)) { console.error(chalk.red(`File not found: ${input}`)); process.exit(1); }
     const md = readFileSync(input, "utf-8");
     const slides = markdownToSlides(md, {
@@ -341,20 +347,153 @@ program
       title: options.deckTitle,
       meta: options.deckMeta,
       logo: options.deckLogo,
+      adapt: options.adapt !== false,
     });
 
-    // Self-check the generated deck against the directive contract.
+    // Self-check the generated deck against the directive + content contracts.
     const issues = validateSlidesMarkdown(slides);
-    const errors = issues.filter((i) => i.level === "MUST" || i.level === "MUST_NOT");
-    if (issues.length > 0) {
-      console.log(chalk.yellow(summarizeIssues(issues)));
-    }
+    const failed = hasFailures(issues);
 
     const outputPath = options.output || input.replace(/\.md$/i, "") + ".slides.md";
     writeFileSync(outputPath, slides, "utf-8");
     const pageCount = slides.split("\n").filter((l) => /^ {0,3}---\s*$/.test(l)).length + 1;
-    console.log(chalk.green(`Slides deck generated: ${outputPath} (${pageCount} pages)`));
-    if (errors.length > 0) process.exit(1);
+
+    emit({ json: options.json, verbose: options.verbose }, {
+      ok: !failed,
+      summary: `Slides deck: ${outputPath} (${pageCount} pages)${failed ? " · 契约失败" : ""}`,
+      details: [...formatFailures(issues), ...formatWarnings(issues)],
+      data: {
+        ok: !failed,
+        output: outputPath,
+        pages: pageCount,
+        issues: issues.map((i) => ({ rule: i.ruleId, level: i.level, message: i.message })),
+      },
+    });
+  });
+
+// ── ppt (one-shot deck generation + 16:9 PDF) ──
+program
+  .command("ppt")
+  .description("One-shot: markdown → slide-deck markdown → validated 16:9 PDF (ColaMD 2.7.13 slides)")
+  .argument("<input>", "Path to the source .md file")
+  .option("-t, --theme <name>", "Theme name (built-in, custom, or CSS file path)")
+  .option("-d, --output-dir <dir>", "Output directory (default: alongside the input)")
+  .option("--deck-brand <text>", "Deck chrome brand")
+  .option("--deck-title <text>", "Deck chrome title")
+  .option("--deck-meta <text>", "Deck chrome meta (e.g. date)")
+  .option("--deck-logo <path>", "Deck chrome logo path")
+  .option("--no-adapt", "Do not adapt page content to the layout contracts")
+  .option("--md-only", "Stop after writing the deck markdown (skip the PDF)")
+  .option("--json", "Print a one-line JSON result")
+  .option("--verbose", "Print detail lines")
+  .action(async (input: string, options: {
+    theme?: string; outputDir?: string; deckBrand?: string; deckTitle?: string; deckMeta?: string;
+    deckLogo?: string; adapt?: boolean; mdOnly?: boolean; json?: boolean; verbose?: boolean;
+  }) => {
+    const out = { json: options.json, verbose: options.verbose };
+    if (!existsSync(input)) { console.error(chalk.red(`File not found: ${input}`)); process.exit(1); }
+
+    try {
+      const inputPath = isAbsolute(input) ? input : resolve(process.cwd(), input);
+      const base = basename(inputPath, ".md");
+      const outDir = options.outputDir ? resolve(process.cwd(), options.outputDir) : dirname(inputPath);
+      if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
+      const mdPath = join(outDir, `${base}.slides.md`);
+      const pdfPath = join(outDir, `${base}.slides.pdf`);
+
+      const task = startTask(`Generating deck from ${base}.md...`, out);
+      const source = readFileSync(inputPath, "utf-8");
+      const slides = markdownToSlides(source, {
+        brand: options.deckBrand,
+        title: options.deckTitle,
+        meta: options.deckMeta,
+        logo: options.deckLogo,
+        adapt: options.adapt !== false,
+      });
+      writeFileSync(mdPath, slides, "utf-8");
+
+      const deckIssues = validateSlidesMarkdown(slides);
+      if (hasFailures(deckIssues)) {
+        task.fail();
+        emit(out, {
+          ok: false,
+          summary: `Deck 契约失败，已停止导出：${mdPath}`,
+          details: [...formatFailures(deckIssues), ...formatWarnings(deckIssues)],
+          data: { ok: false, markdown: mdPath, issues: deckIssues.map((i) => ({ rule: i.ruleId, level: i.level, message: i.message })) },
+          exitCode: 1,
+        });
+        return;
+      }
+
+      const pages = slides.split("\n").filter((l) => /^ {0,3}---\s*$/.test(l)).length + 1;
+      if (options.mdOnly) {
+        task.succeed();
+        emit(out, {
+          ok: true,
+          summary: `PPT Markdown: ${mdPath} (${pages} pages)`,
+          details: formatWarnings(deckIssues),
+          data: { ok: true, markdown: mdPath, pages, issues: deckIssues.map((i) => ({ rule: i.ruleId, level: i.level, message: i.message })) },
+        });
+        return;
+      }
+
+      // Fail fast with an actionable message when the installed platform's lib
+      // entry predates the slide export API (2.7.13-rc.1 and older).
+      const compat = getColamdCompat();
+      if (!compat.slidesExportSupported) {
+        task.fail();
+        emit(out, {
+          ok: false,
+          summary: "当前 @bytechain.cn/colamd 不支持幻灯片 PDF 导出",
+          details: [
+            `  ${formatColamdCompat(compat)}`,
+            `  修复: npm install @bytechain.cn/colamd@^${compat.version ?? "2.7.13"}（需 lib 暴露 enterSlidesPrintLayout/exitSlidesPrintLayout）`,
+          ],
+          data: { ok: false, markdown: mdPath, error: "slides-export-unsupported", compat: formatColamdCompat(compat) },
+          exitCode: 1,
+        });
+        return;
+      }
+
+      const theme = await resolveTheme(options.theme);
+      task.setText(`Rendering ${pages} pages → 16:9 PDF (${theme.themeName})...`);
+      const { renderSlidesPDF } = await import("./renderer.js");
+      const pdfBuffer = await renderSlidesPDF({
+        markdown: slides,
+        themeName: theme.themeName,
+        customCSS: theme.customCSS,
+        title: options.deckTitle || base,
+        slides: true,
+      });
+      writeFileSync(pdfPath, pdfBuffer);
+
+      const { checkExportedPdf } = await import("./pdf-check.js");
+      const check = await checkExportedPdf(pdfBuffer, { deckMd: slides, slides: true });
+      const pdfFailed = hasFailures(check.issues);
+      task.succeed();
+      emit(out, {
+        ok: !pdfFailed,
+        summary: `PPT: ${mdPath} + ${pdfPath} · ${check.pageCount} 页 · ${theme.themeName}${pdfFailed ? " · PDF 契约失败" : ""}`,
+        details: [...formatFailures(check.issues), ...formatWarnings(check.issues), ...formatWarnings(deckIssues)],
+        data: {
+          ok: !pdfFailed,
+          markdown: mdPath,
+          pdf: pdfPath,
+          pages,
+          pdfPages: check.pageCount,
+          paper: check.paperSizes.map((s) => `${s.w.toFixed(0)}×${s.h.toFixed(0)}pt`).join(" / "),
+          theme: theme.themeName,
+          issues: check.issues.map((i) => ({ rule: i.ruleId, level: i.level, message: i.message })),
+        },
+        exitCode: pdfFailed ? 1 : 0,
+      });
+    } catch (err) {
+      emit(out, {
+        ok: false,
+        summary: `PPT 导出失败: ${(err as Error).message}`,
+        exitCode: 1,
+      });
+    }
   });
 
 // ── check-pdf ──
@@ -363,24 +502,28 @@ program
   .description("Content-check an exported PDF (paper size, page count, blank pages, deck chrome)")
   .argument("<file>", "Path to exported .pdf")
   .option("-d, --deck <md>", "Companion deck markdown (enables page-count & chrome checks)")
-  .action(async (file: string, options: { deck?: string }) => {
+  .option("--json", "Print a one-line JSON result")
+  .option("--verbose", "Print detail lines")
+  .action(async (file: string, options: { deck?: string; json?: boolean; verbose?: boolean }) => {
     if (!existsSync(file)) { console.error(chalk.red(`File not found: ${file}`)); process.exit(1); }
     const { checkExportedPdf } = await import("./pdf-check.js");
     const buffer = readFileSync(file);
     const deckMd = options.deck && existsSync(options.deck) ? readFileSync(options.deck, "utf-8") : undefined;
     const check = await checkExportedPdf(buffer, { deckMd });
-    console.log(chalk.bold(`PDF 内容检查: ${file}`));
-    console.log(
-      chalk.dim(
-        `  ${check.pageCount} 页 · 纸型 ${check.paperSizes.map((s) => `${s.w.toFixed(0)}×${s.h.toFixed(0)}pt`).join(" / ") || "?"}`
-      )
-    );
-    if (check.issues.length === 0) {
-      console.log(chalk.green("  ✔ PDF-01~05 内容契约通过"));
-    } else {
-      console.log(summarizeIssues(check.issues));
-    }
-    if (check.issues.some((i) => i.level === "MUST" || i.level === "MUST_NOT")) process.exit(1);
+    const failed = hasFailures(check.issues);
+    const paper = check.paperSizes.map((s) => `${s.w.toFixed(0)}×${s.h.toFixed(0)}pt`).join(" / ") || "?";
+    emit({ json: options.json, verbose: options.verbose }, {
+      ok: !failed,
+      summary: `${file}: ${failed ? "PDF 内容契约失败" : "PDF-01~05 内容契约通过"} · ${check.pageCount} 页 · ${paper}`,
+      details: [...formatFailures(check.issues), ...formatWarnings(check.issues)],
+      data: {
+        ok: !failed,
+        file,
+        pages: check.pageCount,
+        paper,
+        issues: check.issues.map((i) => ({ rule: i.ruleId, level: i.level, message: i.message })),
+      },
+    });
   });
 
 // ── color-systems ──
@@ -422,20 +565,33 @@ program
 // ── validate ──
 program
   .command("validate")
-  .description("Validate a theme CSS (2.7.13 contract + slide tokens) or slides markdown (directive contract)")
+  .description("Validate a theme CSS (2.7.13 contract + slide tokens) or slides markdown (directive + content contract)")
   .argument("<file>", "Path to a .css theme file or a .md slides file")
-  .action((file: string) => {
+  .option("--json", "Print a one-line JSON result")
+  .option("--verbose", "Print the full validation report")
+  .action((file: string, options: { json?: boolean; verbose?: boolean }) => {
     if (!existsSync(file)) { console.error(chalk.red(`File not found: ${file}`)); process.exit(1); }
     const css = readFileSync(file, "utf-8");
 
-    // Slides markdown: directive contract checks.
+    // Slides markdown: directive + layout-content contract checks.
     if (file.toLowerCase().endsWith(".md")) {
-      console.log(chalk.bold("Slides directives (ColaMD 2.7.13):"));
       const issues = validateSlidesMarkdown(css);
-      console.log(issues.length === 0
-        ? chalk.green("  ✔ 指令语法、页首规则与 slide-css 白名单校验通过")
-        : summarizeIssues(issues));
-      if (issues.some((i) => i.level === "MUST" || i.level === "MUST_NOT")) process.exit(1);
+      const failed = hasFailures(issues);
+      const compatLine = formatColamdCompat();
+      if (options.verbose && !options.json) {
+        console.log(chalk.bold("Slides directives (ColaMD 2.7.13):"));
+        console.log(issues.length === 0
+          ? chalk.green("  ✔ 指令语法、页首规则、内容契约与 slide-css 白名单校验通过")
+          : summarizeIssues(issues));
+        if (failed) process.exitCode = 1;
+        return;
+      }
+      emit({ json: options.json, verbose: options.verbose }, {
+        ok: !failed,
+        summary: `${file}: ${failed ? `指令/内容契约失败（${issues.filter((i) => i.level === "MUST" || i.level === "MUST_NOT").length} 项）` : "指令与内容契约通过"} · ${compatLine}`,
+        details: [...formatFailures(issues), ...formatWarnings(issues)],
+        data: { ok: !failed, file, issues: issues.map((i) => ({ rule: i.ruleId, level: i.level, message: i.message })) },
+      });
       return;
     }
 
@@ -451,32 +607,41 @@ program
       inkDim: extract("--seed-ink-dim"), border: extract("--seed-border"),
       borderStrong: extract("--seed-border-strong"),
     };
-    console.log(chalk.bold("CSS contract (ColaMD 2.7.13):"));
     const cssIssues = validateThemeCss(css);
-    console.log(cssIssues.length === 0 ? chalk.green("  ✔ :root 根块与选择器契约通过") : summarizeIssues(cssIssues));
-
-    // Platform compatibility report — surfaces the installed
-    // @bytechain.cn/colamd version and contract drift before paradigm checks,
-    // so a platform upgrade that changes the CSS contract is diagnosed here
-    // instead of as broken colors at export time.
+    const seedIssues = seed.accent ? validateSeedPalette(seed) : [];
+    const issues = [...cssIssues, ...seedIssues];
+    const failed = hasFailures(issues);
     const compat = getColamdCompat();
     const compatLine = formatColamdCompat(compat);
-    if (compat.status === "exact") {
-      console.log(chalk.dim(`  平台兼容: ${compatLine}`));
-    } else {
-      console.log(chalk.yellow(`  平台兼容: ${compatLine}`));
-    }
-    if (!seed.accent) {
-      console.log(chalk.yellow("\nNot a seed-palette theme (no --seed-* found); seed checks skipped."));
-      if (cssIssues.some((i) => i.level === "MUST" || i.level === "MUST_NOT")) process.exit(1);
+
+    if (options.verbose && !options.json) {
+      console.log(chalk.bold("CSS contract (ColaMD 2.7.13):"));
+      console.log(cssIssues.length === 0 ? chalk.green("  ✔ :root 根块与选择器契约通过") : summarizeIssues(cssIssues));
+      console.log(compat.status === "exact" ? chalk.dim(`  平台兼容: ${compatLine}`) : chalk.yellow(`  平台兼容: ${compatLine}`));
+      if (!seed.accent) {
+        console.log(chalk.yellow("\nNot a seed-palette theme (no --seed-* found); seed checks skipped."));
+        if (failed) process.exitCode = 1;
+        return;
+      }
+      console.log(chalk.bold("\nSeed palette:"));
+      for (const [k, v] of Object.entries(seed)) console.log(`  ${chalk.dim(k.padEnd(18))} ${v}`);
+      console.log(chalk.bold(`\nParadigm validation (${seedIssues.length} issues):`));
+      console.log(summarizeIssues(seedIssues));
+      if (failed) process.exitCode = 1;
       return;
     }
-    console.log(chalk.bold("\nSeed palette:"));
-    for (const [k, v] of Object.entries(seed)) console.log(`  ${chalk.dim(k.padEnd(18))} ${v}`);
-    const issues = validateSeedPalette(seed);
-    console.log(chalk.bold(`\nParadigm validation (${issues.length} issues):`));
-    console.log(summarizeIssues(issues));
-    if (issues.filter((i) => i.level === "MUST" || i.level === "MUST_NOT").length > 0) process.exit(1);
+
+    emit({ json: options.json, verbose: options.verbose }, {
+      ok: !failed,
+      summary: `${file}: ${failed ? `CSS 契约失败（${issues.filter((i) => i.level === "MUST" || i.level === "MUST_NOT").length} 项）` : "CSS 契约通过"} · ${compatLine}`,
+      details: [...formatFailures(issues), ...formatWarnings(issues)],
+      data: {
+        ok: !failed,
+        file,
+        compat: compatLine,
+        issues: issues.map((i) => ({ rule: i.ruleId, level: i.level, message: i.message })),
+      },
+    });
   });
 
 // ── check-fonts ──

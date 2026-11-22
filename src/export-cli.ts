@@ -6,10 +6,9 @@
  */
 
 import { Command } from "commander";
-import { readFileSync, readdirSync, statSync, mkdirSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import chalk from "chalk";
-import ora from "ora";
 import {
   BUILTIN_THEMES,
   getConfig,
@@ -19,6 +18,7 @@ import {
   resolveTheme,
 } from "./theme-store.js";
 import { ColamdRenderer, type RenderInput } from "./renderer.js";
+import { getColamdCompat, formatColamdCompat } from "./compat.js";
 import {
   resolveInputPath,
   resolveOutputPath,
@@ -26,6 +26,7 @@ import {
   CLIError,
   ErrorCode,
 } from "./utils/cli-utils.js";
+import { emit, startTask, formatFailures, formatWarnings, hasFailures } from "./utils/output.js";
 
 // ── set-theme ──
 
@@ -107,7 +108,9 @@ function registerExportHTML(program: Command): void {
     .option("-t, --theme <name>", "Theme name (built-in, custom, or CSS file path)")
     .option("-o, --output <path>", "Output HTML file path")
     .option("--keep-fonts", "Keep inlined base64 math fonts (default strips them when the source has no math)", false)
-    .action(async (input: string, options: { theme?: string; output?: string; keepFonts?: boolean }) => {
+    .option("--json", "Print a one-line JSON result")
+    .option("--verbose", "Print detail lines")
+    .action(async (input: string, options: { theme?: string; output?: string; keepFonts?: boolean; json?: boolean; verbose?: boolean }) => {
       try {
         // Resolve paths using shared utilities
         const inputPath = resolveInputPath(input);
@@ -120,8 +123,8 @@ function registerExportHTML(program: Command): void {
         // Resolve theme with async API
         const theme = await resolveTheme(options.theme);
 
-        // Render with progress indicator
-        const spinner = ora(`Rendering ${title} → HTML (${theme.themeName})...`).start();
+        // Render with progress indicator (silent when not a TTY / JSON mode)
+        const task = startTask(`Rendering ${title} → HTML (${theme.themeName})...`, options);
         try {
           const { renderMarkdown } = await import("./renderer.js");
           const result = await renderMarkdown({
@@ -132,11 +135,15 @@ function registerExportHTML(program: Command): void {
             optimize: !options.keepFonts,
           });
 
-          const { writeFileSync } = await import("node:fs");
           writeFileSync(outputPath, result.html, "utf-8");
-          spinner.succeed(chalk.green(`Exported: ${outputPath}`));
+          task.succeed();
+          emit(options, {
+            ok: true,
+            summary: `Exported: ${outputPath}`,
+            data: { ok: true, output: outputPath, theme: theme.themeName, bytes: result.html.length },
+          });
         } catch (renderErr) {
-          spinner.fail(chalk.red(`Export failed: ${(renderErr as Error).message}`));
+          task.fail();
           throw new CLIError(
             `HTML rendering failed: ${(renderErr as Error).message}`,
             ErrorCode.RENDER_ERROR,
@@ -145,10 +152,9 @@ function registerExportHTML(program: Command): void {
         }
       } catch (err) {
         if (err instanceof CLIError) {
-          process.exit(err.code);
+          emit(options, { ok: false, summary: err.message, exitCode: err.code });
         } else {
-          console.error(chalk.red((err as Error).message));
-          process.exit(ErrorCode.FILE_NOT_FOUND);
+          emit(options, { ok: false, summary: (err as Error).message, exitCode: ErrorCode.FILE_NOT_FOUND });
         }
       }
     });
@@ -165,7 +171,9 @@ function registerExportPDF(program: Command): void {
     .option("-o, --output <path>", "Output PDF file path")
     .option("--format <size>", "Page format: A4, Letter, A3", "A4")
     .option("--keep-fonts", "Keep inlined base64 math fonts (default strips them when the source has no math)", false)
-    .action(async (input: string, options: { theme?: string; output?: string; format?: string; keepFonts?: boolean }) => {
+    .option("--json", "Print a one-line JSON result")
+    .option("--verbose", "Print detail lines")
+    .action(async (input: string, options: { theme?: string; output?: string; format?: string; keepFonts?: boolean; json?: boolean; verbose?: boolean }) => {
       try {
         // Resolve paths using shared utilities
         const inputPath = resolveInputPath(input);
@@ -188,7 +196,7 @@ function registerExportPDF(program: Command): void {
         const theme = await resolveTheme(options.theme);
 
         // Render PDF with progress indicator
-        const spinner = ora(`Rendering ${title} → PDF (${theme.themeName})...`).start();
+        const task = startTask(`Rendering ${title} → PDF (${theme.themeName})...`, options);
         try {
           const { renderPDF } = await import("./renderer.js");
           const pdfBuffer = await renderPDF(
@@ -202,30 +210,32 @@ function registerExportPDF(program: Command): void {
             { format: options.format as any }
           );
 
-          const { writeFileSync } = await import("node:fs");
           writeFileSync(outputPath, pdfBuffer);
-          spinner.succeed(chalk.green(`Exported: ${outputPath}`));
 
           // Artifact-side contract: content-check the produced PDF
           // (paper size / page count / blank pages / deck chrome).
           const { checkExportedPdf } = await import("./pdf-check.js");
-          const { summarizeIssues } = await import("./validators.js");
           const isDeck = /<!--\s*(?:deck|slide[\s:])/.test(md);
           const check = await checkExportedPdf(pdfBuffer, isDeck ? { deckMd: md } : {});
-          const mustFail = check.issues.some((i) => i.level === "MUST" || i.level === "MUST_NOT");
-          console.log(
-            chalk.dim(
-              `  PDF 内容检查: ${check.pageCount} 页 · 纸型 ${check.paperSizes.map((s) => `${s.w.toFixed(0)}×${s.h.toFixed(0)}pt`).join(" / ") || "?"}${isDeck ? " · slide deck" : ""}`
-            )
-          );
-          if (check.issues.length === 0) {
-            console.log(chalk.green("  ✔ PDF-01~05 内容契约通过"));
-          } else {
-            console.log(summarizeIssues(check.issues));
-          }
-          if (mustFail) process.exitCode = 1;
+          const pdfFailed = hasFailures(check.issues);
+          const paper = check.paperSizes.map((s) => `${s.w.toFixed(0)}×${s.h.toFixed(0)}pt`).join(" / ") || "?";
+          task.succeed();
+          emit(options, {
+            ok: !pdfFailed,
+            summary: `Exported: ${outputPath} · ${check.pageCount} 页 · ${paper}${isDeck ? " · slide deck" : ""}${pdfFailed ? " · PDF 契约失败" : ""}`,
+            details: [...formatFailures(check.issues), ...formatWarnings(check.issues)],
+            data: {
+              ok: !pdfFailed,
+              output: outputPath,
+              theme: theme.themeName,
+              pages: check.pageCount,
+              paper,
+              issues: check.issues.map((i) => ({ rule: i.ruleId, level: i.level, message: i.message })),
+            },
+            exitCode: pdfFailed ? 1 : 0,
+          });
         } catch (renderErr) {
-          spinner.fail(chalk.red(`Export failed: ${(renderErr as Error).message}`));
+          task.fail();
           throw new CLIError(
             `PDF rendering failed: ${(renderErr as Error).message}`,
             ErrorCode.RENDER_ERROR,
@@ -234,10 +244,98 @@ function registerExportPDF(program: Command): void {
         }
       } catch (err) {
         if (err instanceof CLIError) {
-          process.exit(err.code);
+          emit(options, { ok: false, summary: err.message, exitCode: err.code });
         } else {
-          console.error(chalk.red((err as Error).message));
-          process.exit(ErrorCode.FILE_NOT_FOUND);
+          emit(options, { ok: false, summary: (err as Error).message, exitCode: ErrorCode.FILE_NOT_FOUND });
+        }
+      }
+    });
+}
+
+// ── export-slides ──
+
+function registerExportSlides(program: Command): void {
+  program
+    .command("export-slides")
+    .description("Export a slide-deck Markdown to a 16:9 PDF (ColaMD 2.7.13 slide layout)")
+    .argument("<input>", "Path to a deck .md file (with <!-- deck ... --> or <!-- slide: ... -->)")
+    .option("-t, --theme <name>", "Theme name (built-in, custom, or CSS file path)")
+    .option("-o, --output <path>", "Output PDF file path (default: <input>.slides.pdf)")
+    .option("--json", "Print a one-line JSON result")
+    .option("--verbose", "Print detail lines")
+    .action(async (input: string, options: { theme?: string; output?: string; json?: boolean; verbose?: boolean }) => {
+      try {
+        const inputPath = resolveInputPath(input);
+        const md = readFileSync(inputPath, "utf-8");
+        if (!/<!--\s*(?:deck|slide[\s:])/.test(md)) {
+          throw new CLIError(
+            "这份 Markdown 没有幻灯片指令（缺少 <!-- deck ... --> 或 <!-- slide: ... -->）。" +
+            "先用 to-slides 或 ppt 生成 deck。",
+            ErrorCode.INVALID_INPUT
+          );
+        }
+
+        const compat = getColamdCompat();
+        if (!compat.slidesExportSupported) {
+          throw new CLIError(
+            `当前平台不支持幻灯片 PDF 导出（需要 lib 暴露 enterSlidesPrintLayout/exitSlidesPrintLayout）。` +
+            `${formatColamdCompat(compat)}；修复: npm install @bytechain.cn/colamd@^2.7.13`,
+            ErrorCode.RENDER_ERROR
+          );
+        }
+
+        const title = getDocumentTitle(inputPath);
+        const outputPath = options.output
+          ? resolve(process.cwd(), options.output)
+          : /\.slides\.md$/i.test(inputPath)
+            ? inputPath.replace(/\.md$/i, ".pdf")
+            : inputPath.replace(/\.md$/i, ".slides.pdf");
+
+        const theme = await resolveTheme(options.theme);
+        const task = startTask(`Rendering ${title} → 16:9 PDF (${theme.themeName})...`, options);
+        try {
+          const { renderSlidesPDF } = await import("./renderer.js");
+          const pdfBuffer = await renderSlidesPDF({
+            markdown: md,
+            themeName: theme.themeName,
+            customCSS: theme.customCSS,
+            title,
+            slides: true,
+          });
+          writeFileSync(outputPath, pdfBuffer);
+
+          const { checkExportedPdf } = await import("./pdf-check.js");
+          const check = await checkExportedPdf(pdfBuffer, { deckMd: md, slides: true });
+          const pdfFailed = hasFailures(check.issues);
+          const paper = check.paperSizes.map((s) => `${s.w.toFixed(0)}×${s.h.toFixed(0)}pt`).join(" / ") || "?";
+          task.succeed();
+          emit(options, {
+            ok: !pdfFailed,
+            summary: `Exported: ${outputPath} · ${check.pageCount} 页 · ${paper} · slide deck${pdfFailed ? " · PDF 契约失败" : ""}`,
+            details: [...formatFailures(check.issues), ...formatWarnings(check.issues)],
+            data: {
+              ok: !pdfFailed,
+              output: outputPath,
+              theme: theme.themeName,
+              pages: check.pageCount,
+              paper,
+              issues: check.issues.map((i) => ({ rule: i.ruleId, level: i.level, message: i.message })),
+            },
+            exitCode: pdfFailed ? 1 : 0,
+          });
+        } catch (renderErr) {
+          task.fail();
+          throw new CLIError(
+            `Slide PDF rendering failed: ${(renderErr as Error).message}`,
+            ErrorCode.RENDER_ERROR,
+            renderErr as Error
+          );
+        }
+      } catch (err) {
+        if (err instanceof CLIError) {
+          emit(options, { ok: false, summary: err.message, exitCode: err.code });
+        } else {
+          emit(options, { ok: false, summary: (err as Error).message, exitCode: ErrorCode.UNKNOWN });
         }
       }
     });
@@ -319,7 +417,7 @@ function registerExport(program: Command): void {
           for (const file of files) {
             const name = getDocumentTitle(file);
             const md = readFileSync(file, "utf-8");
-            const spinner = ora(`  ${name}.md`).start();
+            const task = startTask(`  ${name}.md`, {});
 
             try {
               const input: RenderInput = {
@@ -341,10 +439,10 @@ function registerExport(program: Command): void {
                 }
               }
 
-              spinner.succeed(`${name}.${fmtList.map((f) => (f === "pdf" ? "pdf" : "html")).join("+")}`);
+              task.succeed(`${name}.${fmtList.map((f) => (f === "pdf" ? "pdf" : "html")).join("+")}`);
               success++;
             } catch (fileErr) {
-              spinner.fail(`${name}.md — ${(fileErr as Error).message}`);
+              task.fail(`${name}.md — ${(fileErr as Error).message}`);
               failed++;
             }
           }
@@ -384,5 +482,6 @@ export function registerExportCommands(program: Command): void {
   registerSetTheme(program);
   registerExportHTML(program);
   registerExportPDF(program);
+  registerExportSlides(program);
   registerExport(program);
 }

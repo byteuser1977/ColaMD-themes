@@ -43,8 +43,15 @@
 ### Markdown → PPT Markdown (v0.6.0+)
 
 - **`to-slides`** — 将普通 Markdown 文档转换为幻灯片 Markdown：按上游分页语义切页（`---`，经 `@lezer/markdown` 解析，与应用同一解析器家族），按内容结构自动推断全部 11 种内置版式（cover / section / agenda / kpi / timeline / steps / matrix / two-col / figure / quote / closing），生成 deck 块与页头块，kicker/chapter 随章节推进
-- **产物自校验** — 生成的 deck 在写出前自动通过指令契约校验（页首规则、版式名语法、字段键白名单、slide-css 安全子集）
+- **内容适配（v0.7.0+，默认开启；`--no-adapt` 关闭）** — 生成时按版式契约补 `**行标题**`、kpi 无数字 / timeline 无日期降级为 matrix、列表超量拆续页（`label: 标题（续）`）、超长段落按句末拆页、引用块独立成页
+- **产物自校验** — 生成的 deck 在写出前自动通过指令契约（页首规则、版式名语法、字段键白名单、slide-css 安全子集）与内容契约（SLIDES-07）及溢出估算（SLIDES-08）校验
 - 完整指令语法与版式对照表见 [`skills/colamd-themes/SKILL.md`](skills/colamd-themes/SKILL.md)（幻灯片版式章节）
+
+### PPT PDF（v0.7.0+）
+
+- **`ppt <input>`** — 一键：源 Markdown → deck Markdown → 契约校验 → **16:9 幻灯片 PDF** → PDF-01…05 内容检查；任一步失败即短路并说明原因，`--md-only` 只产出 deck
+- **`export-slides <deck.md>`** — 把已有 deck 按平台幻灯片纸版式（deck chrome、hero 居中、分页）打印为 960×540pt PDF；超页内容会按比例缩小纸面字号，保证 PDF 页数 = deck 页数
+- 需要 `@bytechain.cn/colamd@^2.7.13` 且 lib 暴露幻灯片导出 API；旧平台会直接给出升级命令
 
 ### HTML / PDF 导出
 
@@ -222,8 +229,25 @@ cthemes from-html template.html --ppt
 ### 将 Markdown 转换为幻灯片 Markdown（PPT）
 
 ```bash
+# 一键：deck Markdown + 校验 + 16:9 PDF（推荐）
+cthemes ppt 报告.md -t elegant
+
+# 只产出 deck Markdown
+cthemes ppt 报告.md --md-only
+
+# 分步：deck → PDF
+cthemes to-slides 报告.md -o 报告.slides.md
+cthemes export-slides 报告.slides.md -t elegant -o 报告.slides.pdf
+```
+
+### 转换为幻灯片 Markdown
+
+```bash
 # 自动推断全部 11 种版式 + deck 块，产物自动校验
 cthemes to-slides 报告.md -o 报告.slides.md
+
+# 保持原文不改写
+cthemes to-slides 报告.md --no-adapt
 
 # 指定 deck 页脚信息
 cthemes to-slides 报告.md --deck-brand "ColaMD" --deck-title "季度汇报" --deck-meta "2026.11"
@@ -314,6 +338,8 @@ cthemes set-theme 我的品牌 --remove
 | `from-pdf <file>` | 从 PDF 文档提取主题 |
 | `extract <source>` | 自动检测来源类型（本地 HTML / URL / .docx / .pdf）并提取主题 |
 | `to-slides <input>` | 将 Markdown 文档转换为幻灯片 Markdown（自动推断版式） |
+| `ppt <input>` | 一键：deck Markdown + 校验后的 16:9 幻灯片 PDF（含 PDF-01…05 检查） |
+| `export-slides <input>` | 将 deck Markdown 导出为 16:9 幻灯片 PDF（960×540pt） |
 | `color-systems` | 列出 15 套内置色彩系统 |
 | `list` | 列出所有生成的主题 |
 | `validate <file>` | 验证主题 CSS（2.7 契约 + 范式 + 幻灯片令牌规则）或幻灯片 Markdown 文件（指令契约）；含平台兼容报告 |
@@ -343,6 +369,18 @@ cthemes set-theme 我的品牌 --remove
 | `--deck-title` | deck 页脚标题（覆盖 frontmatter / 首个 h1） |
 | `--deck-meta` | deck 页脚元信息（右上兜底，如日期） |
 | `--deck-logo` | deck 页脚 logo 路径（相对输出文件） |
+| `--no-adapt` | 保持原文不改写（默认按版式契约适配） |
+
+### ppt 选项
+
+| 参数 | 说明 |
+|------|------|
+| `-t, --theme` | 主题名（内置、自定义或 CSS 路径） |
+| `-d, --output-dir` | 输出目录（默认与输入同目录） |
+| `--deck-brand/-title/-meta/-logo` | deck 页脚字段 |
+| `--no-adapt` | 保持原文不改写 |
+| `--md-only` | 只产出 deck Markdown（跳过 PDF） |
+| `--json` / `--verbose` | 单行 JSON 结果 / 明细行 |
 
 ### 导出选项
 

@@ -1,5 +1,28 @@
 # Release Notes
 
+## Version 0.7.0 (2026-11-22) — One-Shot PPT: Markdown → 16:9 Slide PDF 🎬
+
+### 🎬 Added — One-shot deck generation & slide PDF export
+
+- **`ppt <input.md>`** — one command does the whole job: source markdown → slide-deck markdown (`<input>.slides.md`) → directive/content contract → 16:9 PDF (`<input>.slides.pdf`) → PDF-01…05 content check. Any failing step short-circuits with an actionable reason. `--md-only` stops after the deck; `-t / -d / --deck-brand / --deck-title / --deck-meta / --deck-logo / --no-adapt` mirror the step-wise commands
+- **`export-slides <deck.md>`** — export an existing deck using the platform's slide-sheet layout (requires `<!-- deck` or `<!-- slide:` directives; a non-deck input fails with a pointer to `to-slides` / `ppt`)
+- **`exportSlidesPDF()`** — no longer goes through the semantic export DOM: it lays the live editor out on 1280×720 sheets via `enterSlidesPrintLayout` / `exitSlidesPrintLayout` (`preferCSSPageSize`, zero margins, print backgrounds) and keeps `--slide-*` tokens. The headless viewport is pinned to 1280×720 — with the default 800×600 viewport the cover title wrapped to three lines and every card page overflowed
+- **Automatic sheet fitting** — before printing, each page's real height is measured; if any page exceeds one sheet the sheet type size is stepped down (up to 3 measure→scale passes, floor 0.6), so `PDF-03` (PDF pages = deck pages) holds and a page never spills onto a second sheet
+- **Layout content contract & adaptation (`slides-markdown.ts`)** — `LAYOUT_CONTRACT` encodes item counts, list shape, row-title/number/date/figure/quote/two-column requirements for all 11 layouts. `markdownToSlides(..., { adapt })` (on by default; `--no-adapt` disables) adds `**row titles**`, downgrades kpi without numbers / timeline without dates to matrix, splits over-capacity lists into continuation pages (`label: 标题（续）`), splits oversized paragraphs at sentence boundaries, and gives a trailing quote its own page. `splitIntoPages` no longer lets the cover swallow the next h2 section
+- **New rules SLIDES-07 / SLIDES-08** — layout/content mismatch (SHOULD) and estimated single-page overflow (SHOULD); `validate <deck.md>` reports both
+- **Unified CLI invocation contract** — new `src/utils/output.ts`: one-line summaries by default, one-line `--json`, detail only with `--verbose`, failures print only failing items, and spinners are disabled for non-TTY/JSON. Wired into `to-slides` / `validate` / `export-*` / `check-pdf` / `ppt`
+- **Platform capability probe** — `compat.ts` gains `slidesExportSupported` (inspects the lib bundle for `enterSlidesPrintLayout` / `exitSlidesPrintLayout`) and `SLIDES_EXPORT_MIN_VERSION`; the compat line now reports "PPT 导出: 支持/不支持" and old platforms get an upgrade command instead of a crash
+- **MCP tools** — new `ppt`, `to_slides`, `export_slides`, `check_pdf`; all pass `--json` by default and are described as one-shot
+- **SKILL.md unified invocation logic** — new Quick tasks table and Invocation rules (one command per task, no redundant `validate`, do not read artifacts back, stop on failure), regenerated into all 7 agent targets and `.trae/rules`
+
+### 📦 Install
+
+```bash
+npm install @bytechain.cn/colamd-themes@0.7.0
+```
+
+Requires `@bytechain.cn/colamd@^2.7.13` whose lib entry exposes the slide export API.
+
 ## Version 0.6.2 (2026-11-17) — Export PDF Content Contract & Slide PDF Fidelity 📄
 
 ### 📄 Added — Export PDF content checks (PDF-01…05)

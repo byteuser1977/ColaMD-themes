@@ -35,9 +35,9 @@ name: colamd-themes
 description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
   (2.7.13 anchor, slide layouts stable). Extract formatting from URLs,
-  DOCX, or PDF sources (optionally with PPT --slide-* styling); convert
-  Markdown into slide-deck Markdown; export Markdown to standalone HTML/PDF
-  with themes applied; batch export; manage theme configuration.
+  DOCX, or PDF sources. One-shot `ppt` command turns Markdown into a
+  slide-deck Markdown plus a validated 16:9 slide PDF; also export
+  Markdown to standalone HTML/PDF, batch export, manage themes.
 ---'
 
 FRONT_OPENCODE='---
@@ -45,9 +45,9 @@ name: colamd-themes
 version: "1.0.0"
 description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF
-  with optional PPT styling; convert Markdown to slide decks; export
-  Markdown to HTML/PDF; batch export.
+  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
+  one-shot ppt command: Markdown → slide deck → validated 16:9 PDF;
+  document HTML/PDF export; batch export.
 user-invocable: true
 allowed-tools:
   - Read
@@ -63,9 +63,9 @@ id: colamd-themes
 name: ColaMD Themes
 description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF
-  with optional PPT styling; convert Markdown to slide decks; export
-  Markdown to HTML/PDF; batch export.
+  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
+  one-shot ppt command: Markdown → slide deck → validated 16:9 PDF;
+  document HTML/PDF export; batch export.
 version: "1.0.0"
 icon: "\U0001F3A8"
 author: bytechain
@@ -82,7 +82,7 @@ metadata:
 
 FRONT_HERMES='---
 name: colamd-themes
-description: "Generate, validate, export, and manage ColaMD 2.7 contract CSS themes with PPT slide layouts; convert Markdown to slide decks; export HTML/PDF."
+description: "Generate, validate, export, and manage ColaMD 2.7 contract CSS themes with PPT slide layouts; one-shot Markdown → slide deck → 16:9 PDF; HTML/PDF export."
 version: 1.0.0
 author: bytechain
 license: MIT
@@ -98,9 +98,9 @@ name: colamd-themes
 version: "1.0.0"
 description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF
-  with optional PPT styling; convert Markdown to slide decks; export
-  Markdown to HTML/PDF; batch export.
+  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
+  one-shot ppt command: Markdown → slide deck → validated 16:9 PDF;
+  document HTML/PDF export; batch export.
 metadata:
   dsh:
     tags: [colamd, themes, css, markdown, export, pdf, html]

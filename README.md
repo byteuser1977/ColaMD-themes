@@ -43,8 +43,15 @@ After installation, open a `.md` file and run **ColaView MD: Show Preview** from
 ### Markdown → PPT Markdown (v0.6.0+)
 
 - **`to-slides`** — convert a plain Markdown document into slide-deck Markdown: pages split with upstream pagination semantics (`---` via `@lezer/markdown`, the same parser family as the app), all eleven built-in layouts inferred from content structure (cover / section / agenda / kpi / timeline / steps / matrix / two-col / figure / quote / closing), deck chrome and per-page header blocks emitted with chapter tracking
-- **Self-checked output** — the generated deck is validated against the directive contract (page-first placement, layout-name syntax, field-key whitelists, `slide-css` safety subset) before writing
+- **Content adaptation (v0.7.0+, default on; `--no-adapt` off)** — the generator fits each page to its layout contract: adds `**row titles**`, downgrades kpi without numbers / timeline without dates to matrix, splits over-capacity lists into continuation pages (`label: 标题（续）`), splits oversized paragraphs at sentence boundaries, and gives a trailing quote its own page
+- **Self-checked output** — the generated deck is validated against the directive contract (page-first placement, layout-name syntax, field-key whitelists, `slide-css` safety subset) plus the layout content contract (SLIDES-07) and an overflow estimate (SLIDES-08) before writing
 - Full slide directive syntax and layout table: see [`skills/colamd-themes/SKILL.md`](skills/colamd-themes/SKILL.md) (幻灯片版式 chapter)
+
+### PPT PDF (v0.7.0+)
+
+- **`ppt <input>`** — one-shot: markdown → deck markdown → contract check → **16:9 slide PDF** → PDF-01…05 content check. Stops on the first failure with an actionable reason; `--md-only` stops after the deck
+- **`export-slides <deck.md>`** — print an existing deck on the platform's slide sheets (deck chrome, hero centering, page breaks) at 960×540pt. Pages that would overflow are fitted by a small sheet-type scale-down so PDF page count always equals deck page count
+- Requires `@bytechain.cn/colamd@^2.7.13` whose lib entry exposes the slide export API; older platforms fail with the exact upgrade command
 
 ### HTML / PDF Export
 
@@ -244,11 +251,28 @@ cthemes from-url "https://example.com" --name my-brand --ppt sans
 cthemes from-html template.html --ppt
 ```
 
+### Convert Markdown into a 16:9 slide PDF
+
+```bash
+# One-shot: deck markdown + validated 16:9 PDF (recommended)
+cthemes ppt report.md -t elegant
+
+# Deck markdown only
+cthemes ppt report.md --md-only
+
+# Step-wise: deck → PDF
+cthemes to-slides report.md -o report.slides.md
+cthemes export-slides report.slides.md -t elegant -o report.slides.pdf
+```
+
 ### Convert Markdown into slide-deck Markdown
 
 ```bash
 # Auto-infer all 11 layouts + deck chrome, self-checked output
 cthemes to-slides report.md -o report.slides.md
+
+# Keep author content verbatim (no adaptation)
+cthemes to-slides report.md --no-adapt
 
 # With deck chrome fields
 cthemes to-slides report.md --deck-brand "ColaMD" --deck-title "Q4 Review" --deck-meta "2026.11"
@@ -339,6 +363,8 @@ cthemes set-theme my-brand --remove
 | `from-pdf <file>` | Extract theme from a PDF document |
 | `extract <source>` | Auto-detect source type (local HTML / URL / .docx / .pdf) and extract theme |
 | `to-slides <input>` | Convert a Markdown document into slide-deck Markdown (auto-inferred layouts) |
+| `ppt <input>` | One-shot: deck markdown + validated 16:9 slide PDF (PDF-01…05 checked) |
+| `export-slides <input>` | Export a deck markdown → 16:9 slide PDF (960×540pt) |
 | `color-systems` | List 15 built-in color systems |
 | `list` | List all generated themes |
 | `validate <file>` | Validate a theme CSS (2.7 contract + paradigm + slide token rules) or a slides markdown file (directive contract); with a platform compat report |
@@ -368,6 +394,18 @@ cthemes set-theme my-brand --remove
 | `--deck-title` | Deck chrome title (overrides frontmatter / first h1) |
 | `--deck-meta` | Deck chrome meta (chrome-right fallback, e.g. date) |
 | `--deck-logo` | Deck chrome logo path (relative to the output file) |
+| `--no-adapt` | Keep author content verbatim (default: adapt to the layout contracts) |
+
+### ppt options
+
+| Flag | Description |
+|------|-------------|
+| `-t, --theme` | Theme name (built-in, custom, or CSS path) |
+| `-d, --output-dir` | Output directory (default: alongside the input) |
+| `--deck-brand/-title/-meta/-logo` | Deck chrome fields |
+| `--no-adapt` | Keep author content verbatim |
+| `--md-only` | Stop after the deck markdown (skip the PDF) |
+| `--json` / `--verbose` | One-line JSON result / detail lines |
 
 ### Export options
 

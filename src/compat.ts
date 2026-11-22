@@ -40,6 +40,20 @@ export const SLIDES_MIN_VERSION = "2.7.13-rc.1";
 /** Minimum renderer entry (dist/lib/colamd-renderer.js) with the 2.x API. */
 export const MIN_RENDERER_VERSION = "2.7.13";
 
+/**
+ * Minimum platform version whose lib entry exposes the slides PDF export API
+ * (`enterSlidesPrintLayout` / `exitSlidesPrintLayout`). 2.7.13-rc.1 already
+ * ships the slide layout system, but its dist/lib bundle predates the export
+ * API — so version alone is not enough and the bundle is probed directly.
+ */
+export const SLIDES_EXPORT_MIN_VERSION = "2.7.13";
+
+/** Lib-entry methods required for 16:9 slide PDF export. */
+export const REQUIRED_SLIDES_API = [
+  "enterSlidesPrintLayout",
+  "exitSlidesPrintLayout",
+] as const;
+
 /** Status of the installed platform relative to what we support. */
 export type CompatStatus =
   | "exact"        // contractVersion === SUPPORTED_CONTRACT
@@ -69,6 +83,11 @@ export interface ColamdCompat {
    * inert without it — presentation styling only applies in-app.
    */
   slidesSupported: boolean;
+  /**
+   * Whether the lib entry exposes the slides PDF export API. This is what
+   * `export-slides` / `ppt` need to produce a 16:9 deck PDF.
+   */
+  slidesExportSupported: boolean;
 }
 
 /** Live variables our themes must be able to set (frozen 2.7.13 anchor). */
@@ -157,13 +176,30 @@ function detectSlidesSupport(root: string | null, version: string | null): boole
 }
 
 /**
+ * Probe the renderer bundle for the slides export API. A locally linked or
+ * newly built 2.7.13 may have the methods without a matching package version,
+ * so the bundle text is authoritative. Missing bundle → unsupported.
+ */
+function detectSlidesExportSupport(root: string | null): boolean {
+  if (!root) return false;
+  const bundlePath = join(root, "dist", "lib", "colamd-renderer.js");
+  if (!existsSync(bundlePath)) return false;
+  try {
+    const bundle = readFileSync(bundlePath, "utf-8");
+    return REQUIRED_SLIDES_API.every((name) => bundle.includes(name));
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Probe the installed platform. Never throws — every failure degrades to a
  * status that callers can report or ignore.
  */
 export function getColamdCompat(): ColamdCompat {
   const root = findColamdRoot();
   if (!root) {
-    return { version: null, packageRoot: null, contract: null, status: "not-installed", missingLiveVariables: [], slidesSupported: false };
+    return { version: null, packageRoot: null, contract: null, status: "not-installed", missingLiveVariables: [], slidesSupported: false, slidesExportSupported: false };
   }
   let version: string | null = null;
   try {
@@ -172,14 +208,15 @@ export function getColamdCompat(): ColamdCompat {
     /* keep null */
   }
   const slidesSupported = detectSlidesSupport(root, version);
+  const slidesExportSupported = detectSlidesExportSupport(root);
   const contract = readContractFrom(root);
   if (!contract) {
-    return { version, packageRoot: root, contract: null, status: "no-contract", missingLiveVariables: [], slidesSupported };
+    return { version, packageRoot: root, contract: null, status: "no-contract", missingLiveVariables: [], slidesSupported, slidesExportSupported };
   }
   const status: CompatStatus = SUPPORTED_CONTRACTS.includes(contract.contractVersion) ? "exact" : "drift";
   const installed = new Set(contract.liveVariables);
   const missingLiveVariables = SUPPORTED_LIVE_VARIABLES.filter((v) => !installed.has(v));
-  return { version, packageRoot: root, contract, status, missingLiveVariables, slidesSupported };
+  return { version, packageRoot: root, contract, status, missingLiveVariables, slidesSupported, slidesExportSupported };
 }
 
 /**
@@ -191,21 +228,25 @@ export function formatColamdCompat(compat: ColamdCompat = getColamdCompat()): st
   const slides = compat.slidesSupported
     ? "幻灯片版式: 支持"
     : "幻灯片版式: 不支持（放映样式需 ColaMD ≥ 2.7.13-rc.1，PPT 令牌将保持惰性）";
+  const slidesExport = compat.slidesExportSupported
+    ? "，PPT 导出: 支持"
+    : `，PPT 导出: 不支持（需 ColaMD ≥ ${SLIDES_EXPORT_MIN_VERSION} 且 lib 暴露 ${REQUIRED_SLIDES_API.join("/")}）`;
+  const slidesLine = slides + slidesExport;
   if (compat.status === "not-installed") {
-    return `@bytechain.cn/colamd 未安装；${slides}`;
+    return `@bytechain.cn/colamd 未安装；${slidesLine}`;
   }
   const ver = compat.version ?? "(版本未知)";
   if (compat.status === "no-contract") {
-    return `@bytechain.cn/colamd ${ver}（themes/contract.json 缺失或格式不符，无法核对契约）；${slides}`;
+    return `@bytechain.cn/colamd ${ver}（themes/contract.json 缺失或格式不符，无法核对契约）；${slidesLine}`;
   }
   const contract = compat.contract!;
   if (compat.status === "exact") {
-    return `@bytechain.cn/colamd ${ver}（契约 ${contract.contractVersion}，与主题契约一致）；${slides}`;
+    return `@bytechain.cn/colamd ${ver}（契约 ${contract.contractVersion}，与主题契约一致）；${slidesLine}`;
   }
   const drift = compat.missingLiveVariables.length > 0
     ? `，缺失活变量: ${compat.missingLiveVariables.join(", ")}`
     : "，活变量无缺失";
-  return `@bytechain.cn/colamd ${ver}（契约 ${contract.contractVersion} ≠ 主题契约 ${SUPPORTED_CONTRACT}${drift}）；${slides}`;
+  return `@bytechain.cn/colamd ${ver}（契约 ${contract.contractVersion} ≠ 主题契约 ${SUPPORTED_CONTRACT}${drift}）；${slidesLine}`;
 }
 
 /** Renderer API surface the export pipeline depends on. */

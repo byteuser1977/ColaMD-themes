@@ -20,7 +20,7 @@ import { createServer, type Server } from "node:http";
 import { readFileSync, existsSync, createReadStream } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { formatColamdCompat, getColamdCompat, MIN_RENDERER_VERSION, REQUIRED_RENDERER_API, SUPPORTED_CONTRACT } from "./compat.js";
+import { formatColamdCompat, getColamdCompat, MIN_RENDERER_VERSION, REQUIRED_RENDERER_API, REQUIRED_SLIDES_API, SLIDES_EXPORT_MIN_VERSION, SUPPORTED_CONTRACT } from "./compat.js";
 
 // ── Types ──
 
@@ -45,6 +45,12 @@ export interface RenderInput {
    * math must render remotely after export).
    */
   optimize?: boolean;
+  /**
+   * Render as a slide deck: keep `--slide-*` theme tokens and, for
+   * `exportSlidesPDF()`, lay the editor out on 16:9 sheets. Ignored by the
+   * document `render()` / `exportPDF()` paths.
+   */
+  slides?: boolean;
 }
 
 /** Result of a render operation. */
@@ -113,6 +119,81 @@ function optimizeExportHtml(html: string, markdown: string, optimize: boolean): 
   return html;
 }
 
+/** 16:9 sheet height in CSS px (7.5in × 96dpi). */
+const SLIDE_SHEET_PX = 720;
+/** Body font size the platform's slides print layout assigns to .cm-content. */
+const SLIDE_PRINT_FONT_PX = 24;
+/** Leave a hair of room: a page that exactly fills the sheet tends to spill. */
+const SLIDE_SAFETY_PX = 8;
+/** Readability floor — below this the deck is better re-authored than shrunk. */
+const SLIDE_MIN_SCALE = 0.6;
+const SLIDE_FIT_STYLE_ID = "colamd-slides-fit";
+
+/**
+ * Measure the tallest page on the sheet, in CSS px. Hero pages carry a
+ * `::before` centering spacer, so the value includes that padding; content
+ * pages (the ones that actually overflow) do not have one.
+ */
+const MEASURE_SLIDES_JS = `(() => {
+  const root = document.querySelector("#editor .cm-content");
+  if (!root) return 0;
+  const lines = Array.from(root.children);
+  const starts = Array.from(root.querySelectorAll(".cm-md-page-start"));
+  let max = 0;
+  for (const start of starts) {
+    const m = /(?:^|\\s)cm-md-page-(\\d+)(?:\\s|$)/.exec(start.className);
+    if (!m) continue;
+    const re = new RegExp("(?:^|\\\\s)cm-md-page-" + m[1] + "(?:\\\\s|$)");
+    const owned = lines.filter(function (el) {
+      return re.test(el.className) && !el.classList.contains("cm-md-hr");
+    });
+    if (owned.length === 0) continue;
+    const first = owned[0];
+    const last = owned[owned.length - 1];
+    const used = last.getBoundingClientRect().bottom - first.getBoundingClientRect().top;
+    if (used > max) max = used;
+  }
+  return max;
+})()`;
+
+/**
+ * The platform prints slides at a fixed 24px body size on a 1280×720 sheet.
+ * Dense pages (6-card grids, long timelines) are taller than one sheet at
+ * that size and would spill into a second page — the exact failure PDF-03
+ * reports. Shrink the sheet type just enough for every page to fit, with a
+ * few measure→scale passes (em-based layout scales, fixed padding doesn't).
+ */
+async function fitSlidesToSheet(page: Page): Promise<void> {
+  // The platform owns the print base size; read it instead of assuming 24px.
+  const baseFont = (await page.evaluate(`(() => {
+    const root = document.querySelector("#editor .cm-content");
+    return root ? parseFloat(getComputedStyle(root).fontSize) || ${SLIDE_PRINT_FONT_PX} : ${SLIDE_PRINT_FONT_PX};
+  })()`)) as number;
+  let scale = 1;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const maxUsed = (await page.evaluate(MEASURE_SLIDES_JS)) as number;
+    if (!Number.isFinite(maxUsed) || maxUsed <= SLIDE_SHEET_PX - SLIDE_SAFETY_PX) return;
+    const target = scale * ((SLIDE_SHEET_PX - SLIDE_SAFETY_PX) / maxUsed);
+    if (target >= scale - 0.001) return;
+    scale = Math.max(SLIDE_MIN_SCALE, target);
+    const fontPx = Math.round(baseFont * scale * 10) / 10;
+    await page.evaluate(
+      (css: string, id: string) => {
+        let style = document.getElementById(id) as HTMLStyleElement | null;
+        if (!style) {
+          style = document.createElement("style");
+          style.id = id;
+          document.head.appendChild(style);
+        }
+        style.textContent = css;
+      },
+      `body.slides-printing #editor .cm-content{font-size:${fontPx}px !important}`,
+      SLIDE_FIT_STYLE_ID
+    );
+    if (scale <= SLIDE_MIN_SCALE) return;
+  }
+}
+
 /** PDF export options. */
 export interface PDFExportOptions {
   /** Page format */
@@ -165,8 +246,10 @@ const SHELL_HTML = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
 <link rel="stylesheet" href="/colamd.css">
-<style>body{margin:0;padding:0}#editor{width:100%;min-height:100vh}</style>
-</head><body><div id="editor"></div></body></html>`;
+<style>html,body{margin:0;padding:0}
+#editor-region{width:100%;height:100vh}
+#editor{width:100%;min-height:100vh}</style>
+</head><body><div id="editor-region"><div id="editor"></div></div></body></html>`;
 
 interface LocalServer {
   port: number;
@@ -230,6 +313,11 @@ export class ColamdRenderer {
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
     });
     this.page = await this.browser.newPage();
+    // Match the 16:9 sheet (1280×720 CSS px = 13.3333×7.5in @96dpi) so the
+    // slide print layout measures the same widths it prints at. With the
+    // default 800×600 viewport the cover title wraps to 3 lines and every
+    // card page overflows into extra sheets.
+    await this.page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
 
     // Navigate to shell page (same origin as renderer script)
     await this.page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
@@ -294,22 +382,27 @@ export class ColamdRenderer {
   }
 
   /**
-   * Render markdown to a standalone HTML document.
+   * Apply theme, load markdown and wait for async plugins.
+   * Shared by the document and slide export paths.
    */
-  async render(input: RenderInput): Promise<RenderResult> {
+  private async prepare(input: RenderInput, options: { keepSlideTokens?: boolean } = {}): Promise<Page> {
     if (!this.ready || !this.page) await this.init();
     const page = this.page!;
 
     // Apply theme — the 2.x renderer consumes :root contract CSS directly.
-    // Slide tokens are stripped from the export path: the semantic export
-    // DOM can't consume them and the platform collector would leak them.
+    // Document export strips slide tokens: the semantic export DOM can't
+    // consume them and the platform collector would leak them. Slide export
+    // keeps them so --slide-* styling actually applies to the deck.
     if (input.themeName) {
+      const css = options.keepSlideTokens
+        ? input.customCSS
+        : stripSlideTokenDeclarations(input.customCSS || "");
       await page.evaluate(
-        (name: string, css: string | undefined) => {
-          (window as any).__colamdHandle.applyTheme(name, css || undefined);
+        (name: string, customCSS: string | undefined) => {
+          (window as any).__colamdHandle.applyTheme(name, customCSS || undefined);
         },
         input.themeName,
-        stripSlideTokenDeclarations(input.customCSS || "")
+        css
       );
     }
 
@@ -325,6 +418,14 @@ export class ColamdRenderer {
 
     // Additional settle time for complex diagrams
     await new Promise((r) => setTimeout(r, 500));
+    return page;
+  }
+
+  /**
+   * Render markdown to a standalone HTML document.
+   */
+  async render(input: RenderInput): Promise<RenderResult> {
+    const page = await this.prepare(input);
 
     // Build export HTML (2.x API: title goes through the options object)
     const html = await page.evaluate((title: string | undefined) => {
@@ -383,6 +484,58 @@ export class ColamdRenderer {
     return Buffer.from(pdfBuffer);
   }
 
+  /**
+   * Render a slide deck markdown and export it as a 16:9 PDF.
+   *
+   * Unlike `exportPDF()` this does NOT go through the semantic export HTML —
+   * it prints the live editor surface laid out as sheets by the platform's
+   * slides print layout, so per-page chrome, hero centering and page breaks
+   * come from the same code the app uses for File → Export Slides PDF.
+   *
+   * Requires a platform whose lib entry exposes the slides export API
+   * (`enterSlidesPrintLayout` / `exitSlidesPrintLayout`).
+   */
+  async exportSlidesPDF(input: RenderInput): Promise<Buffer> {
+    const page = await this.prepare(input, { keepSlideTokens: true });
+
+    const missingApi = await page.evaluate(
+      (methods: string[]) => {
+        const handle = (window as any).__colamdHandle;
+        if (!handle || typeof handle !== "object") return methods;
+        return methods.filter((m) => typeof handle[m] !== "function");
+      },
+      [...REQUIRED_SLIDES_API]
+    );
+    if (missingApi.length > 0) {
+      const { version } = getColamdCompat();
+      throw new Error(
+        `幻灯片导出 API 不兼容：@bytechain.cn/colamd ${version ?? "(未知版本)"} 缺少 ` +
+        `[${missingApi.join(", ")}]。请安装 @bytechain.cn/colamd@^${SLIDES_EXPORT_MIN_VERSION}`
+      );
+    }
+
+    const sheet = await page.evaluate(() => (window as any).__colamdHandle.enterSlidesPrintLayout());
+    if (!sheet) {
+      throw new Error(
+        "这份文档没有幻灯片分页（`---`），无法按 deck 导出。先用 to-slides 生成 deck，或检查分页是否符合契约"
+      );
+    }
+
+    try {
+      await fitSlidesToSheet(page);
+      const pdfBuffer = await page.pdf({
+        printBackground: true,
+        preferCSSPageSize: true,
+        margin: { top: "0", right: "0", bottom: "0", left: "0" },
+      });
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await page
+        .evaluate(() => (window as any).__colamdHandle.exitSlidesPrintLayout())
+        .catch(() => {});
+    }
+  }
+
   /** Shut down the browser and local server with proper resource cleanup. */
   async close(): Promise<void> {
     try {
@@ -430,6 +583,18 @@ export async function renderPDF(
   const renderer = new ColamdRenderer();
   try {
     return await renderer.exportPDF(input, options);
+  } finally {
+    await renderer.close();
+  }
+}
+
+/**
+ * One-shot slide-deck PDF export: init → 16:9 sheets → PDF → close.
+ */
+export async function renderSlidesPDF(input: RenderInput): Promise<Buffer> {
+  const renderer = new ColamdRenderer();
+  try {
+    return await renderer.exportSlidesPDF({ ...input, slides: true });
   } finally {
     await renderer.close();
   }

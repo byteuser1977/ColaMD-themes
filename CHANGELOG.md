@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-11-22
+
+### Added — 一键 PPT 生成与 16:9 幻灯片 PDF 导出
+
+- **`ppt <input.md>` 一键命令**：源 markdown → 幻灯片 deck markdown（`<input>.slides.md`）→ 指令/内容契约校验 → 16:9 PDF（`<input>.slides.pdf`）→ PDF-01~05 内容检查。任何一步失败即短路并给出可操作原因；`--md-only` 只产出 deck，`-t/-d/--deck-*/--no-adapt` 与分步命令一致
+- **`export-slides <deck.md>`**：把已有 deck 按平台幻灯片纸版式导出为 16:9 PDF（需要 `<!-- deck` 或 `<!-- slide:` 指令；非 deck 输入直接报错并提示用 `to-slides`/`ppt`）
+- **渲染层 `exportSlidesPDF()`**：不再走语义导出 DOM，而是用平台 `enterSlidesPrintLayout` / `exitSlidesPrintLayout` 把编辑面摊成 1280×720 纸（`preferCSSPageSize` + 零边距 + 打印背景），保留 `--slide-*` 令牌；并将 headless 视口固定为 1280×720，避免 800×600 默认视口把封面标题折成三行、卡片页溢出
+- **自动适配纸面**：导出前测量每页实际高度，若超过单页则按比例下调纸面字号（重置迭代 3 次，下限 0.6），保证 `PDF-03`（PDF 页数 = deck 页数）通过；内容页不再被挤成两张纸
+- **版式内容契约与自动适配（`slides-markdown.ts`）**：`LAYOUT_CONTRACT` 定义 11 种版式的项数/列表形状/行标题/数字/日期/图示/引用/双栏要求；`markdownToSlides(..., { adapt })`（默认开启，`--no-adapt` 关闭）自动补 `**行标题**`、kpi 无数字 / timeline 无日期降级为 matrix、列表超量拆续页（`label: 标题（续）`）、超长段落按句末拆页、引用块独立成页；`splitIntoPages` 修正 cover 吞掉后续 h2 小节的问题
+- **新规则 SLIDES-07 / SLIDES-08**：版式内容不匹配（SHOULD）与估算单页溢出（SHOULD），`validate <deck.md>` 会报告
+- **统一 CLI 调用契约**：新增 `src/utils/output.ts`——默认一行摘要、`--json` 单行 JSON、`--verbose` 才展开明细、失败只列失败项、非 TTY/JSON 模式禁用 spinner；`to-slides`/`validate`/`export-*`/`check-pdf`/`ppt` 全部接入
+- **平台能力探测**：`compat.ts` 新增 `slidesExportSupported`（直接检查 lib bundle 是否暴露 `enterSlidesPrintLayout`/`exitSlidesPrintLayout`）与 `SLIDES_EXPORT_MIN_VERSION`；compat 行新增「PPT 导出: 支持/不支持」，旧平台给出升级命令而不是崩溃
+- **MCP 工具**：新增 `ppt`、`to_slides`、`export_slides`、`check_pdf`，默认透传 `--json`，描述标注 one-shot
+- **SKILL.md 统一调用逻辑**：新增 Quick tasks 表与 Invocation rules（一次命令、不重复 validate、不回读产物、失败即停），并同步 7 个 agent 副本与 `.trae/rules`
+
+### Changed
+
+- `@bytechain.cn/colamd` 需 ≥ 2.7.13 且 lib 暴露幻灯片导出 API；文档式 `export-html` / `export-pdf` 行为与 A4/Letter/A3 纸型不变
+- `export-html` / `export-pdf` 成功输出收敛为一行；失败时只打印失败项
+
 ## [0.6.2] - 2026-11-17
 
 ### Added — 导出 PDF 内容契约检查（PDF-01…05）
