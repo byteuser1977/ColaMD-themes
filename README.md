@@ -119,10 +119,13 @@ Full MCP server for AI-native integration — connect ColaMD-themes to Chatbox, 
 | | `check_fonts` | Check font availability |
 | | `set_theme` | Register custom theme |
 | Color | `list_color_systems` | 15 built-in palettes |
-| | `list_mermaid_presets` | 3 Mermaid presets |
 | Export | `export_html` | Markdown to HTML |
 | | `export_pdf` | Markdown to PDF |
 | | `export_batch` | Batch export |
+| Slides | `ppt` | One-shot: Markdown → deck → 16:9 PDF |
+| | `to_slides` | Markdown → deck markdown |
+| | `export_slides` | Deck markdown → 16:9 PDF |
+| | `check_pdf` | PDF content checks (PDF-01…05) |
 
 ### Multi-Agent Skill
 

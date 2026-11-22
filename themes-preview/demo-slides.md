@@ -4,8 +4,6 @@ title: ColaMD 2.7 主题预览
 meta: 2026.11 · 幻灯片版式
 -->
 
----
-
 <!-- slide: cover -->
 
 # ColaMD 2.7

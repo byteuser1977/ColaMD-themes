@@ -1,5 +1,25 @@
 # Release Notes
 
+## Version 0.7.1 (2026-11-23) — Publish Integrity: Always-Fresh `dist` 🔒
+
+### 🔒 Fixed — stale `dist` shipped inside the npm package
+
+- **`prepack` hook** — `npm pack` / `npm publish` now runs `npm run build:all` first, so the tarball always contains a rebuild of the current source. The 0.7.0 tarball shipped a stale `dist`: `cli.js` was missing the `ppt` command (11 vs 12 commands), `slides-markdown.js` was 553 lines vs 864 in source, and it carried an orphaned `dist/mermaid-presets.js` whose source file had already been deleted — DSH installs reported "dist contents are old". `prepack` is used instead of `prepare` because the latter also fires on local `npm install`, where a fresh clone lacks `mcp-server` dependencies and would fail the install
+- **`clean` runs before every build** — `dist/` is wiped on build so removed sources can't leave orphan artifacts behind (the `clean` script only touches the root `dist`, never `mcp-server/dist`)
+- **`dist/build-info.json` build stamp** (new `scripts/stamp-dist.js`) — writes `name` / `version` / `builtAt` at build time; compare it with `package.json` to tell whether an installed `dist` is stale. Mtime can't be trusted: npm normalizes tarball mtimes to 1985-10-26 and pnpm reuses content-addressed store files, so an installed tree shows a layer of historical install dates
+
+### ✨ Added — plan-first condensed deck workflow (SKILL.md)
+
+- **「总到分精炼生成（长文档 → 精炼幻灯片）」 section** — long documents no longer take the structural fast path (which copies the source block by block). Three phases: (1) 总 — read the whole document, produce a global summary + narrative arc (Hook/Context/Core/Shift/Takeaway) + section & page budget; (2) 分 — write `<name>.plan.md` (page number / layout / chapter kicker / page purpose / condensed content / layout rationale, plus a capacity check & cut list) for user review; (3) on confirmation, hand-write `<name>.slides.md` once (deck block + per-page `<!-- slide: -->` directives)
+- **Condensation & layout-selection rules** — drop background/transition/minor examples, keep conclusions/data/evidence/quotes/actions; pick from the 11 layouts by content shape (numbers→kpi, dates→timeline, ordered→agenda/steps…); dedupe kicker/chapter; avoid 3 identical layouts in a row; split over-capacity pages before shrinking type
+- **Invocation rules 1a & 7** — fixed sequence for condensed decks (`validate` once → at most one repair round → `export-slides` once); agent hand-written decks bypass `to-slides`/`ppt` to avoid re-injected directives. Synced into all 7 agent mirrors and `.trae/rules`; CLI unchanged
+
+### 📦 Install
+
+```bash
+npm install @bytechain.cn/colamd-themes@0.7.1
+```
+
 ## Version 0.7.0 (2026-11-22) — One-Shot PPT: Markdown → 16:9 Slide PDF 🎬
 
 ### 🎬 Added — One-shot deck generation & slide PDF export

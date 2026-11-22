@@ -20,13 +20,14 @@ metadata:
       bins: [node, npm]
 ---
 
-Generate, validate, export, and manage ColaMD **2.7 contract** CSS themes (2.7.13 anchor, slide layouts stable). Extract formatting from URLs, DOCX, or PDF sources (optionally with PPT `--slide-*` styling); convert Markdown into slide-deck Markdown; export Markdown to standalone HTML/PDF **or a 16:9 slide PDF** with themes applied; batch export; manage theme configuration.
+Generate, validate, export, and manage ColaMD **2.7 contract** CSS themes (2.7.13 anchor, slide layouts stable). Extract formatting from URLs, DOCX, or PDF sources (optionally with PPT `--slide-*` styling); convert Markdown into slide-deck Markdown — structural fast path (`ppt`) or plan-first 总到分 condensed conversion for long documents; export Markdown to standalone HTML/PDF **or a 16:9 slide PDF** with themes applied; batch export; manage theme configuration.
 
 ## Quick tasks — one command, no back-and-forth
 
 | 任务 | 命令 |
 |---|---|
 | markdown → 16:9 幻灯片 PDF（含生成、校验、导出、PDF 检查） | `colamd-themes ppt report.md` |
+| 长文档 → 精炼幻灯片（总到分，先出 plan 审阅） | 见「总到分精炼生成」工作流 |
 | 只要幻灯片 markdown（不要 PDF） | `colamd-themes ppt report.md --md-only` |
 | 已有 deck markdown → 16:9 PDF | `colamd-themes export-slides deck.md` |
 | markdown → 文档式 HTML / PDF | `colamd-themes export-html doc.md` / `export-pdf doc.md` |
@@ -36,11 +37,13 @@ Generate, validate, export, and manage ColaMD **2.7 contract** CSS themes (2.7.1
 ### Invocation rules (important for agents)
 
 1. **One command per task.** `ppt` already chains to-slides → directive/content contract → 16:9 PDF → PDF-01~05. Do not call `to-slides` + `export-slides` + `check-pdf` yourself unless the user explicitly wants the intermediate deck.
+   1a. **Condensed (总到分) decks have a fixed sequence:** `validate <deck>.slides.md` once → fix only reported items (at most one fix pass) → `export-slides <deck>.slides.md` once (PDF checks run inside). Never run `ppt`/`to-slides` on an agent-authored deck.
 2. **Do not re-validate.** Every producing command validates internally and only reports failures; a second `validate` call costs tokens and time without adding information.
 3. **Do not read the artifacts back.** Use `--json` and read the one-line result (`ok`, paths, pages, `issues`). Only open the PDF/markdown when the user asks to inspect the content.
 4. **Default output is one line.** `--json` → exactly one line of JSON; `--verbose` → detail lines; failures print only the failing items (`[RULE] message`).
 5. **Stop on failure.** If exit code is 1, report the failing rules plus the one-line fix hint — do not loop, retry, or re-run the same command with the same input.
 6. **Themes are optional.** Omit `-t` to use the configured default theme; pass a built-in name, a registered custom name, or a `.css` path.
+7. **Agent-authored decks bypass `to-slides`/`ppt`.** A deck written from an approved plan already carries `<!-- deck -->` + per-page `<!-- slide: -->` directives; running `to-slides`/`ppt` on it would re-infer layouts and prepend a second, conflicting directive block.
 
 Exit codes: `0` success · `1` contract/validation failure or input file not found · `2` theme resolution · `3` render failure · `4` invalid input · `99` unexpected.
 
@@ -217,8 +220,6 @@ title: 报告标题
 meta: 2026.11 · 汇报版
 -->
 
----
-
 <!-- slide: kpi
 kicker: Executive Summary
 label: 核心数据速览
@@ -235,7 +236,7 @@ chapter: Act I · 数据
 - `<!-- slide: 名字 … -->` 页头块：**仅页首生效**（该页第一个真实内容之前）；第一行是版式名 `[a-z][a-z0-9-]*`，后续行是字段 `kicker / label / chapter`。单行 `<!-- slide: cover -->` 与 `<!-- slide-kicker: … -->` 旧写法兼容。
 - 页角色由 Markdown 结构决定：一页第一个标题（h1/h2 同权）是页标题，标题后第一段是导语，标题前紧邻段落兜底当 kicker。
 - `<!-- slide-css h1 { … } -->` 页内 CSS 微调（白名单清洗，拒 `position: absolute/fixed`、`z-index`、伪协议）；`<!-- slide-js … -->` 页内脚本（放映沙箱执行，导出不执行）。
-- deck 块配置每页 chrome：logo / brand / title / meta，文档顶部写一次。
+- deck 块配置每页 chrome：logo / brand / title / meta，文档顶部写一次；deck 块之后**直接写第一页内容，不要紧跟 `---`**（否则 deck 块被单独切成一页，导出多一张空白首页）。
 
 ### 11 built-in layouts
 
@@ -273,6 +274,46 @@ colamd-themes check-pdf report.slides.pdf -d report.slides.md
 **内容适配（默认开启，`--no-adapt` 关闭）**：生成时按版式契约补齐 `**行标题**`、kpi 无数字 / timeline 无日期时降级为 matrix、列表超量拆续页（`label: 标题（续）`）、超长段落按句末拆页。项数沿用上游约定（agenda 3-6、kpi 2-6、timeline 3-6、steps 3-5、matrix 3-8、closing 2-8），超出才拆页。
 
 导出时如果任一页在平台默认 24px 版式字号下超过单页高度，会自动按比例微调纸面字号（不低于 0.6），保证 `PDF-03`（页数 = deck 页数）通过。
+
+### 总到分精炼生成（长文档 → 精炼幻灯片）
+
+`ppt`/`to-slides` 是**结构快路径**：只切页打标签，原文逐块照搬，适合短文档。长文档直接走它会产出冗长、未提炼的 deck。此时改用本工作流——**总到分**总结提炼内容、落盘 plan 审阅、按有效内容选版式、一次性生成，不反复拉锯。方法论参考 guizang-ppt-skill：幻灯片只放「观众此刻必须看见的结论、结构和证据」。
+
+**阶段① 总**：通读源文档，产出全局总结（核心结论 2-3 句）+ 叙事弧（Hook 钩子 / Context 定调 / Core 主体 / Shift 转折 / Takeaway 收束）+ 章节划分与页数预算（按 11 版式契约项数与单页容量：≤14 行、每行 ≤46 字估算）。
+
+**阶段② 分**：写 `<name>.plan.md`（与源 md 同目录），逐页规划：
+
+```markdown
+# Deck Plan — <title>
+- source: report.md · pages: 14 · theme: elegant · date: 2026-11-22
+- 全局总结: <2-3 句：核心结论 + 叙事弧>
+- 章节: A开篇(1-2) B…(3-7) C…(8-12) D收束(13-14)
+
+| 页 | 版式 | 章节/kicker | 页面目的 | 有效内容（浓缩后） | 选版理由 |
+|---|---|---|---|---|---|
+| 1 | cover | — | 定调 | h1 主标 / h2 副标 / 导语一句 | 首页契约 |
+| 2 | agenda | A·开篇 | 路线图 | 4 章 `**章名** 一句话` | 有序 4 项 ∈3-6 |
+| … | … | … | … | … | … |
+
+每页容量核对: 估算行数 ≤14、行宽 ≤46 字；项数符合版式契约。
+删减清单: 丢弃 <背景铺垫/过渡段/重复细节>；保留 <结论/数据/证据/引言/行动项>。
+```
+
+- **浓缩规则**：丢弃背景铺垫、过渡段、hedging、不带数字/结论的次要例子；保留结论、数据、证据、直接引语、决策/行动项。超容量先删文案或拆页（`label: 标题（续）`），**不压字号**。
+- **版式选择（按有效内容形状）**：有数字→kpi、有日期→timeline、有序→agenda/steps、无序并列→matrix、双 h2→two-col、图/表/Mermaid→figure、金句→quote、末页行动→closing、单标题+一句→section。
+- **kicker/chapter 去重**：chapter = 跨页稳定的栏目标签；kicker = 本页独一份钩子短句；两者不互相翻译。
+- **节奏**：避免连续 3 页同版式；每 3-4 页插一个 section 呼吸页；cover 开场、closing 收尾。
+
+**审阅门**：plan 文件交用户确认后才进入阶段③；用户对 plan 的修改直接改进生成输入，避免生成后反复翻修。
+
+**阶段③ 生成**：依已确认 plan **一次性**写出 `<name>.slides.md`（deck 块 + 每页 `<!-- slide: -->` 指令，语法见 Directive syntax），然后固定序列：
+
+```bash
+npx tsx src/cli.ts validate <name>.slides.md --json                 # 第 1 次 — 只修报告项（至多一轮）
+npx tsx src/cli.ts export-slides <name>.slides.md -t <theme> --json # PDF-01…05 内嵌
+```
+
+- **不反复拉锯**：从已确认 plan 单次生成；validate 至多两次（首轮 + 一轮修复），第二次仍失败即停并报告（Stop on failure），只补丁报告行、绝不整篇重生成；export 仅一次。**禁止**对手写 deck 调用 `ppt`/`to-slides`（会重复生成指令块）。
 
 ### Slide rule validation
 

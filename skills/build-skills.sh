@@ -36,7 +36,8 @@ description: >
   Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
   (2.7.13 anchor, slide layouts stable). Extract formatting from URLs,
   DOCX, or PDF sources. One-shot `ppt` command turns Markdown into a
-  slide-deck Markdown plus a validated 16:9 slide PDF; also export
+  slide-deck Markdown plus a validated 16:9 slide PDF; plan-first
+  总到分 condensed conversion for long documents; also export
   Markdown to standalone HTML/PDF, batch export, manage themes.
 ---'
 
@@ -112,7 +113,7 @@ prerequisites:
 # unquoted, with no ": ", "<", or ">" (router-visible trigger text).
 FRONT_TRAE_SKILL='---
 name: colamd-themes
-description: Generate, validate, and export ColaMD contract CSS themes with PPT slide layout support — extract from URLs, DOCX or PDF (optionally with PPT --slide-* styling), convert Markdown to slide-deck Markdown, export Markdown to HTML or PDF. Use when the user asks to create, validate, export, or manage ColaMD themes, or to generate PPT slides from Markdown.
+description: Generate, validate, and export ColaMD contract CSS themes with PPT slide layout support — extract from URLs, DOCX or PDF (optionally with PPT --slide-* styling), convert Markdown to slide-deck Markdown, plan-first 总到分 condensed conversion for long documents, export Markdown to HTML or PDF. Use when the user asks to create, validate, export, or manage ColaMD themes, or to generate PPT slides from Markdown (including long-document condensed slides).
 ---'
 
 # ── Generator functions ──

@@ -26,6 +26,7 @@ Desktop.ini
 # 项目本地文件
 .claude/settings.local.json
 tmp/
+.tmp-export/
 .themes/
 docs/upstream-2.7.7-requirements.md
 .trae/

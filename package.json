@@ -1,6 +1,6 @@
 {
   "name": "@bytechain.cn/colamd-themes",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Theme development & export tool for ColaMD — extract formatting, generate themes, and export Markdown to HTML/PDF",
   "repository": {
     "type": "git",
@@ -15,13 +15,15 @@
     "colamd-themes-mcp": "mcp-server/dist/index.js"
   },
   "scripts": {
-    "build": "tsc && node --input-type=commonjs -e \"require('fs').cpSync('src/templates','dist/templates',{recursive:true})\"",
+    "clean": "node --input-type=commonjs -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc && node scripts/stamp-dist.js && node --input-type=commonjs -e \"require('fs').cpSync('src/templates','dist/templates',{recursive:true})\"",
     "build:skills": "node skills/build-skills.js",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "build:mcp": "cd mcp-server && npm run build",
     "build:all": "npm run build && npm run build:mcp",
-    "mcp": "node mcp-server/dist/index.js"
+    "mcp": "node mcp-server/dist/index.js",
+    "prepack": "npm run build:all"
   },
   "keywords": [
     "dsh",
@@ -58,6 +60,7 @@
   },
   "dependencies": {
     "@lezer/markdown": "^1.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "axios": "^1.7",
     "chalk": "^5.3",
     "cheerio": "^1.0",
@@ -66,7 +69,8 @@
     "handlebars": "^4.7",
     "ora": "^8.0",
     "pdf-parse": "^1.1",
-    "puppeteer": "^24.0"
+    "puppeteer": "^24.0",
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@bytechain.cn/colamd": "^2.7.13",

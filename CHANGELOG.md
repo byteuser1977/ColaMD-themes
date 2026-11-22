@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed — MCP 发布可用性
+
+- **MCP 依赖提升到根 `dependencies`**：根部 `files` 只包含 `mcp-server/dist/index.js`，而该文件 import `@modelcontextprotocol/sdk` 与 `zod`；两者原先只声明在 `mcp-server/package.json`（不随包发布），外部安装后 `colamd-themes-mcp` 启动即 `Cannot find module`。现将两者加入根依赖
+- **移除失效的 `list_mermaid_presets` 工具与 `mermaidPreset` 参数**：`mermaid-presets` 命令与 `-m` 选项在 2.7.7 Pele 改造时已删除，MCP 仍在转发 → 调用必报错。Zod schema、tools 列表、调用分支同步删除，README 工具表更新并补上 0.7.0 新增的 `ppt` / `to_slides` / `export_slides` / `check_pdf`
+
+### Changed — 仓库卫生
+
+- **`.tmp-export/` 移出版本控制**：调试脚本从 git 索引移除并加入 `.gitignore`
+
+## [0.7.1] - 2026-11-23
+
+### Added — 总到分精炼幻灯片工作流
+
+- **SKILL.md 新增「总到分精炼生成（长文档 → 精炼幻灯片）」章节**：长文档不再直接走 `ppt`/`to-slides` 结构快路径（原文逐块照搬），改为三阶段——① 总：通读源文档产出全局总结 + 叙事弧（Hook/Context/Core/Shift/Takeaway）+ 章节与页数预算；② 分：落盘 `<name>.plan.md`（页码/版式/章节 kicker/页面目的/浓缩后有效内容/选版理由 + 容量核对与删减清单）交用户审阅；③ 依确认后的 plan 一次性手写 `<name>.slides.md`（deck 块 + 逐页 `<!-- slide: -->` 指令）
+- **浓缩与选版规则**：丢弃背景铺垫/过渡段/次要例子，保留结论/数据/证据/引言/行动项；按有效内容形状选 11 版式（数字→kpi、日期→timeline、有序→agenda/steps…）；kicker/chapter 去重；避免连续 3 页同版式；超容量先删文案拆页不压字号
+- **Invocation rules 修订**：新增规则 1a（精炼 deck 固定序列：`validate` 一次 → 至多一轮修复 → `export-slides` 一次）与规则 7（Agent 手写 deck 绕过 `to-slides`/`ppt`，避免重复生成指令块）；不反复拉锯——单次生成、validate 至多两次、失败即停只补丁报告行
+- **触发语同步**：`build-skills.sh` 的 `FRONT_CLAUDE` / `FRONT_TRAE_SKILL` description 追加 plan-first 总到分转换，`node skills/build-skills.js` 重新生成 7 个 agent 副本与 `.trae/rules`。CLI（`src/*.ts`）零改动
+
+### Fixed — 文档示例
+
+- **Directive syntax 示例修正**：deck 块后不再紧跟 `---`——该写法会把 deck 块单独切成第 1 页，导出 PDF 出现空白首页（PDF-04）且 cover 被挤到第 2 页（SLIDES-07）；示例改为 deck 块后直接写第一页，并补充提示。
+
+### Fixed — 发布产物 dist 陈旧（npm 包内为旧构建）
+
+- **`prepack` 钩子**：`npm pack` / `npm publish` 前自动执行 `npm run build:all`，杜绝「新版本号 + 旧 dist」事故——0.7.0 实测包内 `cli.js` 缺 `ppt` 命令（11 vs 12 个）、`slides-markdown.js` 553 行（新构建 864 行）、并夹带已删源文件的孤儿产物 `dist/mermaid-presets.js`。选 `prepack` 而非 `prepare`：后者会在本地 `npm install` 时触发，全新克隆下 `mcp-server` 依赖未装会直接导致安装失败
+- **构建前清空 dist（`clean` 接入 `build`）**：源文件删除后旧产物不再累积（孤儿 `mermaid-presets.js` 即由此产生）；`clean` 只清根 `dist`，不影响 `mcp-server/dist`
+- **`dist/build-info.json` 版本戳**（新增 `scripts/stamp-dist.js`，ESM）：构建后写入 `name`/`version`/`builtAt`，与 `package.json` 版本比对即可判定已安装 dist 是否陈旧——mtime 不可信：npm tarball 内文件 mtime 一律归一化为 1985-10-26，pnpm 按内容哈希复用 store 文件，已安装 mtime 会分层显示历史安装日期
+
 ## [0.7.0] - 2026-11-22
 
 ### Added — 一键 PPT 生成与 16:9 幻灯片 PDF 导出
