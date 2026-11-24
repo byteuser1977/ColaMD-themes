@@ -1,5 +1,30 @@
 # Release Notes
 
+## Version 0.8.0 (2026-11-24) — ColaMD-extend 2.8.0 Alignment 🎞️
+
+### 🎬 Changed — slide PDF export realigned with the platform's 2.8.0 refactor
+
+- **Dependency bumped to `@bytechain.cn/colamd@^2.8.0`** — the 2.8.0 contract keeps the exact 27-live / 18-dead variable set of 2.7.13 (only `contractVersion` changed), so every theme CSS carries over unchanged. `SUPPORTED_CONTRACT` / `SUPPORTED_CONTRACTS` / `MIN_RENDERER_VERSION` / `SLIDES_EXPORT_MIN_VERSION` converge on `2.8.0` in `src/compat.ts`; compat-line copy and upgrade hints in `cli.ts` / `export-cli.ts` follow
+- **New slide paper: 1920×1080 design space** — the sheet is now 20×11.25in @96dpi → **1440×810pt** in the PDF (was 1280×720 → 960×540pt), body size pinned at 25.92px, the same scale as the presenting view. The headless viewport is pinned to 1920×1080 so viewport-derived tokens resolve identically on screen and on paper (`src/renderer.ts`)
+- **CLI-side font fitting removed** — the old `fitSlidesToSheet` shrink pass (scale floor 0.6) is gone: since 2.8.0 the platform scales any overflowing page back onto one sheet by whole-page `zoom` measured on the paper, which is what keeps PDF-03 page parity. `PDF-02` wording updated to the new paper size (`src/pdf-check.ts`)
+- **`SLIDE_TOKENS` synced with 2.8.0 slides.css** (`src/slides.ts`) — added `--slide-body-size` `--slide-chrome-pad-y` `--slide-chrome-logo-h` `--slide-foot-pad-y` `--slide-img-max-h` `--slide-figure-max-h`; removed the dead `--slide-page-top-pad-print` (no longer emitted by `buildFullSlideTokens`). Note: the 8 viewport-derived tokens are pinned to fixed px on `body.slides-printing` by the platform — theme overrides of those tokens only apply in the presenting view
+
+### 🎨 Changed — themes cleanup for the new paper
+
+- **Obsolete "export paper calibration" blocks removed** — `body.slides-printing` shrink/density rules computed for the old 1280×720@24px paper (the §1.7 blocks, e.g. `editorial-forest.css` / `pink-script-dark.css`) would double-shrink the sheet under 2.8.0, so they are deleted across the reference-template themes. Necessary mirrors are kept untouched: background bleed layers, per-line text colors, chrome/foot styling
+- **Dead `--slide-page-top-pad-print` removed from all 37 themes** carrying it; stale §1.6/§1.7 cross-reference comments updated. All `themes/*.css` pass `validate` against the 2.8.0 contract (slide layout + PPT export supported)
+
+### 📚 Changed — docs sync
+
+- **SKILL.md + 7 host mirrors regenerated** (`node skills/build-skills.js`, frontmatter in `build-skills.sh` moved to the 2.8 anchor) — the slide-layout section documents the 2.8.0 export alignment (1920×1080 design space, whole-page zoom, obsolete-calibration warning), PDF-02/PDF-03 wording updated, 2.8.0 token inventory noted
+- **README.md / README_CN.md** — slide PDF paper (1440×810pt), platform requirement `^2.8.0`, contract version wording; **`docs/slide-theme-replication.md`** gains pitfall #15 (never re-add export calibration blocks; viewport-derived tokens are pinned on paper)
+
+### 📦 Install
+
+```bash
+npm install @bytechain.cn/colamd-themes@0.8.0
+```
+
 ## Version 0.7.1 (2026-11-23) — Publish Integrity, Theme Waivers & MCP Fixes 🔒
 
 ### 🔒 Fixed — stale `dist` shipped inside the npm package

@@ -4,6 +4,7 @@ node_modules/
 # 构建产物
 dist/
 *.tsbuildinfo
+*.tgz
 
 # 日志
 logs/
