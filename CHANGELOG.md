@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed — Slide PDF export drops pages on long decks (PDF-03)
+
+- **Chunked deck export**: decks longer than 10 pages are split at page boundaries into ≤10-page chunks (new `exportDeckChunks` in `slides-markdown.ts`), each rendered on a fresh print layout and merged with `pdf-lib` (new runtime dependency, saved with `useObjectStreams: false` so the raw `/MediaBox` scan stays verifiable). Root cause: CM6's height map underestimates paper-layout line heights for pages it never rendered, so the platform's per-page measure trims the DOM tail on long decks and the trimmed pages lose their sheet breaks
+- **Full-render guarantee for every pass**: the headless shell now reaches the `EditorView` through CM6's `cmTile` DOM registration (`window.__getView` in the served shell HTML) and pins its private `printing` flag during the slide export, plus a post-enter repair pass that verifies the rendered page count against the deck page count
+
 ## [0.8.0] - 2026-11-24
 
 ### Changed — Platform Upgrade to ColaMD-extend 2.8.0

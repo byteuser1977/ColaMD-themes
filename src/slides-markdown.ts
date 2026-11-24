@@ -937,6 +937,29 @@ export function countDeckPages(md: string): number {
   return scanDocument(md).pages.size;
 }
 
+/**
+ * Split a deck markdown into consecutive chunks of at most `maxPages` slide
+ * pages each. Chunks are contiguous source slices cut at page boundaries, so
+ * every chunk keeps its `<!-- slide: -->` directives, the deck block and the
+ * frontmatter (all page-0 lines). Used by the slide PDF export to work around
+ * the platform's headless-render viewport trim on long decks.
+ */
+export function exportDeckChunks(md: string, maxPages: number): string[] {
+  const normalized = md.replace(/\r\n?/g, "\n");
+  const lines = normalized.split("\n");
+  const scan = scanDocument(normalized);
+  const pageNums = Array.from(scan.pages.keys()).sort((a, b) => a - b);
+  if (pageNums.length === 0) return [normalized];
+  const chunks: string[] = [];
+  for (let start = 0; start < pageNums.length; start += maxPages) {
+    const group = pageNums.slice(start, start + maxPages);
+    const firstLine = Math.min(...(scan.pages.get(group[0]) ?? []));
+    const lastLine = Math.max(...(scan.pages.get(group[group.length - 1]) ?? []));
+    chunks.push(lines.slice(firstLine - 1, lastLine).join("\n") + "\n");
+  }
+  return chunks;
+}
+
 /** Deck chrome fields (logo/brand/title/meta) from the deck block, with the
  * first h1 as title fallback. */
 export function extractDeckChrome(md: string): { logo: string; brand: string; title: string; meta: string } {

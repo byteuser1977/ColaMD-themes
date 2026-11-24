@@ -130,6 +130,14 @@ function optimizeExportHtml(html: string, markdown: string, optimize: boolean): 
  * the real paper.
  */
 
+/**
+ * Max deck pages per print-layout pass. CM6's height map is estimated from
+ * the lines it has rendered; pages past that range get underestimated heights
+ * and the platform's per-page measure loses the DOM tail (PDF-03). Decks with
+ * more pages are split into chunks, rendered separately and merged (pdf-lib).
+ */
+const SLIDES_CHUNK_PAGES = 10;
+
 /** PDF export options. */
 export interface PDFExportOptions {
   /** Page format */
@@ -185,6 +193,22 @@ const SHELL_HTML = `<!DOCTYPE html>
 <style>html,body{margin:0;padding:0}
 #editor-region{width:100%;height:100vh}
 #editor{width:100%;min-height:100vh}</style>
+<script>
+// Slide-export full-render support. Chrome-headless-shell fires no print
+// media events, so CodeMirror keeps only its current viewport in the DOM and
+// the platform's whole-document render switch lives on a private EditorView
+// field. Reach the view through the content DOM: CM6 stamps its Tile tree
+// onto the editor DOM (el.cmTile), and the tile's root.view is the
+// EditorView — which is all we need to pin that switch.
+window.__getView = function () {
+  try {
+    var el = document.querySelector('#editor .cm-content');
+    var tile = el && el.cmTile;
+    var view = tile && tile.root && tile.root.view;
+    return view && view.viewState && typeof view.viewState.printing === 'boolean' ? view : null;
+  } catch (e) { return null; }
+};
+</script>
 </head><body><div id="editor-region"><div id="editor"></div></div></body></html>`;
 
 interface LocalServer {
@@ -430,8 +454,39 @@ export class ColamdRenderer {
    *
    * Requires a platform whose lib entry exposes the slides export API
    * (`enterSlidesPrintLayout` / `exitSlidesPrintLayout`).
+   *
+   * Long decks are split into chunks (see SLIDES_CHUNK_PAGES) that are each
+   * rendered on a fresh print layout and merged afterwards: CM6's height map
+   * underestimates paper-layout line heights for pages it never rendered, so
+   * its viewport trims the DOM tail on long decks and the trimmed pages would
+   * lose their sheet breaks (PDF-03). Chunking keeps every render inside the
+   * reliably-rendered range.
    */
   async exportSlidesPDF(input: RenderInput): Promise<Buffer> {
+    const { countDeckPages, exportDeckChunks } = await import("./slides-markdown.js");
+    const deckPageCount = countDeckPages(input.markdown);
+    if (deckPageCount <= SLIDES_CHUNK_PAGES) {
+      return this.exportSlidesPDFOnce(input);
+    }
+    const chunks = exportDeckChunks(input.markdown, SLIDES_CHUNK_PAGES);
+    const buffers: Buffer[] = [];
+    for (const chunk of chunks) {
+      buffers.push(await this.exportSlidesPDFOnce({ ...input, markdown: chunk }));
+    }
+    const { PDFDocument } = await import("pdf-lib");
+    const merged = await PDFDocument.create();
+    for (const buffer of buffers) {
+      const doc = await PDFDocument.load(buffer);
+      const pages = await merged.copyPages(doc, doc.getPageIndices());
+      for (const page of pages) merged.addPage(page);
+    }
+    // useObjectStreams: false — keep object headers uncompressed so the raw
+    // /MediaBox scan in check-pdf can verify the merged paper size (PDF-02).
+    return Buffer.from(await merged.save({ useObjectStreams: false }));
+  }
+
+  /** Render one deck (or deck chunk) on a single print-layout pass. */
+  private async exportSlidesPDFOnce(input: RenderInput): Promise<Buffer> {
     const page = await this.prepare(input, { keepSlideTokens: true });
 
     const missingApi = await page.evaluate(
@@ -450,11 +505,81 @@ export class ColamdRenderer {
       );
     }
 
+    // Full-render guarantee, part 1 — viewport: headless shells fire no print
+    // media events, so CM6's whole-document render window can't be relied on;
+    // once the print layout reflows, deferred rebuilds may never run and the
+    // tail pages vanish from the DOM (PDF-03 page loss). Size the window to
+    // the document instead: with a viewport as tall as the content, CM6's
+    // visible range covers every page in normal mode, so the tail survives
+    // any reflow.
+    const docHeight = (await page.evaluate(() => {
+      const editor = document.querySelector("#editor .cm-editor");
+      return editor ? Math.ceil(editor.scrollHeight) : 0;
+    })) as number;
+    if (docHeight > 0) {
+      await this.page!.setViewport({
+        width: 1920,
+        height: Math.min(docHeight + 2000, 65536),
+        deviceScaleFactor: 1,
+      });
+      await new Promise((r) => setTimeout(r, 500));
+    }
+
+    // Full-render guarantee: headless shells fire no print media events, so
+    // CM6 keeps only its current viewport in the DOM and the platform's
+    // per-page measure pass would miss the tail (PDF-03 page loss). Reach the
+    // EditorView through the shell's tile hook and pin its private printing
+    // flag to true — the exact switch the platform's own renderWholeDocument
+    // flips — so the whole document stays rendered until exit.
+    await page.evaluate(() => {
+      const view = (window as any).__getView?.();
+      if (view) {
+        view.viewState.printing = true;
+        view.requestMeasure();
+      }
+    });
+    await new Promise((r) => setTimeout(r, 300));
+
     const sheet = await page.evaluate(() => (window as any).__colamdHandle.enterSlidesPrintLayout());
     if (!sheet) {
       throw new Error(
         "这份文档没有幻灯片分页（`---`），无法按 deck 导出。先用 to-slides 生成 deck，或检查分页是否符合契约"
       );
+    }
+
+    // The print layout re-scales every line (paper CSS), so CM6's first
+    // measure inside enterSlidesPrintLayout runs against a stale height map
+    // and may trim the viewport to a prefix — pages missing from the DOM then
+    // miss their page breaks (PDF-03 page loss). With the printing flag
+    // pinned, a fresh measure recomputes the viewport back to the whole
+    // document; if pages are still missing, redo the print layout now that
+    // line heights have settled.
+    const { countDeckPages } = await import("./slides-markdown.js");
+    const expectedPages = countDeckPages(input.markdown);
+    const countDomPages = () => page.evaluate(() => {
+      const root = document.querySelector("#editor .cm-content");
+      if (!root) return 0;
+      const pages = new Set();
+      for (const el of Array.from(root.children)) {
+        const m = /(?:^|\s)cm-md-page-(\d+)(?:\s|$)/.exec(el.className);
+        if (m) pages.add(m[1]);
+      }
+      return pages.size;
+    }) as Promise<number>;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if ((await countDomPages()) >= expectedPages) break;
+      await page.evaluate(() => {
+        const view = (window as any).__getView();
+        if (view) {
+          view.viewState.printing = true;
+          view.measure();
+        }
+      });
+      await new Promise((r) => setTimeout(r, 300));
+      if ((await countDomPages()) >= expectedPages) break;
+      await page.evaluate(() => (window as any).__colamdHandle.exitSlidesPrintLayout());
+      await page.evaluate(() => (window as any).__colamdHandle.enterSlidesPrintLayout());
+      await new Promise((r) => setTimeout(r, 300));
     }
 
     try {
@@ -469,7 +594,11 @@ export class ColamdRenderer {
       return Buffer.from(pdfBuffer);
     } finally {
       await page
-        .evaluate(() => (window as any).__colamdHandle.exitSlidesPrintLayout())
+        .evaluate(() => {
+          const view = (window as any).__getView?.();
+          if (view) view.viewState.printing = false;
+          return (window as any).__colamdHandle.exitSlidesPrintLayout();
+        })
         .catch(() => {});
     }
   }
