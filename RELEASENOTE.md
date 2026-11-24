@@ -1,5 +1,19 @@
 # Release Notes
 
+## Version 0.8.1 (2026-11-24) — Long-Deck Export Fix 🧩
+
+### 🧩 Fixed — slide PDF export drops pages on long decks (PDF-03)
+
+- **Chunked deck export** — decks longer than 10 pages are split at page boundaries into ≤10-page chunks (new `exportDeckChunks` in `slides-markdown.ts`), each rendered on a fresh print layout and merged with `pdf-lib` (new runtime dependency, loaded lazily only on the multi-chunk path; saved with `useObjectStreams: false` so the raw `/MediaBox` scan keeps verifying the merged paper size). Root cause: CM6's height map underestimates paper-layout line heights for pages it never rendered, so the platform's per-page measure trims the DOM tail on long decks and the trimmed pages lose their sheet breaks — a 15-page deck exported as 13 sheets
+- **Full-render guarantee for every pass** — the headless shell now reaches the `EditorView` through CM6's `cmTile` DOM registration (`window.__getView` in the served shell HTML) and pins its private `printing` flag (the same switch the platform's `renderWholeDocument` flips) during the slide export, plus a post-enter repair pass that verifies the rendered page count against the deck page count and re-enters the print layout when pages are missing
+- No behavior change for decks ≤ 10 pages; the merged artifact passes PDF-01…05 (15 pages / 1440×810pt verified)
+
+### 📦 Install
+
+```bash
+npm install @bytechain.cn/colamd-themes@0.8.1
+```
+
 ## Version 0.8.0 (2026-11-24) — ColaMD-extend 2.8.0 Alignment 🎞️
 
 ### 🎬 Changed — slide PDF export realigned with the platform's 2.8.0 refactor
