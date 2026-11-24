@@ -136,7 +136,6 @@
   --slide-quote-size: 2.15em;                  /* P2 statement h2 56px ÷26 */
   --slide-page-pad-x: 2.5vw;                   /* 模板 .slide padding 3rem=48px @1920 */
   --slide-page-top-pad: 64px;                  /* 48px 页边距 + chrome 安全区 */
-  --slide-page-top-pad-print: 48px;
   --slide-cover-text-align: center;
   --slide-cover-lead-inline: auto;
 }

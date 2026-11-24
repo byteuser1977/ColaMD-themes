@@ -138,7 +138,6 @@
   --slide-quote-size: 2.4em;                  /* 无 quote 页，留上游默认 */
   --slide-page-pad-x: 3.34vw;                 /* 模板内容页边距 64px @1920 */
   --slide-page-top-pad: 70px;                 /* 正文顶 48px + chrome 安全区 */
-  --slide-page-top-pad-print: 60px;
   --slide-cover-text-align: left;             /* P1 左对齐（垂直居中） */
   --slide-cover-lead-inline: 0;
 }

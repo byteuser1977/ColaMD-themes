@@ -229,7 +229,7 @@ function addExtractOptions(cmd: Command): Command {
     .option("-d, --themes-dir <dir>", "Themes directory", "themes")
     .option("-c, --color-system <id>", "Force a color system (use `color-systems` to list)")
     .option("-A, --auto-match", "Auto-match a color system from the extracted palette")
-    .option("--ppt [style]", "Also emit PPT --slide-* tokens (ColaMD 2.7.13 slides); optional preset: serif|sans|mono");
+    .option("--ppt [style]", "Also emit PPT --slide-* tokens (ColaMD 2.7.13+ slides); optional preset: serif|sans|mono");
 }
 
 async function runExtraction(
@@ -262,7 +262,7 @@ async function runExtraction(
       style.colorSystemId = cs.id;
     }
     if (options.autoMatch) style.colorSystemId = "";
-    spinner.setText("Generating CSS (2.7.13 contract)...");
+    spinner.setText("Generating CSS (2.8.0 contract)...");
     const outputPath = writeThemeFile(style, options.output || options.themesDir);
     spinner.succeed(chalk.green(`Theme "${style.name}" generated: ${outputPath}`));
     printSummary(style);
@@ -326,7 +326,7 @@ addExtractOptions(
 // ── to-slides ──
 program
   .command("to-slides")
-  .description("Convert a Markdown document into slide-deck Markdown (ColaMD 2.7.13 slide layouts)")
+  .description("Convert a Markdown document into slide-deck Markdown (ColaMD 2.7.13+ slide layouts)")
   .argument("<input>", "Path to .md file")
   .option("-o, --output <path>", "Output .md file path (default: <input>.slides.md)")
   .option("--deck-brand <text>", "Deck chrome brand (footer-left serif text)")
@@ -374,7 +374,7 @@ program
 // ── ppt (one-shot deck generation + 16:9 PDF) ──
 program
   .command("ppt")
-  .description("One-shot: markdown → slide-deck markdown → validated 16:9 PDF (ColaMD 2.7.13 slides)")
+  .description("One-shot: markdown → slide-deck markdown → validated 16:9 PDF (ColaMD 2.7.13+ slides)")
   .argument("<input>", "Path to the source .md file")
   .option("-t, --theme <name>", "Theme name (built-in, custom, or CSS file path)")
   .option("-d, --output-dir <dir>", "Output directory (default: alongside the input)")
@@ -438,7 +438,7 @@ program
       }
 
       // Fail fast with an actionable message when the installed platform's lib
-      // entry predates the slide export API (2.7.13-rc.1 and older).
+      // entry predates the slide export API (2.7.13 line and older).
       const compat = getColamdCompat();
       if (!compat.slidesExportSupported) {
         task.fail();
@@ -447,7 +447,7 @@ program
           summary: "当前 @bytechain.cn/colamd 不支持幻灯片 PDF 导出",
           details: [
             `  ${formatColamdCompat(compat)}`,
-            `  修复: npm install @bytechain.cn/colamd@^${compat.version ?? "2.7.13"}（需 lib 暴露 enterSlidesPrintLayout/exitSlidesPrintLayout）`,
+            `  修复: npm install @bytechain.cn/colamd@^${compat.version ?? "2.8.0"}（需 lib 暴露 enterSlidesPrintLayout/exitSlidesPrintLayout）`,
           ],
           data: { ok: false, markdown: mdPath, error: "slides-export-unsupported", compat: formatColamdCompat(compat) },
           exitCode: 1,
@@ -565,7 +565,7 @@ program
 // ── validate ──
 program
   .command("validate")
-  .description("Validate a theme CSS (2.7.13 contract + slide tokens) or slides markdown (directive + content contract)")
+  .description("Validate a theme CSS (2.8.0 contract + slide tokens) or slides markdown (directive + content contract)")
   .argument("<file>", "Path to a .css theme file or a .md slides file")
   .option("--json", "Print a one-line JSON result")
   .option("--verbose", "Print the full validation report")
@@ -579,7 +579,7 @@ program
       const failed = hasFailures(issues);
       const compatLine = formatColamdCompat();
       if (options.verbose && !options.json) {
-        console.log(chalk.bold("Slides directives (ColaMD 2.7.13):"));
+        console.log(chalk.bold("Slides directives (ColaMD 2.7.13+):"));
         console.log(issues.length === 0
           ? chalk.green("  ✔ 指令语法、页首规则、内容契约与 slide-css 白名单校验通过")
           : summarizeIssues(issues));
@@ -618,7 +618,7 @@ program
     const compatLine = formatColamdCompat(compat);
 
     if (options.verbose && !options.json) {
-      console.log(chalk.bold("CSS contract (ColaMD 2.7.13):"));
+      console.log(chalk.bold("CSS contract (ColaMD 2.8.0):"));
       console.log(cssIssues.filter((i) => !waivers.has(i.ruleId)).length === 0 ? chalk.green("  ✔ :root 根块与选择器契约通过") : summarizeIssues(cssIssues.filter((i) => !waivers.has(i.ruleId))));
       console.log(compat.status === "exact" ? chalk.dim(`  平台兼容: ${compatLine}`) : chalk.yellow(`  平台兼容: ${compatLine}`));
       if (waived.length > 0) console.log(chalk.dim(`  已备案豁免: ${waived.join(", ")}（文件头 colamd-allow）`));

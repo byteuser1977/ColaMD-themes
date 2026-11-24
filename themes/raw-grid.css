@@ -140,7 +140,6 @@
   --slide-quote-size: 2.46em;                  /* P8 statement 64px ÷26 */
   --slide-page-pad-x: 3.3vw;                   /* pad-lg 64px @1920 */
   --slide-page-top-pad: 72px;                  /* 页头 32px + chrome 安全区 */
-  --slide-page-top-pad-print: 64px;
   --slide-cover-text-align: left;
   --slide-cover-lead-inline: 0;
 }

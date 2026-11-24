@@ -2,8 +2,8 @@
 name: colamd-themes
 version: "1.0.0"
 description: >
-  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
+  Generate, validate, export, and manage ColaMD 2.8 contract CSS themes
+  (2.8.0 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
   one-shot ppt command: Markdown → slide deck → validated 16:9 PDF;
   document HTML/PDF export; batch export.
 metadata:
@@ -13,7 +13,7 @@ prerequisites:
   commands: [node, npm]
 ---
 
-Generate, validate, export, and manage ColaMD **2.7 contract** CSS themes (2.7.13 anchor, slide layouts stable). Extract formatting from URLs, DOCX, or PDF sources (optionally with PPT `--slide-*` styling); convert Markdown into slide-deck Markdown — structural fast path (`ppt`) or plan-first 总到分 condensed conversion for long documents; export Markdown to standalone HTML/PDF **or a 16:9 slide PDF** with themes applied; batch export; manage theme configuration.
+Generate, validate, export, and manage ColaMD **2.8 contract** CSS themes (2.8.0 anchor — variable set unchanged since 2.7.7; slide export realigned to the presenting view in 2.8.0). Extract formatting from URLs, DOCX, or PDF sources (optionally with PPT `--slide-*` styling); convert Markdown into slide-deck Markdown — structural fast path (`ppt`) or plan-first 总到分 condensed conversion for long documents; export Markdown to standalone HTML/PDF **or a 16:9 slide PDF** with themes applied; batch export; manage theme configuration.
 
 ## Quick tasks — one command, no back-and-forth
 
@@ -110,7 +110,7 @@ colamd-themes validate <file.css | file.md>
 colamd-themes check-pdf <file.pdf> [-d <deck.md>]
 ```
 
-`validate` accepts theme CSS **and** slides markdown (`.md` → directive contract checks). It prints a **platform compat line** ("平台兼容") — it reports the installed `@bytechain.cn/colamd` version, whether its `themes/contract.json` matches the theme contract (2.7.13 and 2.7.13 are both accepted), and whether the **slide layout system** is available (幻灯片版式: 支持/不支持). On drift it lists missing live variables; treat that as a signal to check the platform changelog or pin `@bytechain.cn/colamd@^2.7.13`.
+`validate` accepts theme CSS **and** slides markdown (`.md` → directive contract checks). It prints a **platform compat line** ("平台兼容") — it reports the installed `@bytechain.cn/colamd` version, whether its `themes/contract.json` matches the theme contract (2.8.0 is the accepted anchor; its variable set is identical to 2.7.13), and whether the **slide layout system** is available (幻灯片版式: 支持/不支持). On drift it lists missing live variables; treat that as a signal to check the platform changelog or pin `@bytechain.cn/colamd@^2.8.0`.
 
 ## Options
 
@@ -123,7 +123,7 @@ colamd-themes check-pdf <file.pdf> [-d <deck.md>]
 | `-d, --themes-dir` | Themes directory (default: `themes/`) |
 | `-c, --color-system` | Force a color system |
 | `-A, --auto-match` | Auto-match a color system from the extracted palette |
-| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13 slides); optional preset `serif` (default) / `sans` / `mono`. Off by default. A valueless `--ppt` keeps the preset auto-detected by the extractor (from-html templates) |
+| `--ppt [style]` | Also emit PPT `--slide-*` tokens (2.7.13+ slides); optional preset `serif` (default) / `sans` / `mono`. Off by default. A valueless `--ppt` keeps the preset auto-detected by the extractor (from-html templates) |
 
 ### Export options
 
@@ -199,9 +199,9 @@ Export uses Puppeteer (headless Chromium) with `@bytechain.cn/colamd/renderer`:
 8. `buildExportHTML()` → standalone HTML with embedded CSS
 9. For PDF: load the export HTML in a fresh page + `page.pdf()` — do NOT `emulateMediaType('screen')`, the theme's `@media print` rules (with `print-color-adjust: exact`) must apply
 
-## Slide Layouts (ColaMD 2.7.13 幻灯片版式)
+## Slide Layouts (ColaMD 2.7.13+ 幻灯片版式)
 
-Upstream 2.7.13 adds a slide deck system. A deck is plain markdown: pages split on `---`, each page may open with a header comment block.
+Upstream 2.7.13 added a slide deck system. A deck is plain markdown: pages split on `---`, each page may open with a header comment block. 2.8.0 realigned the slide **export** with the presenting view: the paper is a 1920×1080 design space (20×11.25in @96dpi → 1440×810pt in the PDF), body size pinned at 25.92px — the same scale as presenting — and any page taller than the sheet is scaled back to one sheet by whole-page `zoom`. Theme presenting styles (§1.6) now apply to paper essentially unchanged; the old export-only paper calibration blocks (old 1280×720@24px paper) are obsolete and must not be re-added.
 
 ### Directive syntax
 
@@ -266,7 +266,7 @@ colamd-themes check-pdf report.slides.pdf -d report.slides.md
 
 **内容适配（默认开启，`--no-adapt` 关闭）**：生成时按版式契约补齐 `**行标题**`、kpi 无数字 / timeline 无日期时降级为 matrix、列表超量拆续页（`label: 标题（续）`）、超长段落按句末拆页。项数沿用上游约定（agenda 3-6、kpi 2-6、timeline 3-6、steps 3-5、matrix 3-8、closing 2-8），超出才拆页。
 
-导出时如果任一页在平台默认 24px 版式字号下超过单页高度，会自动按比例微调纸面字号（不低于 0.6），保证 `PDF-03`（页数 = deck 页数）通过。
+导出（平台 ≥ 2.8.0）与放映同标度：纸面是 1920×1080 设计空间（20×11.25in，PDF 1440×810pt），正文 25.92px。任一页装不下纸面时由平台**整页 `zoom` 等比缩放压回一页**，CLI 不再做字号微调——`PDF-03`（页数 = deck 页数）由该机制保证。主题里旧的「导出纸面校准」（按 1280×720@24px 纸面 ÷36 换算的压缩块）在 2.8.0 下会造成二次缩小，必须移除。
 
 ### 总到分精炼生成（长文档 → 精炼幻灯片）
 
@@ -334,9 +334,9 @@ colamd-themes check-pdf out.pdf -d deck.md         # 提供配对 deck → 页�
 
 - **PDF-01** (MUST)：PDF 可解析（pdf-parse 子进程页文本提取，≥1 页）
 - **PDF-02** (MUST)：页面尺寸一致；幻灯片导出必须是 16:9 纸型
-  （1280×720 @96dpi = **960×540pt**；文档式导出为 A4/Letter，仅查一致性）
+  （1920×1080 @96dpi = 20×11.25in = **1440×810pt**，2.8.0 起；文档式导出为 A4/Letter，仅查一致性）
 - **PDF-03** (MUST)：slide 页数 = deck 页数（提供 `-d deck.md` 或 deck 指令时）——
-  最常见的失真是内容溢出把一页挤出两张纸
+  平台已把溢出页整页 zoom 压回一页；若仍不一致，多为分页线未被打上页码类（deck 分页语法问题）
 - **PDF-04** (SHOULD)：无空白页（某页文本抽取 < 5 字符）
 - **PDF-05** (SHOULD)：deck 标题（chrome）出现在 PDF 文本中（去空白比对，
   规避 Chromium 字形切分插空格）
@@ -357,11 +357,11 @@ colamd-themes from-url <URL> -n my-brand --ppt sans   # presets: serif | sans | 
 
 - serif = 上游杂志衬线默认；sans = Notion 气质（无衬线、居中封面）；mono = Writer 气质（等宽标题）。品牌层只派生 `--slide-title-font` / `--slide-mono` / `--slide-title-weight`，版式字号阶梯保持上游默认。
 - **v0.6.1 全量版式令牌**：`from-html` 模板来源提供设计提示（`--sz-*` 字号阶梯 + template.json 的 mood/density/formality/scheme）时，生成 **24 个按页类型定制的令牌**——封面/章节/收页字号阶梯取自模板 display/body 比例，页标题 / KPI / 引言 / kicker / chrome / 页边距按气质（bold/quiet/tech）与密度调校；`--ppt` 不带值时信任按 display 字体自动判定的预设。无设计提示的主题保持仅品牌层输出（向后兼容）。
-- 自定义主题 CSS 在 slides.css 之后加载，`:root` 同权重后到先赢；不要写 `body.theme-custom`（文档契约死选择器）。
+- 自定义主题 CSS 在 slides.css 之后加载，`:root` 同权重后到先赢；不要写 `body.theme-custom`（文档契约死选择器）。**2.8.0 令牌清单 31 个**（新增 `--slide-body-size` `--slide-chrome-pad-y` `--slide-chrome-logo-h` `--slide-foot-pad-y` `--slide-img-max-h` `--slide-figure-max-h`，移除 `--slide-page-top-pad-print`）；其中视口派生的 8 个令牌在导出时被平台按纸面（1920×1080 设计空间）钉成固定 px，主题对这些令牌的覆盖只在放映视图生效，纸面恒为上游值。
 - 手写主题里的幻灯片规则须遵守：**SLIDE-01** (SHOULD) 只用已知令牌；**SLIDE-02** (MUST_NOT) `.cm-md-page-*` / `.cm-md-slide-*` / `.slide-chrome|foot|ghost` 必须包裹在 `body.presenting` 或 `body.slides-printing` 作用域下（裸写污染编辑视图）；**SLIDE-03** (SHOULD) 标题字体栈含中文字族并以 generic family 结尾。
-- 平台需 ≥ 2.7.13 才消费这些令牌（compat 行「幻灯片版式」）；旧平台下令牌惰性。文档式 `export-html` / `export-pdf` 仍是文章排版；需要真正的 16:9 幻灯片 PDF 用 `export-slides` / `ppt`（compat 行「PPT 导出」，要求 lib 暴露 `enterSlidesPrintLayout` / `exitSlidesPrintLayout`，旧平台会给出可操作的升级命令）。
+- 平台需 ≥ 2.7.13 才消费这些令牌（compat 行「幻灯片版式」）；旧平台下令牌惰性。文档式 `export-html` / `export-pdf` 仍是文章排版；需要真正的 16:9 幻灯片 PDF 用 `export-slides` / `ppt`（compat 行「PPT 导出」，要求 lib 暴露 `enterSlidesPrintLayout` / `exitSlidesPrintLayout` 且 ≥ 2.8.0 —— 2.8.0 起导出与放映同标度并整页 zoom 压页，旧平台会给出可操作的升级命令）。
 
-## 2.7 Contract Constraints
+## 2.8 Contract Constraints
 
 - Variables live in `:root`; anything in `body.theme-*` is ignored
 - Live variables only: `--bg-color --text-color --text-secondary --text-muted --border-color --link-color --code-bg --code-block-bg --code-block-text --blockquote-border --blockquote-bg --table-header-bg --selection-bg --highlight-bg --font-body --font-mono --editor-font-size --editor-column-width` + `--pele-*`
@@ -377,7 +377,7 @@ colamd-themes from-url <URL> -n my-brand --ppt sans   # presets: serif | sans | 
 ## Reference-Template Refinement (page-by-page replication)
 
 Use when the task is to reproduce a multi-page PPT template
-(`beautiful-html-templates/templates/<slug>/template.html`) as a ColaMD 2.7.13
+(`beautiful-html-templates/templates/<slug>/template.html`) as a ColaMD 2.7.13+
 slide theme (`themes/<slug>.css`) with strict fidelity. Full methodology:
 `docs/slide-theme-replication.md`. Reference themes: `themes/biennale-yellow.css`
 (header / token / section-1.6 structure) and `themes/pin-and-paper.css`
@@ -490,9 +490,9 @@ once over every theme at the end.
 ## Architecture
 
 ```
-Source → Extractor → ThemeStyle → Color System + Pele + Validators → CSS (2.7.13 contract)
+Source → Extractor → ThemeStyle → Color System + Pele + Validators → CSS (2.8.0 contract)
 
 Markdown → Puppeteer + ColaMD renderer → HTML / PDF
 ```
 
-> Export runs the ColaMD 2.x library renderer (`@bytechain.cn/colamd@^2.7.13` ships `dist/lib/colamd-renderer.js` + `colamd.css`); the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations and `buildExportHTML({ title })` serializes only contract live variables. Generated CSS targets the 2.7.13 contract (unchanged since 2.7.7, machine-readable as `themes/contract.json` in the npm package), so it carries over unchanged. Platform upgrades are handled by a compat layer (`src/compat.ts`): contract drift is reported by `validate` and non-fatally at export, and the renderer API surface is probed at init — upgrades produce actionable diagnostics, not crashes.
+> Export runs the ColaMD 2.x library renderer (`@bytechain.cn/colamd@^2.8.0` ships `dist/lib/colamd-renderer.js` + `colamd.css`); the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations and `buildExportHTML({ title })` serializes only contract live variables. Generated CSS targets the 2.8.0 contract (variable set unchanged since 2.7.7, machine-readable as `themes/contract.json` in the npm package), so it carries over unchanged. Platform upgrades are handled by a compat layer (`src/compat.ts`): contract drift is reported by `validate` and non-fatally at export, and the renderer API surface is probed at init — upgrades produce actionable diagnostics, not crashes.

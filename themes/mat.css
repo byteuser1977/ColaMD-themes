@@ -139,7 +139,6 @@
   --slide-quote-size: 2.51em;                 /* quote-text 3.4vw=65.3px ÷26 */
   --slide-page-pad-x: 5.5vw;                  /* 模板 pad-x */
   --slide-page-top-pad: 58px;                 /* pad-y 5.5vh=59px@1080 − chrome 安全区 */
-  --slide-page-top-pad-print: 50px;
   --slide-cover-text-align: left;
   --slide-cover-lead-inline: auto;
 }

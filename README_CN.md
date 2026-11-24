@@ -50,16 +50,16 @@
 ### PPT PDF（v0.7.0+）
 
 - **`ppt <input>`** — 一键：源 Markdown → deck Markdown → 契约校验 → **16:9 幻灯片 PDF** → PDF-01…05 内容检查；任一步失败即短路并说明原因，`--md-only` 只产出 deck
-- **`export-slides <deck.md>`** — 把已有 deck 按平台幻灯片纸版式（deck chrome、hero 居中、分页）打印为 960×540pt PDF；超页内容会按比例缩小纸面字号，保证 PDF 页数 = deck 页数
-- 需要 `@bytechain.cn/colamd@^2.7.13` 且 lib 暴露幻灯片导出 API；旧平台会直接给出升级命令
+- **`export-slides <deck.md>`** — 把已有 deck 按平台幻灯片纸版式（deck chrome、hero 居中、分页）打印为 1440×810pt PDF（1920×1080 设计空间，2.8.0 起与放映同标度）；超页内容由平台整页 zoom 等比压回一页，保证 PDF 页数 = deck 页数
+- 需要 `@bytechain.cn/colamd@^2.8.0` 且 lib 暴露幻灯片导出 API；旧平台会直接给出升级命令
 
 ### HTML / PDF 导出
 
 - **`export-html`** — 将 Markdown 渲染为独立 HTML 文档，主题 CSS 内嵌，Mermaid 图表和 KaTeX 公式完整渲染
-- **`export-pdf`** — 通过 Puppeteer（Chromium）将 Markdown 渲染为 PDF，用 `print-color-adjust: exact` 保住主题配色。**每次导出后自动执行内容检查（v0.6.2）**——纸型、页数、空白页与 deck chrome（PDF-01…05）；独立的 `check-pdf` 命令可检查任何已有 PDF，幻灯片导出强制 16:9 纸型（960×540pt）与 deck 页数一致
+- **`export-pdf`** — 通过 Puppeteer（Chromium）将 Markdown 渲染为 PDF，用 `print-color-adjust: exact` 保住主题配色。**每次导出后自动执行内容检查（v0.6.2）**——纸型、页数、空白页与 deck chrome（PDF-01…05）；独立的 `check-pdf` 命令可检查任何已有 PDF，幻灯片导出强制 16:9 纸型（1440×810pt）与 deck 页数一致
 - **`export`** — 批量导出多个文件或整个目录为 HTML、PDF，或一次同时产出两种（`--format html,pdf` 在同一次 renderer/浏览器生命周期内渲染）
 - **导出产物 token 优化 (v0.5.8+，默认开启)** — 当源 Markdown 不含数学公式（`$$`、`$...$`、`\(..\)`、`\begin{..}`）时，自动剥离内嵌的 base64 KaTeX 数学字体（约占内嵌 CSS 的 96%），典型导出从 ~1.5 MB（约 40 万 tokens）压缩到 ~57 KB（约 1.5 万 tokens）——AI/LLM agent 回读导出产物时不再拖入海量字体 token。含数学的文档自动保留字体；`--keep-fonts` 可强制完整嵌入。`$1.5M` 等金额写法不会被误判为公式
-- 底层使用 `@bytechain.cn/colamd/renderer`（2.x 库构建，依赖 `@bytechain.cn/colamd@^2.7.13`）——与应用同一个 CM6 编辑器经 Puppeteer 无头运行。主题 CSS 以 `:root` 声明直接消费，`buildExportHTML({ title })` 只序列化契约活变量，mermaid 图（Pele SVG）与 KaTeX 公式离线打开仍完整呈现。内置主题名优先解析本仓库的契约 CSS。生成的主题按 **2.7.13 契约**编写，升级应用无需改动主题
+- 底层使用 `@bytechain.cn/colamd/renderer`（2.x 库构建，依赖 `@bytechain.cn/colamd@^2.8.0`）——与应用同一个 CM6 编辑器经 Puppeteer 无头运行。主题 CSS 以 `:root` 声明直接消费，`buildExportHTML({ title })` 只序列化契约活变量，mermaid 图（Pele SVG）与 KaTeX 公式离线打开仍完整呈现。内置主题名优先解析本仓库的契约 CSS。生成的主题按 **2.8.0 契约**编写（变量集自 2.7.7 起未变），升级应用无需改动主题
 
 ### 主题管理
 
@@ -349,10 +349,10 @@ cthemes set-theme 我的品牌 --remove
 | `extract <source>` | 自动检测来源类型（本地 HTML / URL / .docx / .pdf）并提取主题 |
 | `to-slides <input>` | 将 Markdown 文档转换为幻灯片 Markdown（自动推断版式） |
 | `ppt <input>` | 一键：deck Markdown + 校验后的 16:9 幻灯片 PDF（含 PDF-01…05 检查） |
-| `export-slides <input>` | 将 deck Markdown 导出为 16:9 幻灯片 PDF（960×540pt） |
+| `export-slides <input>` | 将 deck Markdown 导出为 16:9 幻灯片 PDF（1440×810pt） |
 | `color-systems` | 列出 15 套内置色彩系统 |
 | `list` | 列出所有生成的主题 |
-| `validate <file>` | 验证主题 CSS（2.7 契约 + 范式 + 幻灯片令牌规则）或幻灯片 Markdown 文件（指令契约）；含平台兼容报告 |
+| `validate <file>` | 验证主题 CSS（2.8 契约 + 范式 + 幻灯片令牌规则）或幻灯片 Markdown 文件（指令契约）；含平台兼容报告 |
 | `check-pdf <file>` | 导出 PDF 内容检查：纸型、页数、空白页、deck chrome（PDF-01…05）；`-d <deck.md>` 启用 slide 一致性检查 |
 | `set-theme <name>` | 设置、注册或注销导出主题 |
 | `export-html <input>` | 导出 Markdown → 独立 HTML |

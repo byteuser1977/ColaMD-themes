@@ -133,7 +133,6 @@
   --slide-quote-size: 2.81em;                     /* quote-text 73px ÷26 */
   --slide-page-pad-x: 5vw;                        /* pad-x 96px@1920 */
   --slide-page-top-pad: 90px;                     /* pad-y 54 + chrome 栏高 */
-  --slide-page-top-pad-print: 70px;
   --slide-cover-text-align: left;
   --slide-cover-lead-inline: auto;
 }

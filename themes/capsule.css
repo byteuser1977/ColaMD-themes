@@ -144,7 +144,6 @@
   --slide-quote-size: 1.85em;                 /* quote-display @1920 = 48px ÷26 */
   --slide-page-pad-x: 3.33vw;                 /* slide 内边距 4rem=64px @1920 */
   --slide-page-top-pad: 64px;                 /* 正文顶 48px + chrome 安全区 */
-  --slide-page-top-pad-print: 52px;
   --slide-cover-text-align: center;           /* P1 整页居中 */
   --slide-cover-lead-inline: auto;
 }

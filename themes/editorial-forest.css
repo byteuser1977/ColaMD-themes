@@ -131,7 +131,6 @@
   --slide-quote-size: 3.5em;                  /* P8 双栏金句 92px ÷26 */
   --slide-page-pad-x: 6.25vw;                 /* 模板默认页边距 120px @1920 */
   --slide-page-top-pad: 96px;                 /* 模板默认正文顶 96px */
-  --slide-page-top-pad-print: 88px;
   --slide-cover-text-align: left;             /* P1 标题左对齐 */
   --slide-cover-lead-inline: auto;
 
@@ -177,8 +176,7 @@ body.slides-printing #editor .cm-content .cm-md-page-title[data-slide-kicker]::b
    导出（PPT-PDF）：上游 slides-export 把整张纸涂成导出瞬间 body 的单一底色
    （html/body/#editor 全 !important），主题换底页在这里压不过——改在行级画：
    本主题每行都带 cm-md-slide-<版式> 类，行盒加负边距补回 cm-content 的
-   77px 纸面边距实现全出血，文字位置不变。绿色页的纵向间距在 1.7 里一律
-   margin → padding，避免行间露出纸色缝。 */
+   77px 纸面边距实现全出血，文字位置不变。导出与放映同标度，无需纸面校准。 */
 body.presenting:has(#editor[data-slide-layout='cover']),
 body.presenting:has(#editor[data-slide-layout='figure']),
 body.presenting:has(#editor[data-slide-layout='kpi']),
@@ -658,7 +656,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-start::af
   float: left;
   width: 22%;
   font-family: var(--slide-title-font);
-  font-size: 320px;                           /* 模板 320px；导出在 1.7 收成 213px */
+  font-size: 320px;                           /* 模板 320px；导出与放映同标度 */
   line-height: 0.65;
   color: var(--forest-green-deep);
 }
@@ -1119,101 +1117,6 @@ body.slides-printing:has(.cm-md-slide-closing) .slide-foot {
 body.presenting:has(#editor[data-slide-layout='closing']) .slide-foot,
 body.slides-printing:has(.cm-md-slide-closing) .slide-foot {
   padding-bottom: 80px;
-}
-
-/* 1.7 导出纸面校准（PPT-PDF 1280×720 @96dpi，上游强制 cm-content 24px/em）。
-   模板 1920×1080 / 基准 26px → 纸面换算：px × (720/1080) ÷ 24 ≈ px ÷ 36。
-   换算后按页型留「一字安全余量」防标题溢出换行（对齐 pink-script-dark）。
-   注意：这里统一压字号后，1.6 各页不再做二次 ×0.88 缩放（避免双重缩小）。 */
-body.slides-printing {
-  --slide-title-size: 2.66em;                 /* 96px → 64px */
-  --slide-cover-title-size: 5.9em;            /* 220px → 146px（6.11 − 安全余量） */
-  --slide-section-title-size: 3.6em;          /* 140px → 93px */
-  --slide-closing-title-size: 5.8em;          /* 220px → 141px */
-  --slide-quote-size: 2.45em;                 /* 92px × 2/3 ≈ 61px，留一字余量 */
-  --slide-kicker-size: 17px;                  /* clamp 收敛为定值 */
-  --slide-page-top-pad-print: 64px;           /* 96px → 64px */
-}
-/* 行距与密度：正文行高压到 1.62，空行压扁（对齐 pink-script-dark 1.7 密度块） */
-body.slides-printing #editor .cm-content {
-  line-height: 1.62;
-}
-body.slides-printing #editor .cm-content .cm-line:has(> .cm-md-empty-line) {
-  line-height: 0.55;
-}
-body.slides-printing #editor .cm-content .cm-md-table-widget table {
-  font-size: 0.72em;
-}
-body.slides-printing #editor .cm-content .cm-md-table-widget th,
-body.slides-printing #editor .cm-content .cm-md-table-widget td {
-  padding: 0.35em 0.6em;
-}
-body.slides-printing #editor .cm-content .cm-md-codeblock .cm-line {
-  font-size: 0.72em;
-}
-/* 列表字号校准：26px 基 li（agenda/steps/matrix）→ 0.667em；
-   30px 基 li（figure/kpi/closing 卡行）→ 0.833em；32px 基 li（timeline）→ 0.89em
-   （卡内 strong/desc 均为 em 相对值，随 li 自动缩放） */
-body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-li,
-body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-li,
-body.slides-printing #editor .cm-content .cm-md-slide-matrix.cm-md-li {
-  font-size: 0.667em;                         /* 26px → 17.3px */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-li,
-body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-li,
-body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-li {
-  font-size: 0.833em;                         /* 30px → 20px */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-li {
-  font-size: 0.89em;                          /* 32px → 21.3px */
-}
-/* 绿色页纵向间距 margin → padding：换底在行盒上，margin 区会露出纸色缝。
-   数值 = 原 margin + 原 padding-top 后再 ×0.667。 */
-body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
-  margin-top: 0;
-  padding-top: 180px;                         /* 270px → 180px */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title {
-  margin-top: 0;
-  padding-top: 93px;                          /* 140px → 93px */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title,
-body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-title {
-  padding-top: 23px;                          /* 目标 87px − 页首垫 64px */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-li {
-  margin-top: 0;
-  padding-top: 91px;                          /* margin 80 + padding 56 → 136px → 91px */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-li {
-  margin-top: 0;
-  padding-top: 71px;                          /* margin 70 + padding 36 → 106px → 71px */
-}
-/* 页题硬编码字号的纸面换算（kpi/figure 未走 --slide-* 令牌） */
-body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-title {
-  font-size: 2.22em;                          /* 80px → 53px */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-page-title {
-  font-size: 2.33em;                          /* 84px → 56px */
-}
-/* 导语（30px）纸面换算 */
-body.slides-printing #editor .cm-content .cm-md-page-lead {
-  font-size: 0.833em;                         /* 30px → 20px */
-}
-/* quote 双栏构图的纸面换算：巨引号 320px→213px、署名 48px→32px
-   （金句本身走 --slide-quote-size 令牌，见上方 1.7 令牌块） */
-body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-start::after {
-  font-size: 213px;                           /* 320px × 2/3 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-quote:not(.cm-md-blockquote):not(.cm-md-page-start):not(.cm-md-slide-directive):not(:has(> br:only-child)) {
-  font-size: 1.33em;                          /* 32px ÷24 */
-}
-/* chrome/foot 的 padding 为固定 px，纸面 ×0.667 */
-body.slides-printing .slide-chrome {
-  padding-top: 67px;                          /* 100px → 67px */
-}
-body.slides-printing .slide-foot {
-  padding-bottom: 53px;                       /* 80px → 53px */
 }
 
 /* 1.6.11 chrome · topbar/footline：JetBrains Mono 500 大写；label 26px .18em /

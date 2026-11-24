@@ -106,6 +106,14 @@
    空行插在中间也不会误判。
 14. **先检索再断言元素存在**：用户点名的版式/装饰（如 Motion）在模板里可能根本不存在，
    全量检索 `class|@keyframes|animation` 后写进"不存在/未复刻"说明，不要臆造页面。
+15. **导出与放映同标度（平台 2.8.0 起）**：幻灯片纸面是 1920×1080 设计空间
+   （20×11.25in，PDF 1440×810pt），正文 25.92px——与放映 26px 基准一致；
+   装不下的页由平台整页 `zoom` 压回一页。因此**不要再写「导出纸面校准」块**
+   （历史上按 1280×720@24px 纸面 ÷36 换算的 `body.slides-printing` 压缩规则，
+   2.8.0 下会造成二次缩小）；`--slide-page-top-pad-print` 令牌已废除。
+   主题对视口派生令牌（page-pad-x / body-size / kicker-size / chrome-pad-y /
+   chrome-logo-h / foot-pad-y / img-max-h / figure-max-h）的覆盖只在放映生效，
+   纸面恒为上游钉死的值。
 
 ## 7. paradigm 备案规范
 

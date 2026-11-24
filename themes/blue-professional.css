@@ -138,7 +138,6 @@
   --slide-quote-size: 1.48em;                 /* P7 blockquote 38.4px ÷26 */
   --slide-page-pad-x: 4vw;                    /* 模板 slide padding 4vw */
   --slide-page-top-pad: 56px;                 /* 顶 3.5vw(67px) − chrome 安全区 */
-  --slide-page-top-pad-print: 48px;
   --slide-cover-text-align: left;             /* P1 左对齐（padding-left 8vw） */
   --slide-cover-lead-inline: auto;
 }

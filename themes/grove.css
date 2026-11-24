@@ -136,7 +136,6 @@
   --slide-quote-size: 2.36em;                 /* .quote-text 3.2vw=61.4px ÷26 */
   --slide-page-pad-x: 8vw;                    /* 模板 --pad-x 8vw 原样 */
   --slide-page-top-pad: 70px;                 /* pad-y 6.5vh @1080，已容 chrome 安全区 */
-  --slide-page-top-pad-print: 60px;
   --slide-cover-text-align: left;             /* P1 左对齐（垂直居中） */
   --slide-cover-lead-inline: auto;
 }

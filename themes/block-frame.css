@@ -122,7 +122,6 @@
   --slide-quote-size: 2em;           /* quote-text 52px ÷26 */
   --slide-page-pad-x: 3.1vw;         /* slide-pad 60px ÷1920 */
   --slide-page-top-pad: 52px;        /* 60px − chrome 安全区 */
-  --slide-page-top-pad-print: 48px;
   --slide-cover-text-align: left;    /* P1 框内文字左对齐（框体居中未复刻） */
   --slide-cover-lead-inline: 0;
   /* --slide-section-title-size 不覆写：模板无章节页，上游默认 5.2em。 */

@@ -2,7 +2,7 @@
  * Platform compatibility layer — decouples this package from the exact
  * @bytechain.cn/colamd (ColaMD-extend) version installed at runtime.
  *
- * The theme pipeline targets the 2.7.13 contract, but the platform keeps
+ * The theme pipeline targets the 2.8.0 contract, but the platform keeps
  * moving (2.7.x stable lines auto-upgrade through the caret range; future
  * minor/prerelease lines may rename APIs or evolve the CSS contract). This
  * module answers two questions at runtime instead of failing cryptically:
@@ -23,30 +23,33 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /** Contract version this package's themes and validators are written against. */
-export const SUPPORTED_CONTRACT = "2.7.13";
+export const SUPPORTED_CONTRACT = "2.8.0";
 
 /**
- * Contracts we accept as "exact" — 2.7.13 stable only. Its contract.json is
- * identical to the 2.7.12 anchor (no live/dead variable changes; the 2.7.13
- * line only adds the slide layout system), so themes carry over unchanged.
+ * Contracts we accept as "exact" — 2.8.0 stable only. Its contract.json is
+ * identical to the 2.7.13 anchor (27 live / 18 dead variables unchanged);
+ * 2.8.0 only refactors the slide PDF export (1920×1080 paper, per-page zoom
+ * fit), so themes carry over unchanged.
  */
 export const SUPPORTED_CONTRACTS: readonly string[] = Object.freeze([
-  "2.7.13",
+  "2.8.0",
 ]);
 
 /** Minimum platform version with the slide layout system (2.7.13-rc.1+). */
 export const SLIDES_MIN_VERSION = "2.7.13-rc.1";
 
 /** Minimum renderer entry (dist/lib/colamd-renderer.js) with the 2.x API. */
-export const MIN_RENDERER_VERSION = "2.7.13";
+export const MIN_RENDERER_VERSION = "2.8.0";
 
 /**
  * Minimum platform version whose lib entry exposes the slides PDF export API
- * (`enterSlidesPrintLayout` / `exitSlidesPrintLayout`). 2.7.13-rc.1 already
- * ships the slide layout system, but its dist/lib bundle predates the export
- * API — so version alone is not enough and the bundle is probed directly.
+ * (`enterSlidesPrintLayout` / `exitSlidesPrintLayout`) *and* fits overflowing
+ * pages onto one sheet by whole-page zoom (2.8.0 export refactor). Older
+ * 2.7.13 builds had the API but a smaller 1280×720 paper with font-size
+ * fitting — PDF-03 parity is only guaranteed from 2.8.0 on. The bundle is
+ * probed directly so a locally linked build still works.
  */
-export const SLIDES_EXPORT_MIN_VERSION = "2.7.13";
+export const SLIDES_EXPORT_MIN_VERSION = "2.8.0";
 
 /** Lib-entry methods required for 16:9 slide PDF export. */
 export const REQUIRED_SLIDES_API = [

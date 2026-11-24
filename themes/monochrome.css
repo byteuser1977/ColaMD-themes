@@ -138,7 +138,6 @@
   --slide-quote-size: 2.36em;                  /* quote 61.44px ÷26 */
   --slide-page-pad-x: 8vw;                     /* 模板 pad-x 8vw = 153.6px @1920 */
   --slide-page-top-pad: 6vh;                   /* 模板 pad-y 6vh ≈ 64.8px */
-  --slide-page-top-pad-print: 5.5vh;
   --slide-cover-text-align: left;
   --slide-cover-lead-inline: 55%;              /* cover lead max-width 55% */
 }

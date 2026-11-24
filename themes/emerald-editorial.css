@@ -134,7 +134,6 @@
   --slide-quote-size: 5em;                    /* statement 130px ÷26（无对应页，预留） */
   --slide-page-pad-x: 5.7vw;                  /* 页边距 110px ÷1920 */
   --slide-page-top-pad: 76px;                 /* 正文顶 110px − chrome 安全区 */
-  --slide-page-top-pad-print: 70px;
   --slide-cover-text-align: center;           /* P1/P8 居中舞台 */
   --slide-cover-lead-inline: auto;
 }

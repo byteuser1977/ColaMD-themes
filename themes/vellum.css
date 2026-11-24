@@ -129,7 +129,6 @@
   --slide-quote-size: 2.36em;                  /* P6 61.44px ÷26 */
   --slide-page-pad-x: 6vw;                     /* 模板 pad-x 6vw = 115px @1920 */
   --slide-page-top-pad: 120px;                 /* 模板内容顶 ≈134px − chrome 安全区 */
-  --slide-page-top-pad-print: 104px;
   --slide-cover-text-align: center;            /* 模板封面居中悬浮 */
   --slide-cover-lead-inline: auto;
 }

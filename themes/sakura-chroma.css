@@ -137,7 +137,6 @@
   --slide-quote-size: 3.74em;                 /* P4 qbody 97.2px ÷26 */
   --slide-page-pad-x: 3.6vw;                  /* 模板页边距 69px @1920 */
   --slide-page-top-pad: 78px;                 /* 框架顶 69px + chrome 余量 */
-  --slide-page-top-pad-print: 66px;
   --slide-cover-text-align: left;
   --slide-cover-lead-inline: auto;
 }

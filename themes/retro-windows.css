@@ -140,7 +140,6 @@
   --slide-quote-size: 2.4em;                  /* 模板无 quote 页，保留上游默认 */
   --slide-page-pad-x: 20vw;                   /* 桌面 18.75vw + win-body 1.25vw */
   --slide-page-top-pad: 78px;
-  --slide-page-top-pad-print: 60px;
   --slide-cover-text-align: center;
   --slide-cover-lead-inline: auto;
 }

@@ -116,7 +116,6 @@
   --slide-quote-size: 2.9em;                  /* P6 qbody 75px ÷26 */
   --slide-page-pad-x: 4vw;                    /* 模板页边距 76px @1920 */
   --slide-page-top-pad: 70px;                 /* 正文顶 76px − chrome 安全区 */
-  --slide-page-top-pad-print: 60px;
   --slide-cover-text-align: left;
   --slide-cover-lead-inline: auto;
 }

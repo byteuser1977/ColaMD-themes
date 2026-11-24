@@ -50,16 +50,16 @@ After installation, open a `.md` file and run **ColaView MD: Show Preview** from
 ### PPT PDF (v0.7.0+)
 
 - **`ppt <input>`** — one-shot: markdown → deck markdown → contract check → **16:9 slide PDF** → PDF-01…05 content check. Stops on the first failure with an actionable reason; `--md-only` stops after the deck
-- **`export-slides <deck.md>`** — print an existing deck on the platform's slide sheets (deck chrome, hero centering, page breaks) at 960×540pt. Pages that would overflow are fitted by a small sheet-type scale-down so PDF page count always equals deck page count
-- Requires `@bytechain.cn/colamd@^2.7.13` whose lib entry exposes the slide export API; older platforms fail with the exact upgrade command
+- **`export-slides <deck.md>`** — print an existing deck on the platform's slide sheets (deck chrome, hero centering, page breaks) at 1440×810pt (a 1920×1080 design space, same scale as presenting since 2.8.0). Pages that would overflow are scaled back onto one sheet by the platform's whole-page zoom, so PDF page count always equals deck page count
+- Requires `@bytechain.cn/colamd@^2.8.0` whose lib entry exposes the slide export API; older platforms fail with the exact upgrade command
 
 ### HTML / PDF Export
 
 - **`export-html`** — render Markdown to a standalone HTML document with theme CSS embedded, Mermaid diagrams and KaTeX math fully rendered
-- **`export-pdf`** — render Markdown to PDF via Puppeteer (Chromium); theme colors are preserved with `print-color-adjust: exact`. **Every export is content-checked afterwards (v0.6.2)** — paper size, page count, blank pages and deck chrome (PDF-01…05) — and a standalone `check-pdf` command inspects any existing PDF; slide decks enforce 16:9 paper (960×540pt) and deck-page-count parity
+- **`export-pdf`** — render Markdown to PDF via Puppeteer (Chromium); theme colors are preserved with `print-color-adjust: exact`. **Every export is content-checked afterwards (v0.6.2)** — paper size, page count, blank pages and deck chrome (PDF-01…05) — and a standalone `check-pdf` command inspects any existing PDF; slide decks enforce 16:9 paper (1440×810pt) and deck-page-count parity
 - **`export`** — batch export multiple files or entire directories to HTML, PDF, or both at once (`--format html,pdf` renders both artifacts in a single renderer/browser lifecycle)
 - **Token-saving exports (v0.5.8+, default on)** — when the source markdown contains no math (`$$`, `$...$`, `\(..\)`, `\begin{..}`), the inlined base64 KaTeX math fonts (≈96% of the embedded CSS) are stripped from the export artifact, shrinking a typical export from ~1.5 MB (~400k tokens) to ~57 KB (~15k tokens) — ideal when an AI/LLM agent reads the output back. Math documents keep their fonts automatically; `--keep-fonts` forces full font embedding. Money mentions like `$1.5M` are correctly ignored by the math detector
-- Powered by `@bytechain.cn/colamd/renderer` (2.x library build, requires `@bytechain.cn/colamd@^2.7.13`) — the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations, `buildExportHTML({ title })` serializes only contract live variables, and mermaid diagrams (Pele SVG) / KaTeX math stay fully rendered offline. Built-in theme names resolve their local contract CSS first. Generated themes target the **2.7.13 contract**, so they carry over unchanged.
+- Powered by `@bytechain.cn/colamd/renderer` (2.x library build, requires `@bytechain.cn/colamd@^2.8.0`) — the same CM6 editor as the app runs headless via Puppeteer. Theme CSS is consumed directly as `:root` declarations, `buildExportHTML({ title })` serializes only contract live variables, and mermaid diagrams (Pele SVG) / KaTeX math stay fully rendered offline. Built-in theme names resolve their local contract CSS first. Generated themes target the **2.8.0 contract** (variable set unchanged since 2.7.7), so they carry over unchanged.
 
 ### Theme Management
 
@@ -379,10 +379,10 @@ cthemes set-theme my-brand --remove
 | `extract <source>` | Auto-detect source type (local HTML / URL / .docx / .pdf) and extract theme |
 | `to-slides <input>` | Convert a Markdown document into slide-deck Markdown (auto-inferred layouts) |
 | `ppt <input>` | One-shot: deck markdown + validated 16:9 slide PDF (PDF-01…05 checked) |
-| `export-slides <input>` | Export a deck markdown → 16:9 slide PDF (960×540pt) |
+| `export-slides <input>` | Export a deck markdown → 16:9 slide PDF (1440×810pt) |
 | `color-systems` | List 15 built-in color systems |
 | `list` | List all generated themes |
-| `validate <file>` | Validate a theme CSS (2.7 contract + paradigm + slide token rules) or a slides markdown file (directive contract); with a platform compat report |
+| `validate <file>` | Validate a theme CSS (2.8 contract + paradigm + slide token rules) or a slides markdown file (directive contract); with a platform compat report |
 | `check-pdf <file>` | Content-check an exported PDF: paper size, page count, blank pages, deck chrome (PDF-01…05); `-d <deck.md>` enables slide parity checks |
 | `set-theme <name>` | Set, register, or remove export themes |
 | `export-html <input>` | Export Markdown → standalone HTML |

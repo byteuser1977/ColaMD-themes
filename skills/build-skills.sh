@@ -33,8 +33,8 @@ fi
 FRONT_CLAUDE='---
 name: colamd-themes
 description: >
-  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.13 anchor, slide layouts stable). Extract formatting from URLs,
+  Generate, validate, export, and manage ColaMD 2.8 contract CSS themes
+  (2.8.0 anchor, slide layouts stable). Extract formatting from URLs,
   DOCX, or PDF sources. One-shot `ppt` command turns Markdown into a
   slide-deck Markdown plus a validated 16:9 slide PDF; plan-first
   总到分 condensed conversion for long documents; also export
@@ -45,8 +45,8 @@ FRONT_OPENCODE='---
 name: colamd-themes
 version: "1.0.0"
 description: >
-  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
+  Generate, validate, export, and manage ColaMD 2.8 contract CSS themes
+  (2.8.0 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
   one-shot ppt command: Markdown → slide deck → validated 16:9 PDF;
   document HTML/PDF export; batch export.
 user-invocable: true
@@ -63,8 +63,8 @@ FRONT_OPENCLAW='---
 id: colamd-themes
 name: ColaMD Themes
 description: >
-  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
+  Generate, validate, export, and manage ColaMD 2.8 contract CSS themes
+  (2.8.0 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
   one-shot ppt command: Markdown → slide deck → validated 16:9 PDF;
   document HTML/PDF export; batch export.
 version: "1.0.0"
@@ -83,7 +83,7 @@ metadata:
 
 FRONT_HERMES='---
 name: colamd-themes
-description: "Generate, validate, export, and manage ColaMD 2.7 contract CSS themes with PPT slide layouts; one-shot Markdown → slide deck → 16:9 PDF; HTML/PDF export."
+description: "Generate, validate, export, and manage ColaMD 2.8 contract CSS themes with PPT slide layouts; one-shot Markdown → slide deck → 16:9 PDF; HTML/PDF export."
 version: 1.0.0
 author: bytechain
 license: MIT
@@ -98,8 +98,8 @@ FRONT_DSH='---
 name: colamd-themes
 version: "1.0.0"
 description: >
-  Generate, validate, export, and manage ColaMD 2.7 contract CSS themes
-  (2.7.13 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
+  Generate, validate, export, and manage ColaMD 2.8 contract CSS themes
+  (2.8.0 anchor, slide layouts stable). Extract from URLs/DOCX/PDF;
   one-shot ppt command: Markdown → slide deck → validated 16:9 PDF;
   document HTML/PDF export; batch export.
 metadata:

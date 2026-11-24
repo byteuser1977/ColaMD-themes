@@ -151,7 +151,6 @@
   --slide-quote-size: 3.07em;                 /* P6 qbody min(4.4vw,7.4vh)=79.9px ÷26 */
   --slide-page-pad-x: 5vw;                    /* P1/P3 页边距 96px @1920 */
   --slide-page-top-pad: 104px;                /* 内容顶 inset 10vh=108px − chrome 安全区 */
-  --slide-page-top-pad-print: 92px;
   --slide-cover-text-align: left;             /* P1 标题左对齐 */
   --slide-cover-lead-inline: 0;
 }

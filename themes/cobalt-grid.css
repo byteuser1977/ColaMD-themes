@@ -128,7 +128,6 @@
   --slide-quote-size: 3.74em;                 /* P6 qbody min(5.6vw,9vh)=min(107.5,97.2)=97.2px ÷26 */
   --slide-page-pad-x: 3.6vw;                  /* 模板 edge clamp(36,3.6vw,80) @1920=69.1px */
   --slide-page-top-pad: 72px;                 /* frame 顶 clamp(76,8vh,130) @1080=86.4px − chrome 安全区 */
-  --slide-page-top-pad-print: 62px;
   --slide-cover-text-align: left;             /* P1 标题左上（titlewrap top 9vh） */
   --slide-cover-lead-inline: auto;
 }

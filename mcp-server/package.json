@@ -1,6 +1,6 @@
 {
   "name": "@bytechain.cn/colamd-themes-mcp",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "private": true,
   "description": "MCP Server for ColaMD-themes — theme extraction, HTML/PDF export, one-shot PPT (Markdown → 16:9 slide PDF), and validation as MCP tools",
   "type": "module",

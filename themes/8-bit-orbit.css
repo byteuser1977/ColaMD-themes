@@ -120,7 +120,6 @@
   --slide-page-pad-x: 4vw;
   /* 模板页顶 3vh ≈ 32px@1080，为 chrome 让位取 48px */
   --slide-page-top-pad: 48px;
-  --slide-page-top-pad-print: 40px;
   --slide-cover-text-align: center;
   --slide-cover-lead-inline: auto;
   /* section-title-size 不覆写：模板无章节页，保持上游默认 */

@@ -139,7 +139,6 @@
   --slide-quote-size: 3.46em;                 /* P3 statement-quote 90px ÷26 */
   --slide-page-pad-x: 3.1vw;                  /* slide-pad 60px @1920 */
   --slide-page-top-pad: 56px;                 /* 60px − chrome 安全区 */
-  --slide-page-top-pad-print: 48px;
   --slide-cover-text-align: center;           /* P1 居中舞台 */
   --slide-cover-lead-inline: auto;
   --page-bg: var(--bg-color);                 /* 1.6.2 五层链的取色钩子 */

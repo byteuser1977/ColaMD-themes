@@ -126,7 +126,6 @@
   --slide-quote-size: 3em;                    /* P07 quote 78px ÷26 */
   --slide-page-pad-x: 4.7vw;                  /* 模板 gutter 90px @1920 */
   --slide-page-top-pad: 96px;                 /* head 顶 70px + chrome 安全区 */
-  --slide-page-top-pad-print: 84px;
   --slide-cover-text-align: center;           /* P01 标题居中 */
   --slide-cover-lead-inline: auto;
 }

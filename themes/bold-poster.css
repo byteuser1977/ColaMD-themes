@@ -137,7 +137,6 @@
   --slide-page-pad-x: 2.9vw;                  /* 模板页边距 56px @1920 */
   --slide-page-top-pad: 42px;                 /* 页顶 48px − chrome 安全区（cover 5vh≈54px 受
                                                  page-start !important 约束→统一 42px，近似） */
-  --slide-page-top-pad-print: 36px;
   --slide-cover-text-align: left;             /* P1 左上（flex-start 见 1.6.2） */
   --slide-cover-lead-inline: auto;
 }

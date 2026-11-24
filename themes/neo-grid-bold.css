@@ -147,7 +147,6 @@
   --slide-quote-size: 1.46em;                 /* P07 blockquote 38px ÷26 */
   --slide-page-pad-x: 4vw;                    /* 40px 画框 + 36px 卡内距 ≈76px @1920 */
   --slide-page-top-pad: 70px;
-  --slide-page-top-pad-print: 56px;
   --slide-cover-text-align: left;
   --slide-cover-lead-inline: auto;
 }

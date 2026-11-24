@@ -4,7 +4,7 @@
  * Uses the @bytechain.cn/colamd 2.x library build (dist/lib/colamd-renderer.js +
  * colamd.css, requires ≥2.7.8-rc.2) to create a headless editor, apply themes,
  * render mermaid/math, and export standalone HTML or PDF. Theme CSS targets the
- * ColaMD 2.7.13 contract (machine-readable as themes/contract.json in the
+ * ColaMD 2.8.0 contract (machine-readable as themes/contract.json in the
  * npm package) and is consumed directly as `:root` declarations.
  *
  * Architecture:
@@ -119,80 +119,16 @@ function optimizeExportHtml(html: string, markdown: string, optimize: boolean): 
   return html;
 }
 
-/** 16:9 sheet height in CSS px (7.5in × 96dpi). */
-const SLIDE_SHEET_PX = 720;
-/** Body font size the platform's slides print layout assigns to .cm-content. */
-const SLIDE_PRINT_FONT_PX = 24;
-/** Leave a hair of room: a page that exactly fills the sheet tends to spill. */
-const SLIDE_SAFETY_PX = 8;
-/** Readability floor — below this the deck is better re-authored than shrunk. */
-const SLIDE_MIN_SCALE = 0.6;
-const SLIDE_FIT_STYLE_ID = "colamd-slides-fit";
-
 /**
- * Measure the tallest page on the sheet, in CSS px. Hero pages carry a
- * `::before` centering spacer, so the value includes that padding; content
- * pages (the ones that actually overflow) do not have one.
+ * Slide paper — the platform (≥2.8.0) exports on a 20×11.25in sheet whose
+ * design space is 1920×1080 CSS px (96dpi → 1440×810pt in the PDF). The same
+ * `enterSlidesPrintLayout()` call pins the slide tokens to that design space,
+ * lays the editor out flat, breaks pages, and — for pages that would overflow
+ * the sheet — scales the whole page back to one sheet via `zoom`. The CLI no
+ * longer applies any font-size fitting of its own: em-based theme tokens and
+ * heading rules would fight it, and the platform's zoom pass is measured on
+ * the real paper.
  */
-const MEASURE_SLIDES_JS = `(() => {
-  const root = document.querySelector("#editor .cm-content");
-  if (!root) return 0;
-  const lines = Array.from(root.children);
-  const starts = Array.from(root.querySelectorAll(".cm-md-page-start"));
-  let max = 0;
-  for (const start of starts) {
-    const m = /(?:^|\\s)cm-md-page-(\\d+)(?:\\s|$)/.exec(start.className);
-    if (!m) continue;
-    const re = new RegExp("(?:^|\\\\s)cm-md-page-" + m[1] + "(?:\\\\s|$)");
-    const owned = lines.filter(function (el) {
-      return re.test(el.className) && !el.classList.contains("cm-md-hr");
-    });
-    if (owned.length === 0) continue;
-    const first = owned[0];
-    const last = owned[owned.length - 1];
-    const used = last.getBoundingClientRect().bottom - first.getBoundingClientRect().top;
-    if (used > max) max = used;
-  }
-  return max;
-})()`;
-
-/**
- * The platform prints slides at a fixed 24px body size on a 1280×720 sheet.
- * Dense pages (6-card grids, long timelines) are taller than one sheet at
- * that size and would spill into a second page — the exact failure PDF-03
- * reports. Shrink the sheet type just enough for every page to fit, with a
- * few measure→scale passes (em-based layout scales, fixed padding doesn't).
- */
-async function fitSlidesToSheet(page: Page): Promise<void> {
-  // The platform owns the print base size; read it instead of assuming 24px.
-  const baseFont = (await page.evaluate(`(() => {
-    const root = document.querySelector("#editor .cm-content");
-    return root ? parseFloat(getComputedStyle(root).fontSize) || ${SLIDE_PRINT_FONT_PX} : ${SLIDE_PRINT_FONT_PX};
-  })()`)) as number;
-  let scale = 1;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const maxUsed = (await page.evaluate(MEASURE_SLIDES_JS)) as number;
-    if (!Number.isFinite(maxUsed) || maxUsed <= SLIDE_SHEET_PX - SLIDE_SAFETY_PX) return;
-    const target = scale * ((SLIDE_SHEET_PX - SLIDE_SAFETY_PX) / maxUsed);
-    if (target >= scale - 0.001) return;
-    scale = Math.max(SLIDE_MIN_SCALE, target);
-    const fontPx = Math.round(baseFont * scale * 10) / 10;
-    await page.evaluate(
-      (css: string, id: string) => {
-        let style = document.getElementById(id) as HTMLStyleElement | null;
-        if (!style) {
-          style = document.createElement("style");
-          style.id = id;
-          document.head.appendChild(style);
-        }
-        style.textContent = css;
-      },
-      `body.slides-printing #editor .cm-content{font-size:${fontPx}px !important}`,
-      SLIDE_FIT_STYLE_ID
-    );
-    if (scale <= SLIDE_MIN_SCALE) return;
-  }
-}
 
 /** PDF export options. */
 export interface PDFExportOptions {
@@ -313,11 +249,11 @@ export class ColamdRenderer {
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
     });
     this.page = await this.browser.newPage();
-    // Match the 16:9 sheet (1280×720 CSS px = 13.3333×7.5in @96dpi) so the
-    // slide print layout measures the same widths it prints at. With the
-    // default 800×600 viewport the cover title wraps to 3 lines and every
-    // card page overflows into extra sheets.
-    await this.page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
+    // Match the slide design space (1920×1080 CSS px = 20×11.25in @96dpi) so
+    // the slide print layout measures the same viewport its tokens assume:
+    // the paper is a 1920×1080 design space and any theme token left in vw/vh
+    // resolves identically on screen and on the sheet.
+    await this.page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
 
     // Navigate to shell page (same origin as renderer script)
     await this.page.goto(`${origin}/`, { waitUntil: "domcontentloaded" });
@@ -522,7 +458,9 @@ export class ColamdRenderer {
     }
 
     try {
-      await fitSlidesToSheet(page);
+      // No CLI-side fitting: the platform's export layout already zooms each
+      // overflowing page back onto one sheet (whole-page zoom, measured on
+      // the paper), which is what keeps PDF-03 page parity true.
       const pdfBuffer = await page.pdf({
         printBackground: true,
         preferCSSPageSize: true,

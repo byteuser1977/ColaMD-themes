@@ -143,7 +143,6 @@
   --slide-kpi-number-size: 4.01em;            /* P3 .num 96px ÷26 ÷0.92(li) */
   --slide-page-pad-x: 5vw;                    /* 内容沟距 96px @1920 */
   --slide-page-top-pad: 90px;                 /* 内容顶 96px − chrome 安全区 */
-  --slide-page-top-pad-print: 80px;
   --slide-cover-text-align: left;             /* P1 标题左对齐（垂直居中） */
   --slide-cover-lead-inline: auto;
 }

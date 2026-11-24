@@ -1,6 +1,6 @@
 /**
  * Paradigm validation engine — checks SeedPalette against v4.0 design constraints
- * and scans generated CSS for the ColaMD 2.7.13 theme contract.
+ * and scans generated CSS for the ColaMD 2.8.0 theme contract.
  * Based on theme-paradigm.md Section 2.
  */
 
@@ -160,7 +160,7 @@ export function validateSeedPalette(palette: SeedPalette): ValidationIssue[] {
 }
 
 // ═══════════════════════════════════════════════════════════
-// CSS contract validation (ColaMD 2.7.13) + slide tokens (2.7.13 幻灯片版式)
+// CSS contract validation (ColaMD 2.8.0) + slide tokens (2.7.13+ 幻灯片版式)
 // ═══════════════════════════════════════════════════════════
 
 /** 2.7 编辑器不再消费的变量：留着只会让人照抄。 */
@@ -205,7 +205,7 @@ function hasVerticalPadding(rule: { block: { children: { forEach: (cb: (node: an
   return found;
 }
 
-// ── Slide token checks（ColaMD 2.7.13 幻灯片版式）──
+// ── Slide token checks（ColaMD 2.7.13+ 幻灯片版式）──
 
 /** 幻灯片结构钩子：主题里裸写会污染编辑视图，必须包在放映/打印作用域下。 */
 const SLIDE_STRUCTURE_SELECTOR_RE =
@@ -232,7 +232,7 @@ function validateSlideDeclarationsAndSelectors(
         push({
           ruleId: "SLIDE-01",
           level: "SHOULD",
-          message: `未知幻灯片令牌 ${name}（2.7.13 slides.css 不消费它，会被静默忽略）`,
+          message: `未知幻灯片令牌 ${name}（slides.css 不消费它，会被静默忽略）`,
           fix: "核对令牌名拼写，完整清单见 colamd-themes skill 幻灯片章节",
         });
       }
@@ -279,7 +279,7 @@ function validateSlideDeclarationsAndSelectors(
   });
 }
 
-/** 校验生成的 CSS 是否符合 ColaMD 2.7.13 契约。 */
+/** 校验生成的 CSS 是否符合 ColaMD 2.8.0 契约。 */
 export function validateThemeCss(css: string): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const ast = parse(css, { positions: false });
@@ -294,7 +294,7 @@ export function validateThemeCss(css: string): ValidationIssue[] {
         issues.push({
           ruleId: "CSS-01",
           level: "MUST_NOT",
-          message: `变量 ${name} 在 ColaMD 2.7.13 契约中已不再消费`,
+          message: `变量 ${name} 在 ColaMD 2.8.0 契约中已不再消费`,
           fix: "改用活变量清单（--bg-color / --text-secondary / --pele-* 等）",
         });
       }
@@ -357,7 +357,7 @@ export function validateThemeCss(css: string): ValidationIssue[] {
     });
   }
 
-  // 幻灯片区块（2.7.13）：无 --slide-* / 幻灯片选择器时静默通过。
+  // 幻灯片区块（2.7.13+）：无 --slide-* / 幻灯片选择器时静默通过。
   validateSlideDeclarationsAndSelectors(css, (issue) => issues.push(issue));
 
   return issues;

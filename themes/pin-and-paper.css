@@ -115,7 +115,6 @@
   --slide-quote-size: 1.92em;                 /* P10 blockquote 50px ÷26 */
   --slide-page-pad-x: 3.4vw;                  /* 模板页边距 64px @1920 */
   --slide-page-top-pad: 104px;                /* 正文顶 110px − chrome 安全区 */
-  --slide-page-top-pad-print: 90px;
   --slide-cover-text-align: left;             /* P01 标题左对齐（垂直居中） */
   --slide-cover-lead-inline: auto;
 }

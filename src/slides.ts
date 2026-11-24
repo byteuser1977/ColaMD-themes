@@ -1,5 +1,6 @@
 /**
- * PPT / Slides token layer — ColaMD-extend 2.7.13 slide layout system.
+ * PPT / Slides token layer — ColaMD-extend 2.7.13+ slide layout system
+ * (token inventory as of 2.8.0).
  *
  * Upstream `slides.css` defines the `--slide-*` tokens on `:root` with
  * magazine-style defaults; built-in themes override them via `body.theme-*`
@@ -17,7 +18,15 @@
 
 import type { ThemeStyle } from "./models.js";
 
-/** Every `--slide-*` token declared in upstream slides.css `:root` (2.7.13). */
+/**
+ * Every `--slide-*` token declared in upstream slides.css `:root` (2.8.0).
+ * The slide print layout pins the viewport-derived ones (--slide-page-pad-x,
+ * --slide-body-size, --slide-kicker-size, --slide-chrome-pad-y,
+ * --slide-chrome-logo-h, --slide-foot-pad-y, --slide-img-max-h,
+ * --slide-figure-max-h) to fixed px on `body.slides-printing`, so theme
+ * overrides of those tokens only apply in the presenting view — the paper
+ * always prints at the 1920×1080 design space.
+ */
 export const SLIDE_TOKENS: readonly string[] = Object.freeze([
   "--slide-serif",
   "--slide-mono",
@@ -42,7 +51,12 @@ export const SLIDE_TOKENS: readonly string[] = Object.freeze([
   "--slide-quote-size",
   "--slide-page-pad-x",
   "--slide-page-top-pad",
-  "--slide-page-top-pad-print",
+  "--slide-body-size",
+  "--slide-chrome-pad-y",
+  "--slide-chrome-logo-h",
+  "--slide-foot-pad-y",
+  "--slide-img-max-h",
+  "--slide-figure-max-h",
   "--slide-cover-text-align",
   "--slide-cover-lead-inline",
 ]);
@@ -236,7 +250,6 @@ export function buildFullSlideTokens(style: ThemeStyle, preset: SlidePreset): Re
   // ── 页面留白：density low → 大留白 ──
   tokens["--slide-page-pad-x"] = d.density === "low" ? "6.5vw" : d.density === "high" ? "4.5vw" : "5.5vw";
   tokens["--slide-page-top-pad"] = d.density === "low" ? "15vh" : "12vh";
-  tokens["--slide-page-top-pad-print"] = d.density === "low" ? "13vh" : "10vh";
 
   // serif 封面左对齐 + 导语内联（杂志式）；sans 封面居中来自预设，不覆盖
   if (preset === "serif") tokens["--slide-cover-lead-inline"] = "auto";

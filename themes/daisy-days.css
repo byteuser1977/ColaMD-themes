@@ -123,7 +123,6 @@
   --slide-quote-size: 1.23em;            /* P7 .quote-text clamp(1.3rem,2.5vw,2rem) → 32px ÷26 */
   --slide-page-pad-x: 3.1vw;             /* .slide padding 60px ÷1920 */
   --slide-page-top-pad: 34px;            /* 页顶 padding 40px，扣除 chrome 安全区 */
-  --slide-page-top-pad-print: 30px;
   --slide-cover-text-align: center;      /* P1 .title-box text-align:center */
   --slide-cover-lead-inline: auto;
 }

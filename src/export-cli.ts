@@ -257,7 +257,7 @@ function registerExportPDF(program: Command): void {
 function registerExportSlides(program: Command): void {
   program
     .command("export-slides")
-    .description("Export a slide-deck Markdown to a 16:9 PDF (ColaMD 2.7.13 slide layout)")
+    .description("Export a slide-deck Markdown to a 16:9 PDF (ColaMD 2.8.0 slide layout)")
     .argument("<input>", "Path to a deck .md file (with <!-- deck ... --> or <!-- slide: ... -->)")
     .option("-t, --theme <name>", "Theme name (built-in, custom, or CSS file path)")
     .option("-o, --output <path>", "Output PDF file path (default: <input>.slides.pdf)")
@@ -279,7 +279,7 @@ function registerExportSlides(program: Command): void {
         if (!compat.slidesExportSupported) {
           throw new CLIError(
             `当前平台不支持幻灯片 PDF 导出（需要 lib 暴露 enterSlidesPrintLayout/exitSlidesPrintLayout）。` +
-            `${formatColamdCompat(compat)}；修复: npm install @bytechain.cn/colamd@^2.7.13`,
+            `${formatColamdCompat(compat)}；修复: npm install @bytechain.cn/colamd@^2.8.0`,
             ErrorCode.RENDER_ERROR
           );
         }

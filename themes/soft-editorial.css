@@ -134,7 +134,6 @@
   --slide-quote-size: 3.38em;                  /* P07 blockquote 88px ÷26 */
   --slide-page-pad-x: 4.17vw;                  /* 模板页边距 80px @1920 */
   --slide-page-top-pad: 130px;                 /* 内容顶 130px（P09/P11 顶栏），扣 chrome */
-  --slide-page-top-pad-print: 110px;
   --slide-cover-text-align: left;              /* P01 标题左对齐、垂直居中 */
   --slide-cover-lead-inline: 0;
 }

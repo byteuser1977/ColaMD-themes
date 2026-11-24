@@ -8,7 +8,8 @@
  *
  *   PDF-01 (MUST)   the PDF parses and has ≥1 page
  *   PDF-02 (MUST*)  page size consistent; slide decks must be 16:9 paper
- *                   (Chromium prints the 1280×720 slide paper as 960×540 pt)
+ *                   (Chromium prints the 1920×1080 slide paper — 20×11.25in —
+ *                   as 1440×810 pt)
  *   PDF-03 (MUST*)  slide page count matches the deck markdown
  *   PDF-04 (SHOULD) no blank pages (page text extraction < 5 chars)
  *   PDF-05 (SHOULD) deck chrome fidelity — deck title present in the PDF text
@@ -179,7 +180,7 @@ export async function checkExportedPdf(buffer: Buffer, options: PdfCheckOptions 
       issues.push({
         ruleId: "PDF-02",
         level: "MUST",
-        message: `slide PDF 纸型应为 16:9（960×540pt，即 1280×720@96dpi），实际 ${paperSizes[0].w.toFixed(0)}×${paperSizes[0].h.toFixed(0)}pt`,
+        message: `slide PDF 纸型应为 16:9（1440×810pt，即 1920×1080@96dpi = 20×11.25in），实际 ${paperSizes[0].w.toFixed(0)}×${paperSizes[0].h.toFixed(0)}pt`,
         fix: "幻灯片导出走 ColaMD 应用内的 slides-printing；文档式 export-pdf 不会产生 16:9 纸面",
       });
     }

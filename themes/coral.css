@@ -133,7 +133,6 @@
   --slide-quote-size: 1.38em;                 /* P7 quote-text clamp(20,2.5vw,36) @1920=36px ÷26 */
   --slide-page-pad-x: 5.2vw;                  /* 模板页边距 clamp(40,8vw,100) @1920=100px ÷1920 */
   --slide-page-top-pad: 70px;                 /* 正文顶 clamp(40,6vh,80)=80px − chrome 安全区 */
-  --slide-page-top-pad-print: 60px;
   --slide-cover-text-align: left;             /* P1 bottom-section 左对齐 */
   --slide-cover-lead-inline: auto;
   /* kpi/steps/two-col 无对应页 → --slide-kpi-number-size 等保持上游默认 */
