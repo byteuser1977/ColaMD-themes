@@ -55,6 +55,8 @@
 ## 4. 换算规则
 
 - 锚点：放映基准字号 `clamp(17px,1.35vw,26px)`，1080p ≈ **26px/em**；模板 px ÷ 26 = em。
+  ⚠️ 现有幻灯片主题已在两个作用域把基准提到 **28px**（§6-20）——换算式仍按
+  `模板 px ÷ 26` 记录推导，实际渲染 ≈ em × 28（即模板 px × 28/26 ≈ +7.7%）。
 - 列表行内的元素：先定 li 基准字号（= 行说明文字 px ÷26），再对行题/序号
   **除以 li 缩放**补偿（如 38px 序号在 li 0.58em 下 = 38÷26÷0.58 = 2.52em）。换算式写入注释。
 - 页边距：px ÷1920 → vw；顶部安全区扣掉 chrome 高度。
@@ -106,10 +108,13 @@
    `.cm-md-slide-quote .cm-md-blockquote` 后代写法在编辑器 DOM 打不中，
    必须改用复合选择器 `.cm-md-slide-quote.cm-md-blockquote`（8-bit-orbit 实测）。
    ⚠️ 这也是**放映/导出不一致**的常见根因：两侧镜像规则里一侧写成后代形式
-   （`.cm-md-slide-agenda .cm-md-page-title`）就不命中，该侧退回上游/文档式声部——
-   放映 5.1em 纸色、导出 8.5em 粉色（pink-script-dark 实测）。两侧必须同命中形式：
+   （`.cm-md-slide-agenda .cm-md-page-title`）就不命中，该侧退回上游/文档式声部
+   （pink-script-dark section 原始状态：放映侧后代式不命中 → 5.1em 纸色默认声部，
+   导出侧带 id 复合式命中 → 3.38em 粉色，两侧分裂）。两侧必须同命中形式：
    行角色在行 div 本身的（页题/kicker::before）用复合形式；inline 子元素
    （strong/listmark/url）是行 div 的真子节点，用后代形式。
+   ⚠️ 注意后代式两侧都写时是"一致地错"（都回落默认声部）——复核时要对照
+   模板意图，不是对照当前两侧是否一致。
 9. **`--slide-*` 之外的页面底色变量**：需要按页换底又不想撞 SLIDE-01 令牌命名时，
    用 `--page-bg` 一类自有变量承载，不要新造 `--slide-*`。
 10. **整页垂直居中**：模板 `.slide` 常是 `flex column + justify-content:center`（每页都居中），
@@ -131,7 +136,8 @@
 14. **先检索再断言元素存在**：用户点名的版式/装饰（如 Motion）在模板里可能根本不存在，
    全量检索 `class|@keyframes|animation` 后写进"不存在/未复刻"说明，不要臆造页面。
 15. **导出与放映同标度（平台 2.8.0 起）**：幻灯片纸面是 1920×1080 设计空间
-   （20×11.25in，PDF 1440×810pt），正文 25.92px——与放映 26px 基准一致；
+   （20×11.25in，PDF 1440×810pt），正文 25.92px——与放映 26px 基准一致
+   （主题可整体提到 28px，见 §6-20）；
    装不下的页由平台整页 `zoom` 压回一页。因此**不要再写「导出纸面校准」块**
    （历史上按 1280×720@24px 纸面 ÷36 换算的 `body.slides-printing` 压缩规则，
    2.8.0 下会造成二次缩小，导出字号整体变小）；`--slide-page-top-pad-print`
@@ -186,9 +192,12 @@
    验证：解 PDF 对象流找 `/BaseFont` 或 Type3 的 `/FontName`（可变字体 Skia 走
    Type3 字形嵌入，观感一致且带 ToUnicode）。正文基准：上游锚点
    `clamp(17px,1.35vw,26px)`（纸面钉死 25.92px）只占版宽 1.35%，观感偏小 ——
-   主题可在两个作用域直接声明 `#editor .cm-content { font-size: 28px }` 提基准
-   （主题 CSS 追加在 slides.css 之后，同权重后到先赢；pink-script-dark 1.6.0 同款，
-   全部 em 等比放大，比例不变）。
+   主题可在两个作用域同时提基准：`body.presenting #editor .cm-content,
+   body.slides-printing #editor .cm-content { font-size: 28px }`（与 slides.css 的
+   `.cm-content` 字号规则同为 1,2,1，主题 CSS 由 applyTheme 追加在 slides.css 之后，
+   同权重后到先赢；⚠️ 不能写裸 `#editor .cm-content`——(1,1,1) 压不过 slides.css 的
+   (1,2,1)。pink-script-dark 1.6.0 同款，全部 em 等比放大，比例不变；导出 Tf=28
+   实测验证）。
 21. **导出侧版式页题规则必须带 id 权重**：1.6.1 的页题声明是
    `body.slides-printing #editor .cm-content .cm-md-page-title`（id + 三类 = 1,3,1），
    各版式的导出侧规则若写成 `body.slides-printing .cm-md-slide-x.cm-md-page-title`
@@ -198,8 +207,10 @@
    （pink-script-dark agenda/steps/closing/figure 同病同修）。全仓 23 主题已按此
    批量修复；其余主题部分版式因**放映侧本身是后代式**（§6-8，两侧都回落 1.6.1、
    彼此一致但偏离模板）被保守跳过，需逐主题复核放映侧命中形式后再修。
-   同一机制也适用于其他"与 1.6.1 同元素"的导出规则（lead/页题 ::before 装饰等），
-   写导出选择器时默认带 `#editor .cm-content`。
+   ⚠️ 竞争对象辨析：只有**与 1.6.1 同元素**的导出规则（页题/页题 ::before）才
+   非 (1,4,1) 不可；lead 的对手是上游 `body.slides-printing .cm-md-page-lead`
+   (0,2,1)，(0,3,1) 已稳赢——但统一带上 `#editor .cm-content` 无害且防上游
+   加权重，建议默认带。
 
 ## 7. paradigm 备案规范
 
