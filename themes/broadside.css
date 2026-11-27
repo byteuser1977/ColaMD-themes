@@ -236,6 +236,7 @@
   --slide-quote-size: 5.54em;                 /* P6 fadelist-item 7.5vw=144px ÷26 */
   --slide-page-pad-x: 5.5vw;                  /* 模板 pad-x */
   --slide-page-top-pad: 48px;                 /* pad-y 5.5vh≈59px@1080 − chrome 安全区 */
+  --slide-page-top-pad-print: 42px;
   --slide-cover-text-align: left;
   --slide-cover-lead-inline: 0;               /* lead 左对齐，不居中 */
 }
