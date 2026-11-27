@@ -7,6 +7,28 @@
  * 标题是带类的一行，引用/代码块是每行一个 div（禁止纵向 padding）。
  */
 
+/* ── 0. Webfont 镜像：主题栈引用的 Google Fonts（latin 子集，OFL）。
+   导出 shell 不带任何 Google Fonts —— 放映环境有该字体（应用加载/本地安装）
+   而导出没有时，字体会回落，字族两边不一致（2026-11-28 报告）。
+   随主题镜像后两侧同字体；离线/断网自动回落主题字体栈；CJK 由系统字体
+   两侧一致承担，不镜像。用 @font-face 而非 @import：导出时主题 CSS 会被拼进
+   已有样式表，@import 位置非法会被丢弃 */
+@font-face {
+  font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwE.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Fira Code"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/firacode/v27/uU9NCBsR6Z2vfE9aq3bh3dSD.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   /* ── 1.1 Seed Palette ── */
   --seed-accent:        #4f46e5;

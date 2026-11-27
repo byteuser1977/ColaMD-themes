@@ -6,11 +6,16 @@
  *           pink #ED3D8C / pink-deep #B81D67 / line-pink rgba(237,61,140,.32)
  *           hair-paper rgba(245,237,241,.14)
  *   fonts:  DM Serif Display（编辑体标题）/ Inter 300（正文）/ JetBrains Mono（元数据）
+ *           —— latin webfont 已随主题镜像（见 :root 前的 @font-face），否则导出 shell
+ *           无此字体，封面标题/正文/元数据字体族与放映不一致
  * 与工具生成版（themes/pink-script.css，from-html 提取，奶油纸方向）并存互不覆盖。
  * 模板特有约定（已落实）：零圆角、1px 发丝线体系、粉色 kicker、
  *   标题 halo 光晕 text-shadow、标题内 em 切粉色、引用左轨 1px 粉线
- * 契约：ColaMD 2.7.13（:root 活变量；CM6 每行一 div；引用/代码块禁纵向 padding；
- *   .cm-md-blockquote 不写 background；SECTION 1.5 为幻灯片 --slide-* 令牌）
+ * 未复刻：P4 s-section 的 600px 粉色衬线巨号（依赖 CSS 计数器跨页计数，
+ *   放映逐页 display:none 下计数恒为 01，无法与导出一致）
+ * 契约：ColaMD 2.8.0（:root 活变量；CM6 每行一 div；引用/代码块禁纵向 padding；
+ *   .cm-md-blockquote 不写 background；SECTION 1.5 为幻灯片 --slide-* 令牌；
+ *   放映与导出同标度，不写导出纸面校准块）
  *
  * paradigm 说明（近黑底陷阱）：surface/panel 在极低明度下 HSL 饱和度被放大，
  *   模板 #060507/#0F0D11 直接用会触发 SL-01/SL-02；且 hslHue 对 max==min 返回 0，
@@ -18,6 +23,71 @@
  *   #060606 / #0e0e0e / #111111（与模板差 1-2/255，肉眼不可辨）。
  *   粉色身份由 accent / 边框 / kicker / 高亮 / Pele 承担，paradigm 全过。
  */
+
+/* 参考页 template.html 用 Google Fonts 加载 DM Serif Display / Inter / JetBrains Mono
+   （OFL）；这里镜像同一份 webfont（latin 子集），编辑器、放映与导出 shell 才会呈现
+   参考图字形 —— 导出 shell 不带任何 Google Fonts：放映环境有 DM Serif Display、
+   导出回落宋体，封面标题（及正文/元数据）字体族两边不一致（2026-11-28 报告，
+   broadside 同款修法）。离线/断网时自动回落主题字体栈。
+   用 @font-face 而非 @import：导出时主题 CSS 会被拼进已有样式表，@import 位置非法
+   会被丢弃 */
+@font-face {
+  font-family: "DM Serif Display"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmserifdisplay/v17/-nFnOHM81r4j6k0gjAW3mujVU2B2G_Bx0g.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap;   /* 可变字体 */
+  src: url("https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 800; font-display: swap;  /* 可变字体 */
+  src: url("https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOV.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ── 0. Webfont 镜像：主题栈引用的 Google Fonts（latin 子集，OFL）。
+   导出 shell 不带任何 Google Fonts —— 放映环境有该字体（应用加载/本地安装）
+   而导出没有时，字体会回落，字族两边不一致（2026-11-28 报告）。
+   随主题镜像后两侧同字体；离线/断网自动回落主题字体栈；CJK 由系统字体
+   两侧一致承担，不镜像。用 @font-face 而非 @import：导出时主题 CSS 会被拼进
+   已有样式表，@import 位置非法会被丢弃 */
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 100; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/ibmplexmono/v23/-F6pfjptAgt5VM-kVkqdyU8n3kwa1Xdg.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 200; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/ibmplexmono/v23/-F6qfjptAgt5VM-kVkqdyU8n3uALwlBFgg.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 300; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/ibmplexmono/v23/-F6qfjptAgt5VM-kVkqdyU8n3oQIwlBFgg.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/ibmplexmono/v23/-F63fjptAgt5VM-kVkqdyU8n1i8q1w.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/ibmplexmono/v23/-F6qfjptAgt5VM-kVkqdyU8n3twJwlBFgg.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/ibmplexmono/v23/-F6qfjptAgt5VM-kVkqdyU8n3vAOwlBFgg.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/ibmplexmono/v23/-F6qfjptAgt5VM-kVkqdyU8n3pQPwlBFgg.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 :root {
   /* ── 1.1 Seed Palette（11 色） ── */
@@ -71,10 +141,10 @@
   --pele-accent:      var(--seed-accent);
   --pele-radius:      0px;          /* 模板：结构元素零圆角 */
 
-  /* ── 1.5 PPT 幻灯片令牌（ColaMD 2.7.13 slides · 按 pink-script 逐页复刻） ──
-     放映：基准字号 clamp(17px,1.35vw,26px)，1080p ≈ 26px/em，模板 px ÷ 26。
-     导出：1280×720 纸面 = 模板 1920×1080 × 2/3，基准 24px/em，
-           所以尺寸在 1.7 里按 “模板 px × 2/3 ÷ 24” 重新校准。页面对照：
+  /* ── 1.5 PPT 幻灯片令牌（ColaMD 2.8.0 slides · 按 pink-script 逐页复刻） ──
+     放映与导出同标度（2.8.0 起）：纸面 = 1920×1080 设计空间，上游基准
+     25.92px ≈ 26px/em，模板 px ÷ 26；主题在 1.6.0 把两侧基准提到 28px
+     （em 换算式仍按 ÷26 记录，实际渲染 ≈ ×28/26）。页面对照：
        cover←P1  agenda←P2  kpi←P3(s-stats)  section←P4(s-section)
        figure←P5 steps←P6(s-process) timeline←P6(s-process 步骤条)
        matrix←P7 quote←P8(s-quote) closing←P9 */
@@ -101,13 +171,22 @@
   --slide-quote-size: 3.5em;                  /* s-quote blockquote 92px ÷26 */
   --slide-page-pad-x: 3.2vw;                  /* 模板页边距 60px @1920 */
   --slide-page-top-pad: 132px;                /* 模板正文顶 140px − chrome 安全区 */
-  --slide-page-top-pad-print: 90px;           /* 模板 140px × 2/3 */
   --slide-cover-text-align: center;           /* s-cover 舞台居中（stage flex center） */
   --slide-cover-lead-inline: auto;
 }
 
 /* ═══════════════ SECTION 1.6 — 版式页复刻（SLIDE-02：全部包裹在
    body.presenting / body.slides-printing 作用域；仅已知令牌 + 版式类） ═══ */
+
+/* 1.6.0 正文基准放大：上游锚点 --slide-body-size = clamp(17px,1.35vw,26px)
+   （纸面钉死 25.92px），正文只占版宽 1.35%，在巨题版面里观感偏小
+   （2026-11-28 报告）。两个作用域直接声明 .cm-content 字号——主题 CSS 由
+   applyTheme 追加在 slides.css 之后，同权重后到先赢；基准提到 28px，
+   全部 em 尺寸等比放大、版面比例不变；超出纸面的页由平台整页 zoom 兜底。 */
+body.presenting #editor .cm-content,
+body.slides-printing #editor .cm-content {
+  font-size: 28px;
+}
 
 /* 1.6.1 页标题声部对齐：主题文档式标题（#editor .cm-content 权重）会在放映时
    压过 slides.css 的页标题规则——这里以更高权重重新断言 slides 声部。
@@ -150,16 +229,16 @@ body.slides-printing #editor .cm-content .cm-md-slide-cover {
 body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-lead {
   margin-inline: var(--slide-cover-lead-inline, auto);
 }
-/* 放映的封面是整页垂直居中，导出块流只能给页首垫一个近似值，
-   让巨题落在纸面中上而不是贴顶（页首行可能是隐藏的指令行，
-   所以要 !important 压过 slides.css 的安全区规则）。 */
-body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-start {
-  padding-top: 140px !important;
-}
+/* 2.8.0 起纸面对 cover 页由平台按放映同款规则整页垂直居中，主题不再垫 padding-top。 */
 body.presenting #editor .cm-content .cm-md-page-title[data-slide-kicker]::before,
 body.slides-printing #editor .cm-content .cm-md-page-title[data-slide-kicker]::before {
   color: var(--text-color);
   opacity: 0.75;
+}
+/* kicker 令牌（clamp(18px,1.25vw,24px)）在纸面被平台钉成 13.824px，与放映
+   @1920 落点 24px 不一致 —— 导出作用域显式声明字号对齐放映落点 */
+body.slides-printing #editor .cm-content .cm-md-page-title[data-slide-kicker]::before {
+  font-size: 24px;
 }
 body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title[data-slide-kicker]::before,
 body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title[data-slide-kicker]::before {
@@ -179,42 +258,18 @@ body.slides-printing #editor .cm-content .cm-md-slide-cover .cm-md-atxheading3 {
 }
 
 /* 1.6.3 section · 参照模板第 4 页 s-section（Movements）：
-   导出纸面上：左侧 600px×2/3 粉色衬线巨号（当前章序 01/02…）+ 右栏 kicker /
-   88px×2/3 paper 标题 / Inter 压淡导语。巨号挂在页首空行的 ::after 上
-   （浮动、不占正文行；不能用 ::before —— slides-export 给 hero 页的居中
-   垫高正是 page-start::before）。放映模式保留下游的顶部对齐排版。 */
-body.slides-printing #editor .cm-content {
-  counter-reset: ps-section;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-start {
-  counter-increment: ps-section;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-start::after {
-  content: counter(ps-section, decimal-leading-zero);
-  visibility: visible;
-  display: block;
-  float: left;
-  width: 40%;
-  white-space: nowrap;
-  font-family: var(--slide-title-font);
-  font-size: 400px;                       /* 600px × 2/3 */
-  line-height: 0.82;
-  letter-spacing: -0.02em;
-  color: var(--seed-accent);
-  text-shadow: 0 0 120px rgba(237, 61, 140, 0.22);
-}
-body.presenting #editor[data-slide-layout='section'] .cm-content {
-  justify-content: flex-start;
-  min-height: 92vh;
-  padding-top: 140px;
-}
-body.presenting #editor .cm-content .cm-md-slide-section .cm-md-page-title,
+   kicker + 88px paper 标题 + Inter 压淡导语，整页垂直居中大留白。
+   上游对 section 在放映（flex 居中）与导出纸面（spacer 居中）两侧同构，
+   主题不再改对齐。模板 600px 粉色衬线巨号依赖 CSS 计数器跨页计数，
+   放映逐页 display:none 会让计数恒为 01 —— 无法两侧一致，未复刻
+   （见文件头「not replicated」）。 */
+body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title {
   font-size: var(--slide-section-title-size);
   max-width: 10em;
 }
 body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title[data-slide-kicker]::before,
-body.slides-printing #editor .cm-content .cm-md-slide-section .cm-md-page-title[data-slide-kicker]::before {
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title[data-slide-kicker]::before {
   color: var(--seed-accent);
   opacity: 1;
 }
@@ -246,8 +301,10 @@ body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-lead {
   font-size: 0.92em;
   color: var(--text-muted);
 }
-body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-page-title[data-slide-kicker]::before,
-body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-page-title[data-slide-kicker]::before {
+/* 版式类与行角色类在同一 div 上（CM6 每行一 div）：页题 kicker 必须
+   用复合选择器命中，后代形式（.cm-md-slide-kpi .cm-md-page-title）两侧都不命中。 */
+body.presenting #editor .cm-content .cm-md-slide-kpi.cm-md-page-title[data-slide-kicker]::before,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-title[data-slide-kicker]::before {
   color: var(--seed-accent);
 }
 body.presenting #editor .cm-content .cm-md-slide-kpi.cm-md-li,
@@ -319,8 +376,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-li::before 
 /* 1.6.6 agenda · 参照模板第 2 页 s-toc（The Index）：
    页题 220px 粉衬线（h1 ÷26）；行式条目 = hairline 底线，衬线粉序号 64px、
    衬线 paper 章名 56px、说明 24px mute */
-body.presenting #editor .cm-content .cm-md-slide-agenda .cm-md-page-title,
-body.slides-printing .cm-md-slide-agenda.cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-agenda.cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-page-title {
   font-size: 8.5em;
   line-height: 1.04;
   color: var(--seed-accent);
@@ -353,7 +410,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-agenda .cm-md-strong {
    页题 156px paper（em 切粉）；五列横排步骤条——顶线 1px 粉、衬线粉序号 96px、
    衬线 paper 步骤名 38px、说明 22px mute（.row .step） */
 body.presenting #editor[data-slide-layout='steps'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-steps.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-page-title {
   font-size: 6em;                       /* 156px ÷26 */
   max-width: 12ch;
 }
@@ -381,7 +438,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-li::before {
   content: counter(ps-step, decimal-leading-zero);
   display: block;
   font-family: var(--slide-title-font);
-  font-size: 96px;                      /* 模板序号 96px；导出在 1.7 收成 64px */
+  font-size: 96px;                      /* 模板序号 96px，放映与纸面同尺寸 */
   font-weight: 400;
   line-height: 1;
   color: var(--seed-accent);
@@ -419,7 +476,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-start::af
   float: left;
   width: 22%;
   font-family: var(--slide-title-font);
-  font-size: 320px;                       /* 模板 320px；导出在 1.7 收成 213px */
+  font-size: 320px;                       /* 模板 320px，放映与纸面同尺寸 */
   line-height: 0.65;
   color: var(--seed-accent);
 }
@@ -460,20 +517,20 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote:not(.cm-md-blockquot
 
 /* 1.6.9 closing · Encore：标题 paper 色 + 清单换模板顶线画法（s-cta .step） */
 body.presenting #editor[data-slide-layout='closing'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-closing.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title {
   font-size: var(--slide-closing-title-size);
   line-height: 1.04;
   color: var(--text-color);
 }
-body.presenting .cm-md-slide-closing.cm-md-li,
-body.slides-printing .cm-md-slide-closing.cm-md-li {
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-li,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-li {
   border-top: 1px solid rgba(237, 61, 140, 0.45);
   padding-top: 0.8em;
 }
 
 /* 1.6.10 figure · The Curve：页题收一档（s-chart h2 90px ÷26） */
 body.presenting #editor[data-slide-layout='figure'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-figure.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-page-title {
   font-size: 3.5em;
 }
 
@@ -521,110 +578,10 @@ body.slides-printing .slide-foot {
   color: var(--text-muted);
 }
 
-/* 1.6.12 导出纸面校准（1280×720 = 模板 1920×1080 × 2/3，基准 24px/em）
-   slides-export 的纸面高度只有 720px；按模板放映尺寸直接导出会把议程 / KPI /
-   时间线 / 双栏页撑成两页。这里只缩小导出尺寸，不改放映尺寸。 */
-body.slides-printing {
-  --slide-title-size: 3.67em;             /* 132px × 2/3 ÷ 24 */
-  --slide-section-title-size: 2.44em;     /* 88px  × 2/3 ÷ 24 */
-  --slide-cover-title-size: 7.5em;        /* 280px × 2/3 ÷ 24 − 一字安全余量 */
-  --slide-closing-title-size: 3.9em;      /* 140px × 2/3 ÷ 24 */
-  --slide-quote-size: 2.45em;             /* 92px  × 2/3 ÷ 24 − 安全余量 */
-  --slide-kpi-number-size: 4em;           /* 116px 纸面收成 64px，给五行留高 */
-  --slide-lead-size: 0.667em;             /* 24px  × 2/3 ÷ 24 */
-  --slide-kicker-size: 13px;
-  --slide-page-top-pad-print: 90px;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title {
-  width: 52%;
-  margin-left: 44%;
-  margin-top: 1.4em;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-lead {
-  font-size: 0.667em;
-  width: 50%;
-  margin-left: 44%;
-  /* 巨号是 float、不计入页高；给导语留出页尾余量，保证 400px 字号的
-     墨迹不会越过本页底边渗到下一页。 */
-  margin-bottom: 2.4em;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-li {
-  font-size: 0.667em;
-  padding: 0.35em 0;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-lead {
-  font-size: 0.667em;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-page-title {
-  font-size: 4.6em;                       /* 220px × 2/3 ÷ 24，给条目留高 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-li {
-  font-size: 0.667em;
-  padding: 0.45em 0;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-agenda .cm-md-listmark {
-  font-size: 2.7em;                       /* 43px ÷ 16 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-agenda .cm-md-strong {
-  font-size: 2.3em;                       /* 37px ÷ 16 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-page-title {
-  font-size: 4.33em;                      /* 156px × 2/3 ÷ 24 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-li {
-  font-size: 0.667em;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-timeline .cm-md-strong {
-  font-size: 4em;                         /* 64px ÷ 16 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-page-title {
-  font-size: 4.33em;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-li {
-  font-size: 0.667em;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-li::before {
-  font-size: 64px;                        /* 96px × 2/3 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-strong {
-  font-size: 1.56em;                      /* 25px ÷ 16 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-page-title {
-  font-size: 2.5em;                       /* 90px × 2/3 ÷ 24 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-matrix.cm-md-li {
-  font-size: 0.667em;
-}
-body.slides-printing #editor .cm-content .cm-md-slide-matrix .cm-md-strong {
-  font-size: 1.3em;                       /* 21px ÷ 16 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-start::after {
-  font-size: 213px;                       /* 320px × 2/3 */
-}
-body.slides-printing #editor .cm-content .cm-md-slide-quote:not(.cm-md-blockquote):not(.cm-md-page-start):not(.cm-md-slide-directive):not(:has(> br:only-child)) {
-  font-size: 1.33em;                      /* 32px ÷ 24 */
-}
-
-/* 1.7 纸面基础密度：720px 纸面比放映画面矮，1.7 行高会让表格 / 代码页
-   溢出到第二页 —— 纸面统一收到 1.62，表格与代码块再压一档字号（放映不变）。 */
-body.slides-printing #editor .cm-content {
-  line-height: 1.62;
-}
-body.slides-printing #editor .cm-content .cm-md-table-widget th,
-body.slides-printing #editor .cm-content .cm-md-table-widget td {
-  padding: 6px 10px;
-  font-size: 0.75em;
-}
-body.slides-printing #editor .cm-content .cm-md-codeblock {
-  padding: 0 16px;                        /* 每行一个 div：纵向内距会按行累加 */
-  font-size: 0.72em;
-  line-height: 1.45;
-}
-/* 空行（CM6 里就是 <div class="cm-line"><br></div>）在纸面上只作分隔，
-   不该按整行 1.62 计高；压到 0.55 行，给版式页腾出 20px/行。 */
-body.slides-printing #editor .cm-content .cm-line:has(> br:only-child) {
-  line-height: 0.55;
-}
+/* （旧 §1.6.12 导出纸面校准与 §1.7 纸面密度块已移除：2.8.0 起导出与放映
+   同标度（1920×1080 设计空间、正文 25.92px），按 1280×720@24px 旧纸面
+   换算的压缩规则会造成二次缩小，导致导出与放映字号/密度不一致；
+   装不下的页由平台整页 zoom 压回一张纸。） */
 
 /* ═══════════════ SECTION 2 — Editor DOM ═══════════════ */
 

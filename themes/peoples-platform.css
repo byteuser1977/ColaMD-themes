@@ -24,6 +24,38 @@
  * ═══════════════════════════════════════════════════════════ */
 /* colamd-allow: CR-04, SL-01 */
 
+/* ── 0. Webfont 镜像：主题栈引用的 Google Fonts（latin 子集，OFL）。
+   导出 shell 不带任何 Google Fonts —— 放映环境有该字体（应用加载/本地安装）
+   而导出没有时，字体会回落，字族两边不一致（2026-11-28 报告）。
+   随主题镜像后两侧同字体；离线/断网自动回落主题字体栈；CJK 由系统字体
+   两侧一致承担，不镜像。用 @font-face 而非 @import：导出时主题 CSS 会被拼进
+   已有样式表，@import 位置非法会被丢弃 */
+@font-face {
+  font-family: "Archivo Narrow"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/archivonarrow/v35/tss0ApVBdCYD5Q7hcxTE1ArZ0bbwiXw.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "DM Mono"; font-style: normal; font-weight: 300; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmmono/v16/aFTR7PB1QTsUX8KYvrGyEYOtbQ.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "DM Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmmono/v16/aFTU7PB1QTsUX8KYthqQBA.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "DM Mono"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmmono/v16/aFTR7PB1QTsUX8KYvumzEYOtbQ.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Alfa Slab One"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/alfaslabone/v21/6NUQ8FmMKwSEKjnm5-4v-4Jh2dJhew.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
 
   /* ── 1.1 Seed Palette ──
@@ -136,6 +168,16 @@
 /* 1.6.1 页标题声部对齐：Alfa Slab 400 蓝 + 红色错位实体阴影（P02/P04/P06/P08/P09
    的 h2 5-6px 红影）。先压掉文档式 h1/h2 的 border-bottom 与爆字号，
    再用各版式覆盖色/字号。 */
+/* 1.6.0 正文基准放大：上游锚点 --slide-body-size = clamp(17px,1.35vw,26px)
+   （纸面钉死 25.92px），正文只占版宽 1.35%，观感偏小。两个作用域直接声明
+   .cm-content 字号（主题 CSS 追加在 slides.css 之后，同权重后到先赢），
+   基准提到 28px —— 全部 em 尺寸等比放大，比例不变；溢出页由平台整页 zoom 兜底
+   （与 pink-script-dark 1.6.0 同款）。 */
+body.presenting #editor .cm-content,
+body.slides-printing #editor .cm-content {
+  font-size: 28px;
+}
+
 body.presenting #editor .cm-content .cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-page-title {
   font-family: var(--slide-title-font);

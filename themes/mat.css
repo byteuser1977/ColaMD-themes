@@ -43,6 +43,38 @@
  * ═══════════════════════════════════════════════════════════ */
 /* colamd-allow: SL-01 */
 
+/* ── 0. Webfont 镜像：主题栈引用的 Google Fonts（latin 子集，OFL）。
+   导出 shell 不带任何 Google Fonts —— 放映环境有该字体（应用加载/本地安装）
+   而导出没有时，字体会回落，字族两边不一致（2026-11-28 报告）。
+   随主题镜像后两侧同字体；离线/断网自动回落主题字体栈；CJK 由系统字体
+   两侧一致承担，不镜像。用 @font-face 而非 @import：导出时主题 CSS 会被拼进
+   已有样式表，@import 位置非法会被丢弃 */
+@font-face {
+  font-family: "DM Sans"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmsans/v17/rP2Yp2ywxg089UriI5-g4vlH9VoD8Cmcqbu0-K4.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "DM Mono"; font-style: normal; font-weight: 300; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmmono/v16/aFTR7PB1QTsUX8KYvrGyEYOtbQ.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "DM Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmmono/v16/aFTU7PB1QTsUX8KYthqQBA.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "DM Mono"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dmmono/v16/aFTR7PB1QTsUX8KYvumzEYOtbQ.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/bricolagegrotesque/v9/3y9H6as8bTXq_nANBjzKo3IeZx8z6up5BeSl5jBNz_19PpbpMXuECpwUxJBOm_OJWiawA1Xp.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
 
   /* ── 1.1 Seed Palette ──
@@ -149,6 +181,16 @@
 /* 1.6.1 页标题声部对齐：Bricolage Grotesque 700 骨白、贴顶行高、负字距；
    压掉文档式 h1/h2 下划线（编辑器规则带 id 权重会漏进放映）；
    kicker 统一 DM Mono 大写 .12em 焦橙（模板 .kicker / .label） */
+/* 1.6.0 正文基准放大：上游锚点 --slide-body-size = clamp(17px,1.35vw,26px)
+   （纸面钉死 25.92px），正文只占版宽 1.35%，观感偏小。两个作用域直接声明
+   .cm-content 字号（主题 CSS 追加在 slides.css 之后，同权重后到先赢），
+   基准提到 28px —— 全部 em 尺寸等比放大，比例不变；溢出页由平台整页 zoom 兜底
+   （与 pink-script-dark 1.6.0 同款）。 */
+body.presenting #editor .cm-content,
+body.slides-printing #editor .cm-content {
+  font-size: 28px;
+}
+
 body.presenting #editor .cm-content .cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-page-title {
   font-family: var(--slide-title-font);
@@ -188,7 +230,7 @@ body.slides-printing:has(.cm-md-slide-cover) .cm-content {
   justify-content: flex-start;
 }
 body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-cover.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-size: var(--slide-cover-title-size);
   font-weight: 800;
   line-height: var(--slide-cover-title-line-height);
@@ -226,7 +268,7 @@ body.slides-printing .cm-md-slide-cover .cm-md-page-lead .cm-md-strong {
    破折号清单行（1.5vw）；模板 1.1fr/1fr 双栏为 grid，行式 DOM 单栏——
    用 max-width 与字阶近似左声明/右文案的声部分配 */
 body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-section.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title {
   font-size: var(--slide-section-title-size);
   font-weight: 800;
   line-height: 0.92;
@@ -265,7 +307,7 @@ body.presenting #editor[data-slide-layout='two-col'] .cm-content {
   column-rule: 1px solid rgba(240, 232, 210, 0.12);   /* compare-divider-line */
 }
 body.presenting #editor[data-slide-layout='two-col'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-two-col.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-two-col.cm-md-page-title {
   font-size: 1.77em;                          /* 面板题 h3 2.4vw=46.1px ÷26 */
   font-weight: 600;
   line-height: 1.1;
@@ -311,7 +353,7 @@ body.slides-printing .cm-md-slide-two-col .cm-md-page-title[data-slide-kicker]::
    （mat-stat border-right），数值 105.6px Bricolage 800 骨白、行高 1、
    字距 -.025em，格说明 20.2px 58% cream；末格去边与垂直居中未复刻 */
 body.presenting #editor[data-slide-layout='kpi'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-kpi.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-title {
   margin-bottom: 1.87em;                      /* gap-lg 4.5vh=48.6px ÷26 */
 }
 body.presenting #editor .cm-content .cm-md-slide-kpi.cm-md-li,
@@ -407,7 +449,7 @@ body.slides-printing:has(.cm-md-slide-agenda) .cm-content {
   color: #1e2820;
 }
 body.presenting #editor[data-slide-layout='agenda'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-agenda.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-page-title {
   color: #1e2820;
   max-width: 22ch;
 }
@@ -476,7 +518,7 @@ body.slides-printing:has(.cm-md-slide-agenda) .cm-md-table-widget td {
    P8 的 bar-track/基线/来源行无行级挂点，由 Pele 图表（--pele-accent 橙）
    承担唯一高亮条，其余柱体保持上游默认 */
 body.presenting #editor[data-slide-layout='figure'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-figure.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-page-title {
   max-width: 18ch;
 }
 body.presenting #editor[data-slide-layout='figure'] .cm-content .cm-md-page-lead,
@@ -496,7 +538,7 @@ body.slides-printing:has(.cm-md-slide-closing) .cm-content {
   padding-bottom: 8vh;                        /* 让开 end-foot 落款带 */
 }
 body.presenting #editor[data-slide-layout='closing'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-closing.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title {
   font-size: var(--slide-closing-title-size);
   font-weight: 800;
   line-height: 0.92;

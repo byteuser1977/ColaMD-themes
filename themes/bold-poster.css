@@ -47,6 +47,33 @@
  * ═══════════════════════════════════════════════════════════ */
 /* colamd-allow: SL-02 */
 
+/* ── 0. Webfont 镜像：主题栈引用的 Google Fonts（latin 子集，OFL）。
+   导出 shell 不带任何 Google Fonts —— 放映环境有该字体（应用加载/本地安装）
+   而导出没有时，字体会回落，字族两边不一致（2026-11-28 报告）。
+   随主题镜像后两侧同字体；离线/断网自动回落主题字体栈；CJK 由系统字体
+   两侧一致承担，不镜像。用 @font-face 而非 @import：导出时主题 CSS 会被拼进
+   已有样式表，@import 位置非法会被丢弃 */
+@font-face {
+  font-family: "Libre Baskerville"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/librebaskerville/v24/kmKnZrc3Hgbbcjq75U4uslyuy4kn0qNZaxM.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwE.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Shrikhand"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/shrikhand/v17/a8IbNovtLWfR7T7bMJwrA4KR.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Space Grotesk"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
 
   /* ── 1.1 Seed Palette ──
@@ -146,6 +173,16 @@
 
 /* 1.6.1 页标题声部对齐：Shrikhand 400 墨黑（压掉文档式标题权重/下划线，
    编辑器规则带 id 权重会漏进放映）；眉标一律红（模板 tag-label/rm-label 声部） */
+/* 1.6.0 正文基准放大：上游锚点 --slide-body-size = clamp(17px,1.35vw,26px)
+   （纸面钉死 25.92px），正文只占版宽 1.35%，观感偏小。两个作用域直接声明
+   .cm-content 字号（主题 CSS 追加在 slides.css 之后，同权重后到先赢），
+   基准提到 28px —— 全部 em 尺寸等比放大，比例不变；溢出页由平台整页 zoom 兜底
+   （与 pink-script-dark 1.6.0 同款）。 */
+body.presenting #editor .cm-content,
+body.slides-printing #editor .cm-content {
+  font-size: 28px;
+}
+
 body.presenting #editor .cm-content .cm-md-page-title, body.slides-printing #editor .cm-content .cm-md-page-title {
   font-family: var(--slide-title-font);
   font-size: var(--slide-title-size);
@@ -169,7 +206,7 @@ body.presenting #editor[data-slide-layout='cover'] .cm-content {
   justify-content: flex-start;
   text-align: left;
 }
-body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title, body.slides-printing .cm-md-slide-cover.cm-md-page-title {
+body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title, body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-size: var(--slide-cover-title-size);
   line-height: var(--slide-cover-title-line-height);
   letter-spacing: var(--slide-cover-title-tracking);
@@ -252,7 +289,7 @@ body.presenting [data-slide-layout='quote'] .slide-foot, body.slides-printing [d
 /* 1.6.4 two-col · P3：页题 64px；双栏散文 LB 16px（.cm-line 0.62em，栏题除外）；
    栏题取 SG 600 红眉标声部近似（模板栏无栏题）；三格数字高亮带（2px 墨框 +
    红数字 48px + SG 大写 label）无挂点——未复刻 */
-body.presenting #editor[data-slide-layout='two-col'] .cm-content .cm-md-page-title, body.slides-printing .cm-md-slide-two-col.cm-md-page-title {
+body.presenting #editor[data-slide-layout='two-col'] .cm-content .cm-md-page-title, body.slides-printing #editor .cm-content .cm-md-slide-two-col.cm-md-page-title {
   font-size: 2.46em;                          /* summary-header 64px ÷26 */
 }
 body.presenting #editor[data-slide-layout='two-col'] .cm-content .cm-md-page-title ~ .cm-line, body.slides-printing .cm-md-slide-two-col .cm-md-page-title ~ .cm-line {
@@ -281,7 +318,7 @@ body.presenting #editor[data-slide-layout='section'] .cm-content {
   justify-content: center;
   text-align: center;
 }
-body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title, body.slides-printing .cm-md-slide-section.cm-md-page-title {
+body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title, body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title {
   font-size: var(--slide-section-title-size);
   line-height: 0.82;
   color: var(--seed-accent);
@@ -319,7 +356,7 @@ body.presenting #editor .cm-content .cm-md-slide-section .cm-md-strong, body.sli
 
 /* 1.6.6 kpi · P4：页题 72px；六格数字卡 = 1.5px 墨边单元格 ×3 列（3px 网格外框
    无容器挂点——未复刻）；红数字 52px Shrikhand + 说明 LB 13px；记号红（模板红弹） */
-body.presenting #editor[data-slide-layout='kpi'] .cm-content .cm-md-page-title, body.slides-printing .cm-md-slide-kpi.cm-md-page-title {
+body.presenting #editor[data-slide-layout='kpi'] .cm-content .cm-md-page-title, body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-title {
   font-size: 2.77em;                          /* fin-header 72px ÷26 */
 }
 body.presenting #editor .cm-content .cm-md-slide-kpi.cm-md-li-0, body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-li-0 {
@@ -349,7 +386,7 @@ body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-strong, body.slides-
 /* 1.6.7 matrix · P6：页题 64px；红左轨 4px 卡 ×2 列（左内距 18px）；卡题 36px
    Shrikhand 墨黑换行独占；卡内子弹（li-1）SG 12px 红记号在卡框外接排（行式
    限制注记）；P9 global 卡同形不单列（2px 全边框差异未复刻） */
-body.presenting #editor[data-slide-layout='matrix'] .cm-content .cm-md-page-title, body.slides-printing .cm-md-slide-matrix.cm-md-page-title {
+body.presenting #editor[data-slide-layout='matrix'] .cm-content .cm-md-page-title, body.slides-printing #editor .cm-content .cm-md-slide-matrix.cm-md-page-title {
   font-size: 2.46em;                          /* svc-header 64px ÷26 */
 }
 body.presenting #editor .cm-content .cm-md-slide-matrix.cm-md-li-0, body.slides-printing #editor .cm-content .cm-md-slide-matrix.cm-md-li-0 {

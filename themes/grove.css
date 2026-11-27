@@ -38,6 +38,28 @@
  * ═══════════════════════════════════════════════════════════ */
 /* colamd-allow: CR-04, SL-01 */
 
+/* ── 0. Webfont 镜像：主题栈引用的 Google Fonts（latin 子集，OFL）。
+   导出 shell 不带任何 Google Fonts —— 放映环境有该字体（应用加载/本地安装）
+   而导出没有时，字体会回落，字族两边不一致（2026-11-28 报告）。
+   随主题镜像后两侧同字体；离线/断网自动回落主题字体栈；CJK 由系统字体
+   两侧一致承担，不镜像。用 @font-face 而非 @import：导出时主题 CSS 会被拼进
+   已有样式表，@import 位置非法会被丢弃 */
+@font-face {
+  font-family: "Jost"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/jost/v20/92zatBhPNqw73oTd4g.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwE.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Playfair Display"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgA.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
 
   /* ── 1.1 Seed Palette ──
@@ -145,6 +167,16 @@
 
 /* 1.6.1 页标题声部对齐：Playfair 400 奶油（编辑器文档式标题带 id 权重会漏进
    放映，此处重断言），并压掉文档式 h1/h2 的 border-bottom */
+/* 1.6.0 正文基准放大：上游锚点 --slide-body-size = clamp(17px,1.35vw,26px)
+   （纸面钉死 25.92px），正文只占版宽 1.35%，观感偏小。两个作用域直接声明
+   .cm-content 字号（主题 CSS 追加在 slides.css 之后，同权重后到先赢），
+   基准提到 28px —— 全部 em 尺寸等比放大，比例不变；溢出页由平台整页 zoom 兜底
+   （与 pink-script-dark 1.6.0 同款）。 */
+body.presenting #editor .cm-content,
+body.slides-printing #editor .cm-content {
+  font-size: 28px;
+}
+
 body.presenting #editor .cm-content .cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-page-title {
   font-family: var(--slide-title-font);
@@ -166,7 +198,7 @@ body.slides-printing #editor .cm-content .cm-md-page-title[data-slide-kicker]::b
 /* 1.6.2 cover · P1（暗）：Playfair h1 105.6px 垂直居中左对齐（55% 宽）+
    lead 27.8px（40% 宽）；36px 珊瑚短横与底部 meta 条无挂点（未复刻） */
 body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-cover.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-size: var(--slide-cover-title-size);
   line-height: var(--slide-cover-title-line-height);
   letter-spacing: var(--slide-cover-title-tracking);
@@ -180,7 +212,7 @@ body.slides-printing .cm-md-slide-cover.cm-md-page-lead {
 /* 1.6.3 section · P2/P9（暗 chapter）：h1 105.6px（62% 宽）垂直居中 +
    lead 27.8px（48% 宽）；chapter-num 字距 .2em（比通用 kicker .14em 宽） */
 body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-section.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title {
   max-width: 62%;
   line-height: 1.1;
 }
@@ -359,7 +391,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + 
 /* 1.6.8 closing · P12（暗）：h1 105.6px 全色（压掉上游收束页整页压淡）；
    P12 无行动清单——清单条目（▸ 珊瑚前缀）保持上游默认 */
 body.presenting #editor[data-slide-layout='closing'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-closing.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title {
   color: var(--text-color);
 }
 

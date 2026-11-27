@@ -37,6 +37,23 @@
  * ═══════════════════════════════════════════════════════════ */
 /* colamd-allow: SL-01 */
 
+/* ── 0. Webfont 镜像：主题栈引用的 Google Fonts（latin 子集，OFL）。
+   导出 shell 不带任何 Google Fonts —— 放映环境有该字体（应用加载/本地安装）
+   而导出没有时，字体会回落，字族两边不一致（2026-11-28 报告）。
+   随主题镜像后两侧同字体；离线/断网自动回落主题字体栈；CJK 由系统字体
+   两侧一致承担，不镜像。用 @font-face 而非 @import：导出时主题 CSS 会被拼进
+   已有样式表，@import 位置非法会被丢弃 */
+@font-face {
+  font-family: "VT323"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/vt323/v18/pxiKyp0ihIEF2isfFJU.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/pressstart2p/v16/e3t4euO8T-267oIAQAu6jDQyK3nVivM.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
 
   /* ── 1.1 Seed Palette ──
@@ -154,6 +171,16 @@
    62.5vw。整条层叠链（body/#editor/.cm-editor/.cm-scroller）统一铺桌面灰，
    避免平台给 #editor 画的纸面底盖住。 */
 body.presenting,
+/* 1.6.0 正文基准放大：上游锚点 --slide-body-size = clamp(17px,1.35vw,26px)
+   （纸面钉死 25.92px），正文只占版宽 1.35%，观感偏小。两个作用域直接声明
+   .cm-content 字号（主题 CSS 追加在 slides.css 之后，同权重后到先赢），
+   基准提到 28px —— 全部 em 尺寸等比放大，比例不变；溢出页由平台整页 zoom 兜底
+   （与 pink-script-dark 1.6.0 同款）。 */
+body.presenting #editor .cm-content,
+body.slides-printing #editor .cm-content {
+  font-size: 28px;
+}
+
 body.presenting #editor,
 body.presenting #editor .cm-editor,
 body.presenting #editor .cm-scroller,
@@ -213,7 +240,7 @@ body.presenting #editor[data-slide-layout='cover'] .cm-content {
   text-align: center;
 }
 body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-cover.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-family: "Press Start 2P", "Noto Sans SC", sans-serif;
   font-size: var(--slide-cover-title-size);   /* 24px ÷26 */
   font-weight: 400;                           /* Press Start 2P 仅 400 */
@@ -237,7 +264,7 @@ body.slides-printing .cm-md-slide-cover.cm-md-page-lead {
    序号列 navy 700（模板自绘 ">" chevron，行式 DOM 无挂点，用序号近似）；
    模板的 grid-2 分组框与状态面板无对应行，未复刻 */
 body.presenting #editor .cm-content .cm-md-slide-agenda.cm-md-page-title,
-body.slides-printing .cm-md-slide-agenda.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-page-title {
   margin-bottom: 0.3em;
 }
 body.presenting #editor .cm-content .cm-md-slide-agenda.cm-md-page-lead,
@@ -269,7 +296,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-agenda .cm-md-listmark {
 /* 1.6.5 figure · P04/P06/P08：22px 题 + 斜面 hr；表格灰头白身、Pele 白井下沉框；
    图表图例颜色走 --pele-*；柱/饼的绝对值装饰（网格线、标签引线）随 Pele */
 body.presenting #editor .cm-content .cm-md-slide-figure.cm-md-page-title,
-body.slides-printing .cm-md-slide-figure.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-page-title {
   padding-bottom: 0.45em;
   border-bottom: 1px solid #404040;
   box-shadow: 0 1px 0 #ffffff;
@@ -286,7 +313,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-figure:not(.cm-md-page-tit
    下沉状态条（标签 12px / 值 18px）。以「页内有无 .cm-md-page-lead」区分；
    模板中部两组 group-box 正文无对应行，未复刻。 */
 body.presenting #editor .cm-content .cm-md-slide-matrix.cm-md-page-title,
-body.slides-printing .cm-md-slide-matrix.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-matrix.cm-md-page-title {
   padding-bottom: 0.45em;
   border-bottom: 1px solid #404040;
   box-shadow: 0 1px 0 #ffffff;
@@ -367,7 +394,7 @@ body.presenting #editor[data-slide-layout='matrix'] .cm-content:not(:has(.cm-md-
    数值 30px navy 700；▲/▼ 与绿红状态文字是行内内容，颜色由模板语义色承担；
    模板的 group-box 标题（Revenue 等）与下方 grid-2 图表区无对应行，未复刻 */
 body.presenting #editor .cm-content .cm-md-slide-kpi.cm-md-page-title,
-body.slides-printing .cm-md-slide-kpi.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-title {
   padding-bottom: 0.45em;
   border-bottom: 1px solid #404040;
   box-shadow: 0 1px 0 #ffffff;
@@ -405,7 +432,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-listmark {
    灰渐变栏头 12px 白字 700 + 15px 清单；上游圆点竖轨以 ::before 画出，压掉。
    活动季度（Q3）的 navy 栏头无法从 markdown 推断，统一用非活动灰渐变。 */
 body.presenting #editor .cm-content .cm-md-slide-timeline.cm-md-page-title,
-body.slides-printing .cm-md-slide-timeline.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-page-title {
   padding-bottom: 0.45em;
   border-bottom: 1px solid #404040;
   box-shadow: 0 1px 0 #ffffff;
@@ -446,7 +473,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-timeline .cm-md-listmark {
 /* 1.6.9 closing · P10：20px 像素标题居中 + 18px 居中正文；
    联系信息 = 三列（30%）小字 12px，2px 暗边 + 1px 白边竖分隔 */
 body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-page-title,
-body.slides-printing .cm-md-slide-closing.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title {
   font-family: "Press Start 2P", "Noto Sans SC", sans-serif;
   font-size: var(--slide-closing-title-size); /* 20px ÷26 */
   font-weight: 400;

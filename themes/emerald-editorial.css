@@ -36,6 +36,28 @@
  * ═══════════════════════════════════════════════════════════ */
 /* colamd-allow: CR-04, SL-01, SL-02 */
 
+/* ── 0. Webfont 镜像：主题栈引用的 Google Fonts（latin 子集，OFL）。
+   导出 shell 不带任何 Google Fonts —— 放映环境有该字体（应用加载/本地安装）
+   而导出没有时，字体会回落，字族两边不一致（2026-11-28 报告）。
+   随主题镜像后两侧同字体；离线/断网自动回落主题字体栈；CJK 由系统字体
+   两侧一致承担，不镜像。用 @font-face 而非 @import：导出时主题 CSS 会被拼进
+   已有样式表，@import 位置非法会被丢弃 */
+@font-face {
+  font-family: "Manrope"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/manrope/v23/xn7gYHE41ni1AdIRggexSg.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwE.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Bodoni Moda"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("https://fonts.gstatic.com/s/bodonimoda/v28/aFTH7PxzY382XsXX63LUYL6GYFcan6NJrKp-VPj1KOxQ.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
 
   /* ── 1.1 Seed Palette ──
@@ -143,6 +165,16 @@
 
 /* 1.6.1 页标题声部对齐：Bodoni Moda 900 墨蓝；压掉文档式标题下划线
    （#editor 权重规则会漏进放映） */
+/* 1.6.0 正文基准放大：上游锚点 --slide-body-size = clamp(17px,1.35vw,26px)
+   （纸面钉死 25.92px），正文只占版宽 1.35%，观感偏小。两个作用域直接声明
+   .cm-content 字号（主题 CSS 追加在 slides.css 之后，同权重后到先赢），
+   基准提到 28px —— 全部 em 尺寸等比放大，比例不变；溢出页由平台整页 zoom 兜底
+   （与 pink-script-dark 1.6.0 同款）。 */
+body.presenting #editor .cm-content,
+body.slides-printing #editor .cm-content {
+  font-size: 28px;
+}
+
 body.presenting #editor .cm-content .cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-page-title {
   font-family: var(--slide-title-font);
@@ -160,7 +192,7 @@ body.slides-printing #editor .cm-content .cm-md-page-title {
    副题走 "The" 声部 76px Bodoni 800；credit 28px Manrope 700 .18em；
    双线饰条（.s1-mid）无挂点——未复刻 */
 body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-cover.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-size: var(--slide-cover-title-size);
   line-height: 0.92;
   letter-spacing: -0.01em;
@@ -225,7 +257,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-agenda .cm-md-strong {
    §6-1 核对）——单栏无法复刻分栏：460px 巨数字/marks 药丸/ink 半版未复刻，
    取右栏声部：kicker Manrope 800 .16em + 题 128px + lede 28px/1.5/720px */
 body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-section.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title {
   font-size: var(--slide-section-title-size);
   line-height: 0.95;
   max-width: 14em;
@@ -293,7 +325,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-matrix .cm-md-strong {
    与 svg 托墨蓝底（打印域 :has 全文档命中，与 pin-and-paper 1.6.4 同限）；
    s5-side takeaway/stats 无独立挂点——未复刻 */
 body.presenting #editor[data-slide-layout='figure'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-figure.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-page-title {
   font-size: 4em;                             /* .s5-h 104px ÷26 */
   line-height: 0.95;
 }
@@ -327,7 +359,7 @@ body.slides-printing:has(.cm-md-slide-figure) #editor .cm-content svg.pele {
    行式 DOM 上 nth 不可靠，统一 ink 瓦）= Bodoni 900 序号 80px + h4 40px
    （4px currentColor 顶线）+ 文 24px；meta 行无挂点——未复刻 */
 body.presenting #editor[data-slide-layout='steps'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-steps.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-page-title {
   font-size: 4.62em;                          /* .s6-h 120px ÷26 */
 }
 body.presenting #editor .cm-content .cm-md-slide-steps.cm-md-li,
@@ -372,7 +404,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-strong {
    val 144px Bodoni 900 + desc 24px；lbl 24px .14em 与 delta 药丸无挂点——
    未复刻 */
 body.presenting #editor[data-slide-layout='kpi'] .cm-content .cm-md-page-title,
-body.slides-printing .cm-md-slide-kpi.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-title {
   font-size: 4.92em;                          /* .s7-h 128px ÷26 */
   line-height: 0.92;
 }
