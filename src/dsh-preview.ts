@@ -293,8 +293,14 @@ function stripHtmlComments(lines: readonly string[]): string[] {
 }
 
 /** Markdown → 块级 AST。 */
-export function parseBlocks(markdown: string): MdBlock[] {
-  const lines = stripHtmlComments(markdown.replace(/\r\n?/g, "\n").split("\n"));
+export interface ParseOptions {
+  /** 摘掉 HTML 注释（\`<!-- … -->\`）。仅导出 PDF 时打开；屏幕预览要保持原样可见。 */
+  stripComments?: boolean;
+}
+
+export function parseBlocks(markdown: string, options: ParseOptions = {}): MdBlock[] {
+  const raw = markdown.replace(/\r\n?/g, "\n").split("\n");
+  const lines = options.stripComments === true ? stripHtmlComments(raw) : raw;
   return parseBlocksLines(lines);
 }
 
@@ -385,8 +391,8 @@ export function renderBlocksHtml(blocks: readonly MdBlock[]): string {
 }
 
 /** Markdown → 语义化 HTML（不含 `<html>` 外壳）。 */
-export function renderMarkdown(markdown: string): string {
-  return renderBlocksHtml(parseBlocks(markdown));
+export function renderMarkdown(markdown: string, options: ParseOptions = {}): string {
+  return renderBlocksHtml(parseBlocks(markdown, options));
 }
 
 /** 一页幻灯片。 */
@@ -1351,6 +1357,8 @@ export interface PreviewOptions {
   title?: string;
   /** 打印/导出为 A4：去掉屏幕内边距，改由 @page 提供一致的页边距。 */
   print?: boolean;
+  /** 导出时摘掉 HTML 注释（预览不摘）。 */
+  stripComments?: boolean;
 }
 
 /** 打印/导出用：A4 无边距 + 逐页克隆内边距，续页也有左右与上下留白。 */
@@ -1407,7 +1415,7 @@ ${BASE_CSS}${widthRule}
 ${options.print === true ? `<style data-colamd-print>\n${DOCUMENT_PRINT_CSS}\n</style>\n` : ""}</head>
 <body>
 <article class="colamd-document">
-${renderMarkdown(markdown)}
+${renderMarkdown(markdown, { stripComments: options.stripComments === true })}
 </article>
 </body>
 </html>

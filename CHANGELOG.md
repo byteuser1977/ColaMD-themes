@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.6] - 2026-11-28
+
+### Changed — 注释只在导出时摘掉（PDF / Word）
+
+- **预览保留注释、导出才摘掉**：屏幕上的文稿预览与演示窗口继续显示 `<!-- … -->`（与 ColaMD-extend 编辑器一致，注释内容仍然可见）；`parseBlocks()` 新增 `{ stripComments }` 选项，A4 PDF 走 `PreviewOptions.stripComments`、Word 走 `parseBlocks(markdown, { stripComments: true })`。幻灯片指令行与代码块里的注释处理不变
+- **`renderMarkdown()` 透传选项**：新增第二个参数 `options: ParseOptions`，导出链路（`renderThemePreviewDocument` → `renderMarkdown`）不再依赖内部默认行为
+
+### Fixed — 导出菜单与内置主题分类
+
+- **导出菜单跟随 DSH 主题**：`.ct-doc-bar` 与 `.ct-export-menu` 纳入 `--dsw-alias-*` 变量作用域，菜单项 `color: inherit`、悬停用 `currentColor` 着色；深色主题下导出菜单与胶囊不再出现硬编码浅色底
+- **主题目录透传 `group`**：`/themes` 接口的主题条目补上 `group` 字段，内置主题的分类在客户端可见，与主题选择面板一致
+
 ## [0.8.5] - 2026-11-28
 
 ### Changed — 33 个模板主题按 2.8.0 幻灯片契约精修

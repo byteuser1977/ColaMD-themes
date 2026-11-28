@@ -1460,7 +1460,7 @@ window.__ModuleLoader__.load({
     const CSS = `
 .ct-root { position: relative; display: inline-flex; align-items: center; }
 .ct-root, .ct-root *, .ct-pv, .ct-pv *, .ct-panel, .ct-panel * { box-sizing: border-box; }
-.ct-root, .ct-pv, .ct-doc-switch {
+.ct-root, .ct-pv, .ct-doc-switch, .ct-doc-bar, .ct-export-menu {
   --ct-ink: var(--dsw-alias-label-primary, CanvasText);
   --ct-ink-dim: var(--dsw-alias-label-secondary, color-mix(in srgb, CanvasText 62%, transparent));
   --ct-surface: var(--dsw-alias-bg-overlay, Canvas);
@@ -1577,9 +1577,20 @@ window.__ModuleLoader__.load({
 .ct-doc-chip-name { max-width: 132px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: currentColor; }
 /* 导出菜单：贴在胶囊下方，宽度按内容自适应。 */
 .ct-export { position: relative; display: inline-flex; flex: none; }
-.ct-export-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 20; min-width: 208px; padding: 4px; display: flex; flex-direction: column; gap: 1px; background: var(--ct-surface); border: 1px solid var(--ct-line); border-radius: 8px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28); }
-.ct-export-item { text-align: left; padding: 6px 9px; border: 0; border-radius: 5px; cursor: pointer; font: inherit; font-size: 12px; line-height: 1.35; color: var(--ct-ink); background: transparent; white-space: nowrap; }
-.ct-export-item:hover { background: color-mix(in srgb, var(--ct-ink) 10%, transparent); }
+.ct-export-menu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 20; min-width: 208px; padding: 4px;
+  display: flex; flex-direction: column; gap: 1px; border-radius: 8px;
+  color: var(--dsw-alias-label-primary, CanvasText);
+  background: var(--dsw-alias-bg-overlay, Canvas);
+  border: 1px solid var(--dsw-alias-border-l2, color-mix(in srgb, CanvasText 22%, transparent));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+.ct-export-item {
+  text-align: left; padding: 6px 9px; border: 0; border-radius: 5px; cursor: pointer; font: inherit;
+  font-size: 12px; line-height: 1.35; white-space: nowrap;
+  color: inherit; background: transparent;
+}
+.ct-export-item:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
 .ct-pv { display: flex; flex-direction: column; height: 100%; min-height: 260px; color: var(--ct-ink); }
 .ct-pv-bar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-bottom: 1px solid var(--ct-line); font-size: 12px; flex: none; }
 .ct-pv-name { font-weight: 600; }

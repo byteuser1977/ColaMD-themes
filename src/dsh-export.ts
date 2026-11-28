@@ -185,7 +185,8 @@ export async function exportDocument(input: {
   const base = safeFilename(title, theme.id);
 
   if (format === "docx") {
-    const blocks = toDocBlocks(parseBlocks(markdown));
+    // 与 PDF 一致：注释只在导出时摘掉，屏幕预览仍保留。
+    const blocks = toDocBlocks(parseBlocks(markdown, { stripComments: true }));
     const bytes = buildDocx({ blocks, meta: officeMeta(theme, title) });
     return { bytes, filename: `${base}.docx`, contentType: DOCX_CONTENT_TYPE };
   }
@@ -203,7 +204,8 @@ export async function exportDocument(input: {
     return { bytes, filename: `${base}.slides.pdf`, contentType: PDF_CONTENT_TYPE };
   }
 
-  const html = renderThemePreviewDocument(theme, css, markdown, { title, print: true });
+  // 注释（含 `<!-- slide: … -->` 指令）只在导出 PDF 时摘掉；屏幕预览保持原样。
+  const html = renderThemePreviewDocument(theme, css, markdown, { title, print: true, stripComments: true });
   const bytes = await printPdf(html, { format: "A4" });
   return { bytes, filename: `${base}.pdf`, contentType: PDF_CONTENT_TYPE };
 }

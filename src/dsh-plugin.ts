@@ -289,6 +289,7 @@ function createRoutes(ctx: DshPluginContext): (() => void)[] {
         accent: entry.accent,
         tokens: entry.tokens,
         size: entry.size,
+        group: entry.group,
       })),
     });
   };

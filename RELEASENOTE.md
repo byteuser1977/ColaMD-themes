@@ -1,6 +1,22 @@
 # Release Notes
 
 
+## Version 0.8.6 (2026-11-28) — Comments Stripped on Export Only, Export Menu Tokens 🧹
+
+### 🎨 Changed — comments stay visible while you write
+- `parseBlocks()` gained a `{ stripComments }` option, and `renderMarkdown()` forwards it.
+- Document previews and the present window keep `<!-- … -->` visible, matching the ColaMD-extend editor.
+- Only exports remove them: A4 PDF through `PreviewOptions.stripComments`, Word through `parseBlocks(markdown, { stripComments: true })`. Slide directives and fenced code are untouched.
+
+### 🐛 Fixed — export menu and built-in theme groups
+- `.ct-doc-bar` and `.ct-export-menu` now inherit the `--dsw-alias-*` tokens, and menu items use `currentColor`, so the export menu matches light, dark and high-contrast themes instead of carrying a hard-coded surface.
+- Theme catalog responses include `group`, so built-in theme categories reach the client.
+
+### 📦 Install
+```bash
+npm install @bytechain.cn/colamd-themes@0.8.6
+```
+
 ## Version 0.8.5 (2026-11-28) — 33 Template Themes Aligned with 2.8.0 🎨
 
 Every theme that mirrors a template in `beautiful-html-templates` was rebuilt page by page against that template and re-verified on the 2.8.0 paper.
