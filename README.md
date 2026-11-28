@@ -177,17 +177,57 @@ To customize: edit `skills/colamd-themes/SKILL.md`, then run `npm run build:skil
 
 ### DSH Plugin (dsh-market)
 
-The package is also a **DSH (DeepSeek Harness) plugin bundle** installable from dsh-market:
+The package is also a **DSH (DeepSeek Harness) plugin bundle** installable from dsh-market. Inside a DSH profile it ships three kinds of capability at once:
 
-- **Plugin contract** — `package.json` declares `dsh.bundle.patch` pointing to [`cordis.patch.yml`](cordis.patch.yml), which inserts the `colamd-themes` Cordis entry into the profile's composition
-- **Host entry** — [`src/dsh-plugin.ts`](src/dsh-plugin.ts) exports the Cordis protocol (`name` / `inject: ["skills"]` / `apply`) and registers the bundled `skills/colamd-themes/SKILL.md` with the Harness `skills` service via `ctx.skills.registerProvider` (same provider protocol as the bundled dsh-ppt plugin)
-- **CLI bins** — `colamd-themes` / `cthemes` ship with the package and become available to profile agents after install
-- **Runtime compatibility** — `@deepseek-ai/dsh-skill` is declared as an *optional* peer (`^0.2.0-rc || ^0.2.1-rc || ^0.2.2-rc || ^0.2.3-rc || ^0.2.4-rc || ^0.2.5-rc || ^0.2.6-rc || ^0.2.7-rc || ^0.2.8-rc || ^0.2.9-rc`; semver's prerelease rule forces one comparator per rc patch line, so every 0.2.x rc release (0.2.0–0.2.9) is accepted without further edits; 0.1.x and 0.3+ host lines are out of scope): the market checks it against the DSH runtime version, while standalone `npm install` is unaffected
+1. **Agent skill** — the bundled `colamd-themes` skill (theme extraction / validation / slides / export), registered with the Harness `skills` service
+2. **UI integration** — a composer theme chip, a sidebar preview tab, an in-place Markdown renderer with slide mode, file export and a fullscreen present window
+3. **CLI bins** — `colamd-themes` / `cthemes`, available to profile agents after install
+
+Install from a DSH profile (once published to npm): add `@bytechain.cn/colamd-themes` through the dsh-market UI, or run `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`.
+
+#### Architecture
+
+| Piece | File | Role |
+|------|------|------|
+| Plugin contract | [`cordis.patch.yml`](cordis.patch.yml) | `package.json` declares `dsh.bundle.patch`; the patch inserts the `colamd-themes` Cordis entry into the profile composition |
+| Host entry | [`src/dsh-plugin.ts`](src/dsh-plugin.ts) | Exports the Cordis protocol (`name` / `inject: ["skills", "webServer"]` / `apply`). Registers the bundled `skills/colamd-themes/SKILL.md` via `ctx.skills.registerProvider` (same provider protocol as the bundled dsh-ppt plugin) and mounts the six HTTP routes below on the Harness `webServer` service. If a service is unavailable the entry only warns — the skill registration and the CLI bins keep working |
+| Client entry | [`client/client.js`](client/client.js) | Hand-written client bundle (`dsh.client` in `package.json`, no build step, React only). Mounts three seats: the composer theme chip (`conversation.input.left`), the `colamd-themes-preview` sidebar tab (`sidebar.right.pane.tab`) and the document toolbar chips (`sidebar.right.tab.document` / `sidebar.right.tab.document.action`) |
+| Theme catalog | [`src/dsh-theme-catalog.ts`](src/dsh-theme-catalog.ts) | Parses `themes/*.css` banner comments and `:root` seed colors into catalog entries (title / subtitle / tone / accent temperature / tokens); 15 s TTL cache with in-flight dedup — a broken stylesheet never takes the catalog down |
+| Preview renderer | [`src/dsh-preview.ts`](src/dsh-preview.ts) | Self-contained Markdown→HTML renderer plus a standalone document template, a shadow-DOM fragment renderer and the slide deck renderer. Previews need no `@bytechain.cn/colamd` at runtime; theme CSS is fully isolated inside an iframe or shadow root and never touches the app DOM |
+| Export writers | [`src/dsh-export.ts`](src/dsh-export.ts) · [`src/dsh-office.ts`](src/dsh-office.ts) · [`src/dsh-zip.ts`](src/dsh-zip.ts) | Puppeteer PDF printing plus a zero-dependency OOXML builder — `buildDocx` / `buildPptx` over a STORE zip writer (CRC32, UTF-8 file-name flag, reproducible timestamps) |
+
+#### Using the UI
+
+- **Pick a theme** — the **主题** chip in the composer tool row opens a card grid of every theme; each thumbnail is painted with that theme's own seed tokens, so light/dark and warm/cool are visible at a glance. The panel has search and 全部 / 浅色 / 深色 / 暖调 / 冷调 grouping; picking a card writes the selection and the sidebar preview re-renders immediately
+- **Preview in the sidebar** — the `colamd-themes-preview` tab shows the selected theme's sample document in an iframe, with ‹ › theme stepping, narrow/wide layout and reload; selection changes refresh it via a `v=` timestamp
+- **Render Markdown in place** — opening a Markdown file (`md` / `markdown` / `mdx`) in the right sidebar offers **ColaMD 主题** in the renderer dropdown (renderer id `@bytechain.cn/colamd-themes/document` on `documentPreviews`). The host's `POST /render` returns a themed fragment that the body mounts in a shadow root: `renderThemeFragment` rewrites the theme's `:root` to `:host` and flattens the standalone `body` layer, so theme styling neither leaks out nor needs an exported HTML file. A theme chip in the document title bar opens the same searchable, category-grouped panel and switches the theme in place, staying in sync with the composer chip and the preview tab
+- **Slide mode** — the `文稿 / 幻灯片` chip switches the preview to the upstream ColaMD-extend deck contract: `---` separates pages, a page may open with a `<!-- slide: <layout>` block carrying `kicker:` / `label:` / `chapter:` fields, and deck-wide chrome comes from `<!-- deck-brand: … -->`-style directives. All eleven layouts (`cover`, `section`, `agenda`, `kpi`, `timeline`, `steps`, `matrix`, `two-col`, `figure`, `quote`, `closing`) follow the upstream `slides.css` rules — kicker above the title, first paragraph promoted to a lead, brand + hairline in the header, brand and page number in the footer. Sizes scale with the page width (`cqw`) and can be overridden by the theme's `--slide-*` tokens; overflowing content re-paginates and a fit-to-page script steps the scale down
+- **Export** — the `导出` chip offers, per mode, and always prints the page's own CSS rather than a re-implementation:
+  - slide mode: **Slide PDF (16:9)** — one slide per page at 960×540 pt, auto-fit re-run under print media — plus **Slide PPT (.pptx)**
+  - document mode: **Document PDF (A4)** and **Word (.docx)**
+  - The PPTX is written by the zero-dependency OOXML builder as explicit text boxes (kicker, accent title, body, bullets, optional code frame) so it stays editable, but it is **best-effort**: PowerPoint keeps text boxes fixed instead of scaling them with the page, so `--slide-*` tokens, columns and hairlines will not match 1:1 — use the slide PDF when you need exactly what the page shows. `format=pptx` is accepted only with `mode=slides` (document mode answers 400 `bad-format`)
+  - PDFs are printed through the host's puppeteer (print media + `document.fonts.ready` + zero page margins with per-page cloned `15mm 14mm` padding and a full-bleed `--page-bg`)
+- **Fullscreen present** — the `全屏` chip (and the preview tab's own button) opens a real detached window instead of the sidebar. Because the Electron shell only lets `window.open()` reach `http://127.0.0.1|localhost`, the host renders the page and hands back a one-time URL. Slide decks page with `←/→`/space, jump with `Home`/`End`, toggle fullscreen with `F`, and flip on half-screen clicks; documents get a centred 920px column
+
+#### HTTP API
+
+All routes are mounted `exact` under `/api/bytechain/colamd-themes` on the Harness `webServer` service. Writes only accept same-origin requests (`sec-fetch-site` / `origin` checked; anything else answers 403 `untrusted-origin`).
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/catalog` | GET | Theme catalog + current selection |
+| `/preview` | GET `?theme=&mode=&width=` | Standalone preview HTML (20 s mtime cache; width 320–1600) |
+| `/render` | POST `{markdown, theme?, mode?}` ≤4 MiB | Themed fragment for shadow-DOM mounting; unknown theme falls back to the current selection |
+| `/selection` | GET / POST `{theme}` | Read / write the UI selection — persisted to `~/.colamd-themes/dsh-ui.json`, validated against the catalog (unknown ids fall back to `elegant`) |
+| `/export` | POST `{format, mode?, markdown, theme?, title?}` | Binary download (`pdf` / `docx` / `pptx`); filename via RFC 5987 `content-disposition`; missing Chromium answers 503 with an actionable hint |
+| `/present` | GET `?token=` · GET `?theme=&mode=` · POST | Fullscreen delivery: POST stores rendered HTML under a UUID token (10-minute TTL, 24 slots) and answers `{ ok, url }`; token-less GET renders the sample deck for the preview tab |
+
+#### Compatibility
+
+- **Runtime peer** — `@deepseek-ai/dsh-skill` is declared as an *optional* peer (`^0.2.0-rc || ^0.2.1-rc || … || ^0.2.9-rc`; semver's prerelease rule forces one comparator per rc patch line, so every 0.2.x rc release (0.2.0–0.2.9) is accepted without further edits; 0.1.x and 0.3+ host lines are out of scope). The market checks it against the DSH runtime version, while standalone `npm install` is unaffected
 - **Backward compatibility** — the runtime consumes only the stable `BUNDLED_SKILL_RANK` constant, and the host entry's `apply()` tolerates skills-service protocol drift (warning instead of a broken profile load)
 - **Platform compat layer** — [`src/compat.ts`](src/compat.ts) probes the installed `@bytechain.cn/colamd` version and its `themes/contract.json` for contract drift, and the renderer verifies the export API surface at init; platform upgrades are diagnosed clearly at `cthemes validate`/export time instead of failing cryptically
-- **Bundle contents** — `dist/` (CLI + host entry), `themes/` (58 contract CSS theme files, all passing `validate`), `skills/` (bundled skill), `cordis.patch.yml`
-
-Install from a DSH profile (once published to npm): add `@bytechain.cn/colamd-themes` through the dsh-market UI or `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`.
+- **Bundle contents** — `dist/` (CLI + host entry + preview/slide renderers + OOXML writers), `client/` (client bundle), `themes/` (58 contract CSS theme files, all passing `validate`), `skills/` (bundled skill), `cordis.patch.yml`
 
 ## Installation
 
@@ -525,6 +565,8 @@ ColaMD-themes/
 ├── .trae/rules/colamd-themes.md           # Trae rules
 ├── .trae/skills/colamd-themes/            # Trae project skill
 ├── cordis.patch.yml                        # DSH plugin bundle patch (dsh-market)
+├── client/
+│   └── client.js                           # DSH client bundle: composer theme chip + sidebar preview
 ├── package.json
 ├── tsconfig.json
 ├── themes/                                  # Generated CSS themes
@@ -536,7 +578,9 @@ ColaMD-themes/
 │   ├── renderer.ts                          # Puppeteer HTML/PDF export engine
 │   ├── export-cli.ts                        # Export CLI commands
 │   ├── theme-store.ts                       # Theme config persistence (async API)
-│   ├── dsh-plugin.ts                        # DSH host entry (Cordis skill provider)
+│   ├── dsh-plugin.ts                        # DSH host entry (skill provider + UI HTTP routes)
+│   ├── dsh-theme-catalog.ts                 # themes/*.css → catalog entries (title/tone/accent/tokens)
+│   ├── dsh-preview.ts                       # Self-contained Markdown → standalone preview document
 │   ├── compat.ts                            # Platform compat layer (dual contract + slides probe + renderer API probe)
 │   ├── slides.ts                            # PPT --slide-* tokens, presets & brand derivation (2.7.13)
 │   ├── slides-markdown.ts                   # Markdown → slide-deck conversion + directive contract validation

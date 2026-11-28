@@ -35,3 +35,4 @@ docs/upstream-2.7.7-requirements.md
 .trae/*
 !.trae/rules/
 !.trae/skills/
+.tmp-dsh/

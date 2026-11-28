@@ -1,0 +1,1082 @@
+/* 幻灯片版式包（slides.css）
+ *
+ * 一页在 markdown 里声明版式：`---` 后写一个页头块，第一行是 `<!-- slide: cover`，
+ * 后续可写 kicker / label / chapter 字段；该页所有行便带上 `cm-md-slide-<版式>` 类
+ * （editor/slide-layout.ts 打的），这里的规则在放映（body.presenting）与导出
+ * （body.slides-printing）时命中，编辑视图里一条也不生效。版式名与 markdown 结构
+ * （标题/列表/引用）共同构成公开契约：自定义主题或用户 CSS 可以覆盖任何一条，
+ * 也可以照样新增自己的版式。
+ *
+ * 页角色也由 Markdown 结构给出：一页第一个标题是页标题（cm-md-page-title），标题
+ * 后第一段是导语（cm-md-page-lead），标题前紧邻的段落兜底当 kicker。
+ *
+ * 整副牌还有 deck 级公共元素（chrome）：一个 `<!-- deck … -->` 块（logo / brand /
+ * title / meta）写在文档顶部，放映与导出的每页固定位置呈现，DOM 由 slides-enhance.ts
+ * 挂载（.slide-chrome / .slide-foot / .slide-ghost）。
+ *
+ * 设计语言（学杂志风网页 PPT 与报告类 PPTX 的共性，色彩仍只引 themes/contract.json
+ * 的活变量，随主题走）：
+ *   - 字体三件套：衬线（标题/大数字/金句）、无衬线（正文）、等宽（chrome、页码、标签）
+ *   - 细线代替色块：1px 分隔线、tag 边框、卡片描边
+ *   - 全出血：内容占满 16:9 纸面，只留 6vw 边距，不再聚在中央窄栏
+ *   - 幽灵装饰：右下角超大低透明度页码（放映）；封面与章节页保留 chrome，
+ *     只有收束页淡出
+ *
+ * 两种作用域写法，各有分工：
+ *   - 容器级：放映时 slides-enhance 会把当前页版式写进 #editor 的 data-slide-layout
+ *     属性，页面级布局（双栏、封面排版）用它选；只在放映时存在，导出是流式分纸，
+ *     没有「当前页」可言。
+ *   - 行级：直接选 .cm-md-slide-* 的行，放映导出都生效；导出的双栏/卡片用
+ *     inline-block 在纸面上排出来（页首行保持 block，分页符 break-before 依赖它）。
+ */
+
+/* ─── 版式令牌：主题与导入 CSS 的入口 ────────────────────────────────
+ * 默认值放在 :root，内置主题用 body.theme-* 覆盖；用户导入的 CSS 在
+ * slides.css 之后加载，写 `body { --slide-*: … }` 即可定义自己的 PPT 气质。
+ * 想直接改结构，也可以覆写 body.presenting .cm-md-page-title 这类规则。 */
+:root {
+  --slide-serif: 'Songti SC', 'Noto Serif CJK SC', 'Noto Serif SC', 'Source Han Serif SC',
+    'STSong', 'SimSun', Georgia, serif;
+  --slide-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, 'Menlo', monospace;
+
+  --slide-title-font: var(--slide-serif);
+  --slide-title-size: 4.2em;
+  --slide-title-weight: 700;
+  --slide-subhead-weight: 600;
+  --slide-title-tracking: -0.01em;
+  --slide-title-line-height: 1.08;
+  --slide-cover-title-size: 6.8em;
+  --slide-cover-title-line-height: 0.98;
+  --slide-cover-title-tracking: -0.02em;
+  --slide-section-title-size: 5.2em;
+  --slide-closing-title-size: 4.2em;
+
+  --slide-lead-size: 1.25em;
+  --slide-kicker-size: clamp(11px, 0.72vw, 15px);
+  --slide-kicker-tracking: 0.3em;
+  --slide-kicker-transform: uppercase;
+
+  --slide-chrome-opacity: 0.68;
+  --slide-chrome-transform: uppercase;
+  --slide-kpi-number-size: 3.8em;
+  --slide-quote-size: 2.4em;
+
+  --slide-page-pad-x: 6vw;
+  /* 页顶安全区按 1080p 高 24px 的比例随窗口高度缩放（2026-11-27 定）：
+     1080p 全屏解出 24px。导出在 slides-export.ts 的 PAPER 里按纸面 1080 定死 24px，
+     两处解出同一个数。 */
+  --slide-page-top-pad: calc(100vh * 24 / 1080);
+  /* 放映与导出共用的基准字号。纸面 1920×1080 时 1.35vw 解出 25.92px：
+     导出不再自带一套字号（2026-11-23 之前导出写死 24px，稿子看着和放映
+     不是同一份）。 */
+  --slide-body-size: clamp(17px, 1.35vw, 26px);
+  /* 跟着视口走的几处：chrome 的上下留白、logo 的高、页脚的留白、图的高度上限。
+     做成令牌，是为了让导出能把它们按 1920×1080 的纸面定死（见 slides-export.ts）：
+     导出在屏幕布局里量页高，屏幕的视口不是纸面，靠视口的值两处会对不上。 */
+  --slide-chrome-pad-y: clamp(20px, 3.2vh, 40px);
+  --slide-chrome-logo-h: clamp(18px, 1.6vw, 30px);
+  --slide-foot-pad-y: clamp(16px, 2.4vh, 28px);
+  /* 图的高度上限。放映时 base.css 对 .cm-content 里的 img/svg 统一给 72vh，
+     这里取同一个数，导出才能按纸面 1080 的 72vh 解出一样的大小（之前写 62vh，
+     放映被 base.css 压回 72vh，导出却按 62vh 收，纸上的图小一圈）。 */
+  --slide-img-max-h: 72vh;
+  --slide-figure-max-h: 66vh;
+  --slide-cover-text-align: left;
+  --slide-cover-lead-inline: 0;
+}
+
+/* 主题气质：不只换色，标题字体、字号与 chrome 的声音也跟主题走。
+ * 默认 light 保留杂志式衬线；Notion 走无衬线居中封面，Writer 走等宽标题。 */
+body.theme-notion {
+  --slide-title-font: 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  --slide-title-weight: 600;
+  --slide-title-tracking: -0.02em;
+  --slide-cover-title-size: 5.4em;
+  --slide-section-title-size: 4.4em;
+  --slide-kicker-size: clamp(10px, 0.64vw, 13px);
+  --slide-kicker-tracking: 0.16em;
+  --slide-kicker-transform: none;
+  --slide-chrome-transform: none;
+  --slide-chrome-opacity: 0.55;
+  --slide-cover-text-align: center;
+  --slide-cover-lead-inline: auto;
+}
+
+body.theme-writer {
+  --slide-title-font: var(--slide-mono);
+  --slide-title-weight: 500;
+  --slide-title-tracking: 0;
+  --slide-cover-title-size: 5.2em;
+  --slide-section-title-size: 4.2em;
+  --slide-kicker-tracking: 0.18em;
+  --slide-kicker-transform: none;
+}
+
+body.theme-elegant {
+  --slide-title-font: var(--slide-serif);
+  --slide-title-weight: 600;
+  --slide-cover-title-size: 7.2em;
+}
+
+body.theme-sepia {
+  --slide-title-font: var(--slide-serif);
+  --slide-title-weight: 700;
+  --slide-cover-title-size: 6.4em;
+}
+
+body.theme-bear {
+  --slide-title-font: var(--slide-serif);
+  --slide-title-weight: 800;
+  --slide-cover-title-size: 6.2em;
+  --slide-title-tracking: -0.02em;
+}
+
+body.theme-dark,
+body.theme-solarized-dark,
+body.theme-nord,
+body.theme-gruvbox,
+body.theme-dracula,
+body.theme-midnight {
+  --slide-title-weight: 600;
+  --slide-chrome-opacity: 0.82;
+}
+
+/* ─── 页首安全区与指令行 ──────────────────────────────────────────────
+ * 放映一页一屏，页顶安全区写在 .cm-content 容器上（见下面全出血那条后面的
+ * 容器规则）：行级落点太多（`---` 后的空行、指令行、kicker 源行、标题行都可能
+ * 当 page-start），还有标题 padding-top: 0 这类覆盖，kicker 会贴顶
+ * （2026-11-27 报的）。two-col 的容器间隔同日验证可行，放映统一走这条路。
+ * 导出是流式分纸，容器 padding 只会垫第一页，所以导出仍按行级规则走：
+ * 每页第一条线（cm-md-page-start）承担安全区，指令行压成零内容盒
+ * （visibility + 字号 0），padding 只留一次——多行指令块的其他行绝不能再吃。 */
+body.presenting #editor .cm-md-slide-directive {
+  font-size: 0 !important;
+  line-height: 0 !important;
+  visibility: hidden;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+body.slides-printing #editor .cm-md-slide-directive {
+  font-size: 0 !important;
+  line-height: 0 !important;
+  visibility: hidden;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* 导出：只有整块指令的第一行（页首）承担安全区，后续字段行零高度。 */
+body.slides-printing #editor .cm-md-slide-directive.cm-md-page-start {
+  padding-top: var(--slide-page-top-pad) !important;
+}
+
+/* 结构兜底的 kicker：标题前那段文字在放映/导出里不占位，文字由标题行的
+ * ::before 显示，源行留在编辑器里照常可改。不能用 display:none：导出里
+ * 这一行可能就是 page-start，分页符依赖它。 */
+body.presenting .cm-md-page-kicker,
+body.slides-printing .cm-md-page-kicker {
+  font-size: 0 !important;
+  line-height: 0 !important;
+  visibility: hidden;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* 导出：kicker 源行正好是页首时，它还得承担页顶安全区：文字藏掉，内距留下。 */
+body.slides-printing .cm-md-page-kicker.cm-md-page-start {
+  padding-top: var(--slide-page-top-pad) !important;
+}
+
+/* 导出：没写指令的页，安全区落在第一条内容行上。带 #editor 提权：页首行往往
+ * 是页标题（.cm-md-page-title / .cm-md-atxheading* 写了 padding-top: 0），
+ * 同权重会被压掉，默认页就贴顶了。 */
+body.slides-printing #editor .cm-md-page-start {
+  padding-top: var(--slide-page-top-pad);
+}
+
+/* ─── deck chrome ─────────────────────────────────────────────────── */
+.slide-chrome,
+.slide-foot,
+.slide-ghost {
+  /* 等宽小字是 chrome 的声音（杂志风惯例）；衬线留给标题与品牌名。 */
+  font-family: var(--slide-mono, ui-monospace, Consolas, monospace);
+  color: var(--text-color);
+}
+
+.slide-chrome {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: none;
+  align-items: center;
+  padding: var(--slide-chrome-pad-y) var(--slide-page-pad-x) 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: var(--slide-chrome-transform, uppercase);
+  opacity: var(--slide-chrome-opacity, 0.68);
+}
+
+body.presenting .slide-chrome,
+body.slides-printing .slide-chrome {
+  display: flex;
+}
+
+.slide-chrome-left,
+.slide-chrome-right {
+  display: flex;
+  align-items: center;
+  gap: 1.4em;
+  min-width: 0;
+}
+
+/* 左组与右组之间拉一根 1px 细线，杂志 chrome 的标准做法。 */
+.slide-chrome-left {
+  flex: 1;
+}
+
+.slide-chrome-left::after {
+  content: '';
+  flex: 1;
+  min-width: 3em;
+  height: 1px;
+  margin-left: 0.5em;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.slide-chrome-logo {
+  height: var(--slide-chrome-logo-h);
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+  display: block;
+}
+
+.slide-foot {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: none;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 var(--slide-page-pad-x) var(--slide-foot-pad-y);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: var(--slide-chrome-transform, uppercase);
+  opacity: 0.55;
+}
+
+body.presenting .slide-foot,
+body.slides-printing .slide-foot {
+  display: flex;
+}
+
+.slide-foot-brand {
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: none;
+}
+
+/* 幽灵页码：右下角超大衬线数字，透明度压到几乎看不见，翻页跟着换数。 */
+.slide-ghost {
+  position: fixed;
+  right: 4vw;
+  bottom: 7vh;
+  z-index: 0;
+  display: none;
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-weight: 800;
+  font-size: 26vh;
+  line-height: 1;
+  opacity: 0.05;
+  pointer-events: none;
+  font-feature-settings: 'tnum';
+}
+
+body.presenting .slide-ghost {
+  display: block;
+}
+
+/* 打印里每页各不相同的东西（页码、幽灵数字）没法随纸复刻，藏掉；
+   logo/标题/meta/品牌名是静态的，fixed 元素会被 Chromium 复刻到每张纸。 */
+body.slides-printing .slide-ghost,
+body.slides-printing .slide-foot-num {
+  display: none !important;
+}
+
+/* chrome/foot/幽灵页码统一走透明度过渡，翻到收束页时一起淡出。 */
+body.presenting .slide-chrome,
+body.presenting .slide-foot,
+body.presenting .slide-ghost {
+  transition: opacity 0.45s ease;
+}
+
+/* 封面和章节页保留 chrome：logo、报告名和章节文案是模板封面的一部分，
+ * 只有收束页整页压淡时才把 chrome 一起淡出。 */
+body.presenting:has(#editor[data-slide-layout='closing']) .slide-chrome,
+body.presenting:has(#editor[data-slide-layout='closing']) .slide-foot {
+  opacity: 0;
+}
+
+body.presenting:has(#editor[data-slide-layout='cover']) .slide-ghost,
+body.presenting:has(#editor[data-slide-layout='section']) .slide-ghost,
+body.presenting:has(#editor[data-slide-layout='closing']) .slide-ghost {
+  opacity: 0;
+}
+
+/* ─── 版式字体族与全出血 ────────────────────────────────────────────
+ * 衬线栈把中文衬线排在前面（宋体系）：杂志感来自中文衬线的骨架，只在
+ * 拉丁字母上找 Georgia 是不够的。等宽栈同理，中文等宽缺字时退回系统字体。 */
+/* 全出血：正文铺满纸面，只留 6vw 边距——幻灯片不是文档，不要阅读列宽。
+ * 放映与导出同一条：纸面 1920×1080 时 6vw 解出 115.2px。 */
+body.presenting #editor .cm-content,
+body.slides-printing #editor .cm-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 var(--slide-page-pad-x) !important;
+}
+
+/* 放映的页顶安全区写在容器上：放映一页一屏，.cm-content 就是整页纸面，
+ * 一条规则覆盖所有版式（agenda/kpi/steps/matrix/two-col/section/默认页），
+ * 不再依赖 page-start 的行级落点。two-col 的双栏顶齐也是这一条顺带保证的。
+ * 导出不走这条：流式分纸里容器 padding 只会垫第一页，导出按行级规则走。 */
+body.presenting #editor .cm-content {
+  padding-top: var(--slide-page-top-pad) !important;
+}
+
+/* 行也铺满版心。放映有 base.css 的 `.cm-content > * { max-width: 100% }`，
+ * 把 page-default 的 82%、page-lead 的 68% 一起顶掉；导出没有那一条，行会被
+ * 百分比压窄——figure 页的图再按 70% 缩一次，纸上的图比放映小一圈
+ * （2026-11-24 报的）。这里补上同一条，两边量出来才是同一个宽度。 */
+body.slides-printing #editor .cm-content > * {
+  max-width: 100%;
+}
+
+/* 基准字号：PPT 的字号要跟画面走，不能跟主题的阅读字号走。
+ * 1080p 全屏 ≈ 26px 正文 → 内容标题 ≈ 109px、封面主标题 ≈ 177px；窄窗口退到 17px。
+ * 下面的字号阶梯全部是相对它的 em，一处调整整副牌等比缩放。
+ * 导出用同一个令牌：纸面 1920×1080 时 1.35vw 解出 25.92px。 */
+body.presenting #editor .cm-content,
+body.slides-printing #editor .cm-content {
+  font-size: var(--slide-body-size);
+}
+
+/* ─── 通用字号阶梯（全出血后的 PPT 惯例）────────────────────────────
+ * 标题用衬线、去文档式下划线。真正决定页标题大小的是下面的
+ * .cm-md-page-title：不管 Markdown 写成 h1 还是 h2，一页只认第一个标题。
+ * 与主题文档样式同权重时本文件在打包顺序里排最后。 */
+body.presenting .cm-md-atxheading1,
+body.slides-printing .cm-md-atxheading1 {
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: 3.2em;
+  font-weight: var(--slide-title-weight, 700);
+  line-height: 1.18;
+  letter-spacing: var(--slide-title-tracking, -0.01em);
+  border-bottom: none;
+  padding-top: 0;
+  margin-bottom: 0.45em;
+}
+
+body.presenting .cm-md-atxheading2,
+body.slides-printing .cm-md-atxheading2 {
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: 2.2em;
+  font-weight: var(--slide-subhead-weight, 600);
+  line-height: 1.3;
+  border-bottom: none;
+  padding-top: 0;
+  margin-bottom: 0.4em;
+}
+
+body.presenting .cm-md-atxheading3,
+body.slides-printing .cm-md-atxheading3 {
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: 1.5em;
+  font-weight: var(--slide-subhead-weight, 600);
+  line-height: 1.4;
+  border-bottom: none;
+  padding-top: 0;
+  margin-bottom: 0.35em;
+}
+
+body.presenting .cm-md-atxheading4,
+body.slides-printing .cm-md-atxheading4 {
+  font-size: 1.15em;
+  font-weight: var(--slide-subhead-weight, 600);
+  border-bottom: none;
+  padding-top: 0;
+  margin-bottom: 0.3em;
+}
+
+/* 页标题：一页的第一个标题，h1 与 h2 同权。 */
+body.presenting .cm-md-page-title,
+body.slides-printing .cm-md-page-title {
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: var(--slide-title-size, 4.2em);
+  font-weight: var(--slide-title-weight, 700);
+  line-height: var(--slide-title-line-height, 1.08);
+  letter-spacing: var(--slide-title-tracking, -0.01em);
+  border-bottom: none;
+  padding-top: 0;
+  margin: 0 0 0.35em;
+}
+
+/* kicker：标题上方的等宽小字，文字来自行属性，画成标题行的一部分。 */
+body.presenting .cm-md-page-title[data-slide-kicker]::before,
+body.slides-printing .cm-md-page-title[data-slide-kicker]::before {
+  content: attr(data-slide-kicker);
+  display: block;
+  margin-bottom: 0.9em;
+  font-family: var(--slide-mono, ui-monospace, Consolas, monospace);
+  font-size: var(--slide-kicker-size, clamp(11px, 0.72vw, 15px));
+  font-weight: 500;
+  letter-spacing: var(--slide-kicker-tracking, 0.3em);
+  line-height: 1.4;
+  text-transform: var(--slide-kicker-transform, uppercase);
+  color: var(--text-muted);
+}
+
+/* 导语：标题后的第一段，压淡放大，和正文拉开层次。 */
+body.presenting .cm-md-page-lead,
+body.slides-printing .cm-md-page-lead {
+  font-size: var(--slide-lead-size, 1.25em);
+  line-height: 1.55;
+  color: var(--text-secondary, var(--text-muted));
+  margin-top: 0;
+  margin-bottom: 1.4em;
+  max-width: 68%;
+}
+
+/* 默认页 = 文章版式：没写 slide 块的页自动走这里，标题收小、正文压紧，
+ * 行宽收一收，一页能装下更多段落。 */
+body.presenting .cm-line.cm-md-page-default,
+body.slides-printing .cm-line.cm-md-page-default {
+  font-size: 0.95em;
+  line-height: 1.8;
+  max-width: 82%;
+}
+
+body.presenting .cm-md-page-default.cm-md-page-title,
+body.slides-printing .cm-md-page-default.cm-md-page-title {
+  font-size: 3.4em;
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+  max-width: 13em;
+  margin-bottom: 0.45em;
+}
+
+body.presenting .cm-md-page-default.cm-md-page-lead,
+body.slides-printing .cm-md-page-default.cm-md-page-lead {
+  font-size: 1.05em;
+  line-height: 1.7;
+  max-width: 82%;
+  margin-bottom: 1em;
+}
+
+/* 行高放映与导出同值：不一致会让同一份稿子在屏幕上和纸上换行位置不同。 */
+body.presenting #editor .cm-content,
+body.slides-printing #editor .cm-content {
+  line-height: 1.7;
+}
+
+body.presenting .cm-md-li,
+body.slides-printing .cm-md-li {
+  margin-top: 0.45em;
+  margin-bottom: 0.45em;
+  padding-left: 0.3em;
+}
+
+@keyframes slide-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 容器级版式（整页 flex 居中或分栏）里，指令行改成真正不占位（display:none）：
+ * 放映的安全区写在 .cm-content 容器上（见全出血那条后面），flex 居中的页
+ * （cover/closing）内容整体居中，间隔自然比安全区大；two-col 分栏页从安全区
+ * 下方开始，两栏顶齐。section（2026-11-27 定）与 agenda/kpi 等内容页一样
+ * 顶部对齐，指令行走通用放映规则压成零盒，不再有 page-start 行级内距。 */
+body.presenting #editor[data-slide-layout='cover'] .cm-md-slide-directive,
+body.presenting #editor[data-slide-layout='closing'] .cm-md-slide-directive,
+body.presenting #editor[data-slide-layout='two-col'] .cm-md-slide-directive {
+  display: none;
+}
+
+/* 导出是流式分纸、没有容器级的 flex 居中，封面/收束的整页居中由
+ * slides-export.ts 在页前撑空白完成（spacer），页首安全区在这里归零——否则
+ * 那截 padding 会叠在 spacer 之上，内容被推得偏下。双栏页不居中，保留安全区。
+ * 带 #editor：页首常常就是指令行，它同时命中上面那条「指令行承担安全区」的
+ * 规则，两条同为 !important、特异性相同时本文件靠后的这一条才压得住。 */
+body.slides-printing #editor .cm-md-slide-cover.cm-md-page-start,
+body.slides-printing #editor .cm-md-slide-closing.cm-md-page-start {
+  padding-top: 0 !important;
+}
+
+/* ════ cover · 主视觉封面（dsh-ppt: cover.hero）════
+ *
+ * 约定：h1 主标题，h2 副标题，标题后的第一段当导语，kicker 写在页头块里。
+ * 杂志封面式左对齐，chrome（logo 与报告名）保留在页顶，不再整条淡出。 */
+body.presenting #editor[data-slide-layout='cover'] .cm-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 92vh;
+  text-align: var(--slide-cover-text-align, left);
+}
+
+body.presenting #editor[data-slide-layout='cover'] .cm-md-page-title {
+  font-size: var(--slide-cover-title-size, 6.8em);
+  line-height: var(--slide-cover-title-line-height, 0.98);
+  letter-spacing: var(--slide-cover-title-tracking, -0.02em);
+  max-width: 14em;
+  animation: slide-rise 0.7s ease-out both;
+}
+
+body.presenting #editor[data-slide-layout='cover'] .cm-md-atxheading2,
+body.presenting #editor[data-slide-layout='cover'] .cm-md-atxheading3 {
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: 2.2em;
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--text-muted);
+  border-bottom: none;
+  margin-bottom: 0.5em;
+  animation: slide-rise 0.7s ease-out both;
+}
+
+body.presenting #editor[data-slide-layout='cover'] .cm-md-page-lead {
+  max-width: 60%;
+  margin-bottom: 1.2em;
+  margin-inline: var(--slide-cover-lead-inline, 0);
+}
+
+/* 导出：封面是普通块流（没有容器级的 flex 居中），但字号阶梯与放映同一份令牌，
+   不再按纸上高度另收一档——纸面与 1920×1080 的设计空间是一块地方。 */
+body.slides-printing .cm-md-slide-cover.cm-md-page-title {
+  font-size: var(--slide-cover-title-size, 6.8em);
+  line-height: var(--slide-cover-title-line-height, 0.98);
+  letter-spacing: var(--slide-cover-title-tracking, -0.02em);
+  max-width: 14em;
+}
+
+body.slides-printing .cm-md-slide-cover.cm-md-atxheading2,
+body.slides-printing .cm-md-slide-cover.cm-md-atxheading3 {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+body.slides-printing .cm-md-slide-cover.cm-md-page-lead {
+  max-width: 60%;
+}
+
+/* ════ section · 章节陈述（dsh-ppt: section.statement）════
+ *
+ * 约定：一个 h1（或 h2）作章节判断，标题后一段一句说明。原来是整页 flex
+ * 垂直居中，2026-11-27 起与 agenda/kpi 等内容页一致改为顶部对齐：
+ * 页顶安全区由 page-start 统一承担，不再有自己的容器级布局。 */
+body.presenting #editor[data-slide-layout='section'] .cm-md-page-title {
+  font-size: var(--slide-section-title-size, 5.2em);
+  line-height: 1.02;
+  max-width: 14em;
+  animation: slide-rise 0.6s ease-out both;
+}
+
+body.presenting #editor[data-slide-layout='section'] .cm-md-page-lead {
+  max-width: 55%;
+}
+
+body.slides-printing .cm-md-slide-section.cm-md-page-title {
+  font-size: var(--slide-section-title-size, 5.2em);
+  line-height: 1.02;
+  max-width: 14em;
+  padding-bottom: 0.3em;
+}
+
+/* ════ agenda · 结构列表（dsh-ppt: agenda.simple）════
+ *
+ * 约定：一个有序列表（1. 2. 3.），每项一句话。整页宽的条目行，顶部细线分隔，
+ * 序号用衬线强调色放大——目录页的经典画法。 */
+body.presenting .cm-md-slide-agenda.cm-md-li,
+body.slides-printing .cm-md-slide-agenda.cm-md-li {
+  font-size: 1.2em;
+  margin: 0;
+  padding-top: 1em;
+  padding-bottom: 1em;
+  border-top: 1px solid var(--border-color);
+  list-style: none;
+}
+
+body.presenting .cm-md-slide-agenda .cm-md-listmark,
+body.slides-printing .cm-md-slide-agenda .cm-md-listmark {
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: 1.5em;
+  font-weight: 700;
+  color: var(--pele-accent);
+  margin-right: 0.5em;
+  font-feature-settings: 'tnum';
+}
+
+/* ════ kpi · 关键概览（dsh-ppt: overview.kpi）════
+ *
+ * 约定：一个列表，2-6 项，每项 `**数字** 说明`。参考模板的 stat-card：
+ * 一根细线定标，大数字用衬线等宽（tnum），说明压到次要色。 */
+body.presenting .cm-md-slide-kpi.cm-md-li,
+body.slides-printing .cm-md-slide-kpi.cm-md-li {
+  display: inline-block;
+  width: 31%;
+  margin: 0 1.2% 1.4em 0;
+  padding: 1em 0.9em 1.1em;
+  border-top: 1px solid currentColor;
+  border-color: color-mix(in srgb, currentColor 32%, transparent);
+  vertical-align: top;
+  text-align: left;
+  list-style: none;
+  font-size: 0.92em;
+  line-height: 1.55;
+}
+
+/* 带 #editor .cm-content 提权：主题常在 `#editor .cm-content .cm-md-listmark`
+ * 上写 display，单靠 body.presenting 的权重压不住（kpi/timeline/matrix/closing
+ * 四处同此，见 steps 处的说明）。 */
+body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-listmark {
+  display: none;
+}
+
+body.presenting .cm-md-slide-kpi .cm-md-strong,
+body.slides-printing .cm-md-slide-kpi .cm-md-strong {
+  display: block;
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: var(--slide-kpi-number-size, 3.8em);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text-color);
+  font-feature-settings: 'tnum';
+  margin-bottom: 0.12em;
+}
+
+body.presenting .cm-md-slide-kpi,
+body.slides-printing .cm-md-slide-kpi {
+  color: var(--text-secondary);
+}
+
+/* ════ timeline · 历程时间轴（dsh-ppt: history.timeline）════
+ *
+ * 约定：一个列表，3-6 项，每项 `**阶段名** 说明`。左侧细轴线加圆点。 */
+body.presenting .cm-md-slide-timeline.cm-md-li,
+body.slides-printing .cm-md-slide-timeline.cm-md-li {
+  position: relative;
+  margin-left: 0.6em;
+  padding-left: 2.2em;
+  border-left: 1px solid var(--border-color);
+  padding-bottom: 1.4em;
+  list-style: none;
+}
+
+body.presenting #editor .cm-content .cm-md-slide-timeline .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-timeline .cm-md-listmark {
+  display: none;
+}
+
+body.presenting .cm-md-slide-timeline.cm-md-li::before,
+body.slides-printing .cm-md-slide-timeline.cm-md-li::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 0.4em;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--pele-accent);
+}
+
+body.presenting .cm-md-slide-timeline,
+body.slides-printing .cm-md-slide-timeline {
+  color: var(--text-secondary);
+}
+
+body.presenting .cm-md-slide-timeline .cm-md-strong,
+body.slides-printing .cm-md-slide-timeline .cm-md-strong {
+  display: block;
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: 1.2em;
+  color: var(--text-color);
+}
+
+/* ════ steps · 步骤流程（dsh-ppt: process.steps）════
+ *
+ * 约定：一个列表，3-5 项，每项 `**步骤名** 说明`。整行时间轴式步骤条：
+ * 左侧强调线，步骤名用描边胶囊，说明占满剩余宽度。不再用三列窄栏，
+ * 避免长句被挤成两三行，也避免浅色主题下圆号与文字对比度不足。 */
+body.presenting .cm-md-slide-steps.cm-md-li,
+body.slides-printing .cm-md-slide-steps.cm-md-li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1em;
+  width: 100%;
+  margin: 0 0 1em;
+  padding: 0.75em 0 0.75em 1.1em;
+  border-left: 3px solid var(--pele-accent);
+  border-bottom: 1px solid var(--border-color);
+  list-style: none;
+  text-align: left;
+}
+
+/* 序号由主题的列表标记提供，steps 用步骤名胶囊代替，避免两个编号并排。
+ * 这里带 #editor .cm-content：主题常在 `#editor .cm-content .cm-md-listmark`
+ * 上写 display，单靠 body.presenting 的权重压不住。 */
+body.presenting #editor .cm-content .cm-md-slide-steps .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-listmark {
+  display: none;
+}
+
+/* 步骤名做成描边胶囊：透明底 + 强调色描边 + 强调色文字，全圆外形。
+ * 细线代替色块是这套版式的设计语言；胶囊文字直接用强调色，
+ * 在深浅主题上都成立（强调色本身就对底色有足够对比）。
+ * 主题的 `#editor .cm-content .cm-md-strong` 可能给加粗另配色，
+ * 这里必须带 #editor .cm-content 才能把颜色收回强调色。 */
+body.presenting #editor .cm-content .cm-md-slide-steps .cm-md-strong,
+body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 2.4em;
+  padding: 0.22em 0.9em;
+  border: 1.5px solid var(--pele-accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--pele-accent);
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: 0.95em;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+/* ════ matrix · 主题矩阵（dsh-ppt: product.matrix）════
+ *
+ * 约定：一个列表，3-8 项，每项 `**主题名** 说明`。描边卡片网格。 */
+body.presenting .cm-md-slide-matrix.cm-md-li,
+body.slides-printing .cm-md-slide-matrix.cm-md-li {
+  display: inline-block;
+  width: 30%;
+  margin: 0 1.5% 1.5em 0;
+  padding: 1.1em 1.1em 1em;
+  border: 1px solid var(--border-color);
+  border-radius: var(--pele-radius, 8px);
+  vertical-align: top;
+  list-style: none;
+}
+
+body.presenting #editor .cm-content .cm-md-slide-matrix .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-matrix .cm-md-listmark {
+  display: none;
+}
+
+body.presenting .cm-md-slide-matrix .cm-md-strong,
+body.slides-printing .cm-md-slide-matrix .cm-md-strong {
+  display: block;
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: 1.15em;
+  color: var(--pele-accent);
+  margin-bottom: 0.3em;
+}
+
+body.presenting .cm-md-slide-matrix,
+body.slides-printing .cm-md-slide-matrix {
+  color: var(--text-secondary);
+}
+
+/* ════ two-col · 双栏对比（dsh-ppt: comparison.two-column）════
+ *
+ * 约定：放映时整页分两栏（data-slide-layout 选容器），中缝一根细线；导出是
+ * 流式分纸，退化为行级 inline-block：页首行（通常是标题）保持 block 占全宽，
+ * 其余行两条一排——break-before: page 依赖 block 级的页首行，不能一起 inline。 */
+body.presenting #editor[data-slide-layout='two-col'] .cm-content {
+  column-count: 2;
+  column-gap: 4em;
+  column-rule: 1px solid var(--border-color);
+  height: 88vh;
+  column-fill: auto;
+  /* 页顶安全区由通用的 .cm-content 容器 padding 承担：写在容器上两栏顶部
+   * 才落得齐平——写在第一行上只有左栏吃得到，右栏会从 0 开始（2026-11-27）。 */
+}
+
+body.slides-printing .cm-md-slide-two-col:not(.cm-md-page-start) {
+  display: inline-block;
+  width: 47.5%;
+  vertical-align: top;
+}
+
+/* ════ figure · 图表 / 图片独立页 ════
+ *
+ * 约定：标题与 kpi 页同一档（标准 4.2em、左对齐），图占画面约七成并居中，
+ * 不再铺满整屏；最高 66vh，避免压到页脚。 */
+
+/* 放映与导出都是「看图」场景，图表的缩放控件（.pele-zoom）没有意义，
+ * 一律藏掉——普通文章打印（body.paper）在 print-layout.ts 已经这么做了。 */
+body.presenting .pele-zoom,
+body.slides-printing .pele-zoom {
+  display: none !important;
+}
+
+body.presenting #editor[data-slide-layout='figure'] .cm-md-page-lead {
+  margin-bottom: 0.6em;
+}
+
+body.presenting #editor[data-slide-layout='figure'] .cm-md-mermaid,
+body.presenting #editor[data-slide-layout='figure'] .cm-md-image {
+  width: 70%;
+  max-width: 70%;
+  padding: 0;
+  margin: 0 auto;
+}
+
+body.presenting #editor[data-slide-layout='figure'] .cm-md-mermaid svg,
+body.presenting #editor[data-slide-layout='figure'] .cm-md-image img {
+  width: 100%;
+  max-width: 100%;
+  max-height: var(--slide-figure-max-h);
+  height: auto;
+}
+
+/* 导出：标题/导语走标准页角色，图的高度上限与放映同一档（66vh）。纸面 1080 高，
+   vh 在纸面与在 1920×1080 的窗口里解出同一个数。
+   图是块级 widget，`cm-md-slide-figure` 由 slideshow 的 tagBlockWidgets 补在同一个
+   元素上，所以这里必须写紧凑选择器（.a.b）：原来的后代写法选不中它，图会退回
+   固有尺寸，和放映的 70% 宽不是一个大小。 */
+body.slides-printing .cm-md-slide-figure.cm-md-page-lead {
+  margin-bottom: 0.6em;
+}
+
+body.slides-printing .cm-md-slide-figure.cm-md-mermaid,
+body.slides-printing .cm-md-slide-figure .cm-md-mermaid,
+body.slides-printing .cm-md-slide-figure.cm-md-image,
+body.slides-printing .cm-md-slide-figure .cm-md-image {
+  width: 70%;
+  max-width: 70%;
+  padding: 0;
+  margin: 0 auto;
+}
+
+/* 高度上限要带 #editor：图那条通用规则是 (1,1,2)，不带 id 的 figure 规则
+   压不过它，66vh 会被 72vh 顶掉。 */
+body.slides-printing #editor .cm-md-slide-figure.cm-md-mermaid svg,
+body.slides-printing #editor .cm-md-slide-figure .cm-md-mermaid svg,
+body.slides-printing #editor .cm-md-slide-figure.cm-md-image img,
+body.slides-printing #editor .cm-md-slide-figure .cm-md-image img {
+  width: 100%;
+  max-height: var(--slide-figure-max-h);
+  height: auto;
+}
+
+/* ════ quote · 引言页 ════
+ *
+ * 约定：一段引用（> …），引用后一行普通文字可作署名（右对齐）。
+ * 大引号加在紧跟指令行的第一个引用行上；多段引用只出一次引号。 */
+body.presenting .cm-md-slide-quote .cm-md-blockquote,
+body.slides-printing .cm-md-slide-quote .cm-md-blockquote {
+  border-left: none;
+  text-align: left;
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  font-size: var(--slide-quote-size, 2.4em);
+  font-style: italic;
+  line-height: 1.45;
+  max-width: 78%;
+  color: var(--text-secondary);
+}
+
+body.presenting .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before,
+body.slides-printing .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before {
+  content: '\201C';
+  display: block;
+  height: 0.55em;
+  font-size: 3.2em;
+  font-style: normal;
+  line-height: 0.6;
+  color: var(--pele-accent);
+}
+
+/* ════ closing · 结论收束（dsh-ppt: closing.summary）════
+ *
+ * 约定：一句 h1/h2 收束判断，加一个行动清单。整体压淡，
+ * 清单项换 ▸ 前缀（原列表符号藏掉）。 */
+body.presenting #editor[data-slide-layout='closing'] .cm-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 92vh;
+}
+
+body.presenting #editor[data-slide-layout='closing'] .cm-md-page-title {
+  font-size: var(--slide-closing-title-size, 4.2em);
+  line-height: 1.1;
+  max-width: 16em;
+  animation: slide-rise 0.6s ease-out both;
+}
+
+body.presenting #editor[data-slide-layout='closing'] .cm-content,
+body.slides-printing .cm-md-slide-closing {
+  color: var(--text-muted);
+}
+
+body.presenting .cm-md-slide-closing.cm-md-li,
+body.slides-printing .cm-md-slide-closing.cm-md-li {
+  list-style: none;
+}
+
+body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-closing .cm-md-listmark {
+  display: none;
+}
+
+body.presenting .cm-md-slide-closing.cm-md-li::before,
+body.slides-printing .cm-md-slide-closing.cm-md-li::before {
+  content: '\25B8  ';
+  color: var(--pele-accent);
+}
+
+body.slides-printing .cm-md-slide-closing.cm-md-page-title {
+  font-size: var(--slide-closing-title-size, 4.2em);
+  line-height: 1.1;
+  max-width: 16em;
+}
+
+/* ════ 内容元素：列表 / 强调 / 代码 / 引用 / 表格 / 图片 ════
+ *
+ * 这些元素在幻灯片里是「顺带出现」的，画法要按 PPT 的读法走：符号收进强调色、
+ * 边框收掉、字号按元素性质缩放。版式自己的专用画法（kpi 的大数字、matrix 的
+ * 卡名、closing 的 ▸）选择器多一个 cm-md-slide-* 类，权重更高，不受这里影响。 */
+
+/* 列表符号：强调色、稍收紧，与文字之间留一点气。 */
+body.presenting .cm-md-listmark,
+body.slides-printing .cm-md-listmark {
+  color: var(--pele-accent);
+  font-weight: 600;
+  padding-right: 0.15em;
+}
+
+/* 正文里的加粗与斜体都借强调色与衬线：演讲时观众一眼抓到关键词。 */
+body.presenting .cm-md-strong,
+body.slides-printing .cm-md-strong {
+  color: var(--pele-accent);
+}
+
+body.presenting .cm-md-em,
+body.slides-printing .cm-md-em {
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+}
+
+/* 行内代码：缩到正文的 0.86，去掉文档式边框，用极淡的同色底。 */
+body.presenting .cm-md-inlinecode,
+body.slides-printing .cm-md-inlinecode {
+  font-size: 0.86em;
+  padding: 0.08em 0.34em;
+  border: none;
+  border-radius: 4px;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+}
+
+/* 代码块：字号再小一档，内距放宽，圆角收边；放映一律折行，横向滚动在
+ * 幻灯片上等于内容被切掉。
+ * 纵向内距必须是 0：CM6 给代码块每一行都打 cm-md-codeblock，纵向 padding
+ * 会逐行累加（行距撑成 2em、导出直接跨页），留白交给行高与首尾圆角。 */
+body.presenting .cm-md-codeblock,
+body.slides-printing .cm-md-codeblock {
+  font-size: 0.82em;
+  line-height: 1.55;
+  padding: 0 1.1em;
+  border-radius: var(--pele-radius, 8px);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 引用（非 quote 版式）：一根强调色细线，字号略降，与被引正文拉开层次。 */
+body.presenting .cm-md-blockquote,
+body.slides-printing .cm-md-blockquote {
+  border-left: 2px solid var(--pele-accent);
+  padding-left: 1em;
+  font-size: 1.02em;
+  color: var(--text-secondary);
+}
+
+/* 表格：表头一根强调色粗线定标，行线压到最细，内距放宽——PPT 的表格
+ * 读的是列，不是网格。 */
+body.presenting .cm-md-table-widget table,
+body.slides-printing .cm-md-table-widget table {
+  font-size: 0.88em;
+  border-collapse: collapse;
+}
+
+body.presenting .cm-md-table-widget th,
+body.slides-printing .cm-md-table-widget th {
+  font-family: var(--slide-title-font, var(--slide-serif, Georgia, serif));
+  padding: 0.5em 0.7em;
+  border-bottom: 2px solid var(--pele-accent);
+}
+
+body.presenting .cm-md-table-widget td,
+body.slides-printing .cm-md-table-widget td {
+  padding: 0.45em 0.7em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* 图片：一张图不该撑破一页。放映按视口高度收，导出按纸面高度收——纸面 1080 高，
+ * 导出会把令牌定成纸面的那一档（见 slides-export.ts）。 */
+body.presenting #editor img,
+body.slides-printing #editor img {
+  max-height: var(--slide-img-max-h);
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: var(--pele-radius, 8px);
+}
+
+/* mermaid 等 SVG 图：放映时受 base.css 的 72vh 上限，导出没有窗口视口，用纸面
+ * 1080 的 72vh 定死同一个比例，否则大图会撑破一页、再被整页 zoom 压小。
+ * 不带 #editor：figure 版式那条（0,4,2）要压得过这一条（0,3,2）。 */
+body.slides-printing .cm-content svg {
+  max-height: var(--slide-img-max-h);
+}
+
+/* 分页符残留：分隔线是分页边界，不是正文的一行，放映时不画。不带 #editor
+ * 是刻意的——页内 slide-css 想把某条线当进度条用时，要压得过这一条。
+ * 打印侧另有一条带 !important 的隐藏规则（slides-export.ts）。 */
+body.presenting .cm-md-hr {
+  display: none;
+}
+
+/* ─── 导出防跨页（不改放映的排版）────────────────────────────────────
+ * kpi/matrix 卡片、timeline 节点、steps 步骤行、two-col 单元在导出下都是
+ * 流式排在纸上的，条目可能被拦腰切到两页上。这里只加 break-inside: avoid
+ * ——宁可整条挪到下一页，不在半截切断。
+ *
+ * 排版本身（字号、行高、内距）与放映共用同一份规则：纸面 1920×1080 就是
+ * 放映的设计空间，之前那套「导出再收一档」的密度校准（基准 24px、
+ * 行高 1.62、代码块 0.72em、表格 0.75em）连同它的理由一起删掉了——
+ * 它是为了把写死的 24px 塞进纸面，导出字号回到与放映一致后就不再需要
+ * （2026-11-23）。真装不下的页由 slides-export.ts 整页等比压回一页。 */
+body.slides-printing .cm-md-slide-kpi.cm-md-li,
+body.slides-printing .cm-md-slide-matrix.cm-md-li,
+body.slides-printing .cm-md-slide-timeline.cm-md-li,
+body.slides-printing .cm-md-slide-steps.cm-md-li,
+body.slides-printing .cm-md-slide-two-col:not(.cm-md-page-start) {
+  break-inside: avoid;
+}

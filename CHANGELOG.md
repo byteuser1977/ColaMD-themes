@@ -5,6 +5,91 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.4] - 2026-11-28
+
+### Added — Markdown 文件就地按主题渲染（DSH 文档预览）
+
+- **文档预览渲染器**（`client/client.js` 的 `DocumentBody`）：向 `documentPreviews` 注册 id 为 `@bytechain.cn/colamd-themes/document` 的渲染器（扩展名 `md` / `markdown` / `mdx`，`priority: "extension"`，`loading: "text-pages"`），DSH 右侧文档预览打开 Markdown 时可在渲染器下拉里选「ColaMD 主题」；正文挂到 shadow root，主题 CSS 与正文都限定在阴影树内，不再需要导出 HTML 或另开浏览器
+- **宿主渲染路由**（`src/dsh-plugin.ts`）：`POST /api/bytechain/colamd-themes/render`，请求 `{ markdown, theme? }`（4 MiB 上限），返回 `{ ok, theme, title, tone, css, html }`；`theme` 缺省或无效时回落到当前选择；仅接受同源 POST（403 `untrusted-origin`），非 POST 405
+- **片段渲染**（`src/dsh-preview.ts` 的 `renderThemeFragment`）：把主题样式表的 `:root` 改写成 `:host`，独立文档的基础样式压平成 `${FRAGMENT_CSS}`（`html` 规则丢弃、`body` 改 `:host`），并补 `:host { display: block }` 与 `.ct-doc-mount { min-height: 100% }`
+- 窄栏可读性：片段渲染把 `p` / `li` / 引用段落统一改左对齐——主题的两端对齐在 400–600px 的侧边栏里会拉出字间大空档
+- **标题栏主题选择**（`client/client.js` 的 `DocumentThemeSwitch`）：文档预览标题栏里、渲染器下拉右侧出现一枚主题胶囊（调色板图标 + 当前主题名），点开就是与输入框胶囊**同一套面板**——搜索框、`全部 / 浅色 / 深色 / 暖调 / 冷调` 分类分组、样例卡片；选卡后写回同一份选择并收起面板（不再额外打开侧边栏预览页签，因为当前就在文档页签里），正文即时重渲染。注册在 `sidebar.right.tab.document.action`（按渲染器 id 分键），因此只在选中「ColaMD 主题」时出现；面板向下展开并按视口夹取
+- 打开 Markdown 时按界面上当前选中的主题渲染（`DocumentBody` 把 store 里的选择随请求发给 `/render`，选择变化立即重渲染）
+
+### Added — 幻灯片（PPT）模式与导出
+
+- **幻灯片模式**（`src/dsh-preview.ts` 的 `splitDeck` / `paginateDeck` / `renderSlidesFragment`）：文档预览标题栏多了「文稿 / 幻灯片」胶囊。切到幻灯片后，Markdown 先按 `<!-- slide -->` 注释、`---` 分隔线或 `#`/`##` 标题切页，再按内容权重自动续页（列表按条目、表格按行并重复表头、代码按行），标题沿用、续页不重复；版式是 16:9 容器查询（`container-type: inline-size` + `cqw`），全部尺寸走主题的 `--slide-*` 令牌（58 个主题里 37 个带幻灯片令牌），顶部 accent 细条 + 左上品牌 + 右上 `1 / N`；`--slide-fit` 由内联脚本按溢出情况逐级缩放（1 → 0.42，最多 30 次）
+- **导出（幻灯片 PDF / PPTX / A4 文档 PDF / Word）**（`POST /api/bytechain/colamd-themes/export`，`src/dsh-export.ts`）：标题栏「导出」胶囊按当前模式给选项——幻灯片模式给「幻灯片 PDF（16:9）」与「幻灯片 PPT（.pptx）」，PDF 一页一张、页面 960×540pt；文稿模式给「文档 PDF（A4）」与「Word 文档（.docx）」。PPTX 由零依赖 OOXML 构造器写出：每页仍是显式文本框（kicker、accent 标题、正文与要点、可选代码框），所以能改字改版，但**只做尽力还原**——PowerPoint 的固定文本框不像浏览器那样按容器宽度缩放，`--slide-*` 令牌与分栏、hairline 这类细节不会 1:1 重现；要「与页面一模一样」请用幻灯片 PDF。`format=pptx` 仅在 `mode=slides` 下接受，文稿模式仍返回 400 `bad-format`。文件名取自 Markdown 首个标题，经 `content-disposition` 的 `filename*=UTF-8''` 回传
+- **零依赖 OOXML 生成**（`src/dsh-zip.ts` + `src/dsh-office.ts`）：自己写 STORE 压缩包（CRC32、UTF-8 文件名标志、固定时间戳保证可复现）与 `buildDocx` / `buildPptx`，不引入任何 pptx/docx 库；Word 侧样式覆盖 Normal/Heading1-4/Quote/Code/ListParagraph 与两级编号、表格表头重复；PPT 侧标题 32pt 加粗主色、正文 18pt、要点 `a:buChar •`、代码 12pt 等宽深色底，每个 run 都写 `a:latin/a:ea/a:cs` 免得中文回退成西文字体
+- `src/dsh-preview.ts` 重构出块级 AST（`parseBlocks` / `MdBlock` / `blockPlainText` / `plainInline`），HTML 渲染与 Office 导出共用同一份解析；重构前后 4 篇真实文档（demo、CHANGELOG、README、README_CN）的 HTML 输出逐字节一致
+- PDF 走宿主侧的 puppeteer（`printPdf`，`printBackground` + `preferCSSPageSize` + 零边距）；幻灯片打印前先把文档外层的 margin/padding 清零，否则第一页会被顶下去、14 页排成 16 页
+
+### Fixed — 幻灯片改用上游 ColaMD-extend 的同一套样式表渲染
+
+- **共用 `slides.css`**：上游没有第二套幻灯片 HTML —— 它给编辑器实体的行（`div.cm-line`）加 `cm-md-page-N` / `cm-md-slide-<layout>` / `cm-md-page-title` 等类名，再交给 `themes/slides.css` 排版。现在把这份样式表纳入构建产物（`src/templates/slides.css` → `dist/templates/slides.css`），渲染时只在选择器层面做映射：`body.presenting` → `.ct-stage.presenting`、`body.slides-printing` → `.ct-stage.printing`、`#editor` → `.cm-page`（每页一个 1920×1080 纸盒）。字号阶梯、chrome、页脚、十一种版式全部与上游逐字一致，不再维护第二套 `.ct-slide` 样式
+- **纸面与令牌定值**：沿用上游 `PAPER` 的解（`--slide-body-size 25.92px`、`--slide-page-pad-x 115.2px`、`--slide-chrome-pad-y 34.56px`、`--slide-foot-pad-y 25.92px`、`--slide-img-max-h 777.6px` …），避开 `vw/vh` 在缩放与打印时的漂移；`.cm-content` 的上下内边距再让开 chrome 与页脚，标题不再被品牌行压住
+- **页头指令真正被解析**：`<!-- slide: <layout>` 开头的多行块（内含 `kicker:` / `label:` / `chapter:`）、单行 `<!-- slide-kicker: … -->`、deck 级 `<!-- deck-brand: … -->` / `<!-- deck-meta: … -->` 都进入解析；未知指令整段吞掉。此前这些 HTML 注释会被当成正文段落，画面上直接漏出 `<!-- slide: agenda label: 路线图 -->` 这行字
+- **主题自己的幻灯片规则同样生效**：主题里的分版式配色也写在 `body.presenting` / `#editor` 作用域下（例如 pink-script-dark 的品红封面标题、光晕、agenda 大序号），所以主题 CSS 与 `slides.css` 走同一套选择器映射；顺序改成「先 `slides.css` 基础份、后主题覆盖」，与上游加载顺序一致，主题的 `--slide-page-top-pad`、`--slide-kicker-size` 不再被默认值压掉
+- **单位按纸面解析**：把样式表里的 `vw` / `vh` 统一换成 `cqw` / `cqh`，每页 1920×1080 纸盒作为尺寸容器 —— 窗口宽度、缩放到 66%、打印成 1440×810pt 时字号与留白都等于上游在 1920×1080 下的数值，不再随视口漂移
+- **非全屏按页流动显示**：标签页里的幻灯片是「所有页按 1920×1080 排版后整体等比缩放、纵向逐页排列」的滚动视图（页与页之间留阴影间距），全屏才是一页一屏的 deck；三态共用同一份纸面、同一套字号，只是缩放方式不同：标签页里的幻灯片改成「全部页纵向排列、每页一张白卡」的滚动浏览（复用放映那套规则，整体按容器缩放），点「全屏」才进入一页一屏的 deck 模式（`←/→` 翻页、`F` 全屏）
+- **放映与导出一致**：放映一屏一页（`data-active` + `--deck-scale`，「只显示当前页」），幻灯片 PDF 用同一份 DOM 加 `@page { size: 1920px 1080px }` 与逐页 `break-after`，10 页演示稿实测 10 页 1440×810pt、无空白页；`paginateDeck` 续页不重复标题与导语
+
+### Fixed — 导出与页面观感对齐
+
+- **文档模式隐藏注释**：`parseBlocks()` 先摘掉 HTML 注释（含跨行、含行内片段，代码块里原样保留），`<!-- slide: cover label: 技术文档总结 -->` 这类指令行不再以 `&lt;!-- … --&gt;` 字面量出现在文稿渲染与 A4 PDF 里，与 ColaMD-extend 编辑器里「注释不可见」的行为一致
+
+- **平台依赖升级到 `@bytechain.cn/colamd@2.8.2`**：`devDependencies` 由 `^2.8.0` 抬到 `^2.8.2`；`SUPPORTED_CONTRACTS` 增加 `2.8.2`（与 2.8.0 共用同一份 `contract.json`，27 个活变量 / 18 个死变量不变），`getColamdCompat()` 因此回到 `status: "exact"`，不再打印契约漂移告警。2.8.2 的 `dist/lib/colamd-renderer.js`（3.59 MB）与 `themes/contract.json` 仍在原路径，`renderMarkdown` 实测渲染 1.57 MB 文档正常。
+
+- **幻灯片标题字体跟随文档**：slides.css 的默认 --slide-title-font 改为 ar(--font-heading, var(--font-body, var(--slide-serif)))，主题显式声明 --slide-title-font 的仍以主题为准；实测 elegant / academic-paper 等未声明该令牌的主题，幻灯片标题字体与文档标题完全一致
+
+- **幻灯片 PDF 与页面同款**：打印态同时挂 `presenting` 与 `printing` 两个类（主题里只写在 `presenting` 作用域的版式字号同样生效），页面内容超出纸面时按 `内容高度 / 纸面高度` 算一次 `transform: scale()`（不用 `zoom`——它会改动 `container-type: size` 纸面的查询尺寸，字号会被反复压缩），同一段逻辑在放映脚本里复用，所以标签页、全屏、PDF 三处的字号与版式一致
+- **长标题按字数收敛**：封面 / 章节 / 收束 / 议程的标题按 CJK 计 2、其余计 1 的字数分档降一级字号，长标题不再撑破纸面（屏幕与导出同时生效）
+
+- **打印前先切 print 媒体再量一次**：`printPdf` 现在 `emulateMediaType('print')` → 等 `document.fonts.ready` → 调 `window.__colamdFitSlides()` → 再 `page.pdf()`。屏幕量出的缩放值在分页环境下不成立，之前会带着它印到纸上
+- **封面版式不再吞整节内容**：只有「标题 + 一句副标」（≤1 块且权重 <260）才用 cover 版式，其余退回普通版式；cover/section 的垂直居中改成 `margin-top: auto`，内容超高时向上溢出不再把标题切掉
+- **A4 打印样式**（`DOCUMENT_PRINT_CSS`）：`@page { size: A4; margin: 0 }` + `.colamd-document` 逐页克隆 `15mm 14mm` 内边距（`box-decoration-break: clone`），续页不再贴纸边；`html/body/.colamd-document` 背景统一取 `--page-bg`（缺省回落 `--seed-surface`），深色主题整页黑底而不是白纸边；表格/代码块 `break-inside: avoid`、标题 `break-after: avoid`
+- **块权重计入固定开销**：`blockWeight` 给每块加 24–30 的固定项，密集短块的页才会被 `paginateDeck` 拆开，而不是缩到 0.4 倍还溢出
+- **中文邻近的斜体解析**：行内 `*斜体*` 的边界原来只认 ASCII 空白/标点，`**粗体**、*斜体*、` 这种写法会把星号原样漏进正文与导出文件；现在边界也接受中文与全角标点（影响文档预览、幻灯片、A4 PDF、Word）
+- **全屏改成页面内浮层**：`window.open` 在 DSH 外壳里会被 `setWindowOpenHandler` 拒掉，新窗口也拿不到本窗口的登录态（表现为点了没反应、提示拦截、或打开空白页）。现在「全屏」直接在本窗口铺一个 `position: fixed` 的浮层，里面用同源 iframe 加载宿主 `/present` 页并 `requestFullscreen()`：不依赖弹窗策略、不依赖新窗口会话、`Esc` 退出；iframe 内的演示脚本检测 `window.self === window.top`，嵌在浮层里时不再自己抢全屏
+
+### Added — 全屏演示窗口
+
+- **独立弹出窗口**（标题栏「全屏」胶囊 + 预览页签的同名按钮）：Electron 外壳的 `secureWindow` 只放行指向 `http://127.0.0.1|localhost` 的 `window.open()`，空 URL 会被 `deny` 并返回 `null`，所以 `document.write` 那条路走不通。改为宿主交付一次性页面：`POST /api/bytechain/colamd-themes/present` 渲染后按 UUID token 存入进程内 `Map`（10 分钟 TTL、最多 24 份、每次写入前清理过期项），返回 `{ ok, url }`；`GET /present?token=…` 取回该页（过期或未知 token 返回 404 提示页），`GET /present?theme=…&mode=…` 则按当前主题现渲染示例稿，供主题预览页签使用
+- **演示层本身**（`src/dsh-preview.ts` 的 `renderPresentDocument` + `PRESENT_STYLE`/`PRESENT_SCRIPT`）：幻灯片模式一屏一页（`.ct-slide` 默认隐藏，`[data-active]` 才显示），`←/→`/`PageUp`/`PageDown`/空格/`Enter` 翻页、`Home`/`End` 跳首末页、`F` 切换 `requestFullscreen`、左右半屏点击翻页；文稿模式居中限宽 920px 并保留滚动。底部 HUD 显示 `1 / N ←/→ 翻页 · F 全屏`，2.2 秒淡出、移动鼠标再浮现。隐藏页量不到高度，所以每页在被激活后单独跑一次 `--slide-fit` 缩放（README_CN 60 页实测 0 页溢出）
+- 顺带修掉一个**幻灯片配色 bug**：`renderSlidesFragment` 把 `:root` 改写成 `:host` 是为了 shadow DOM，但 `renderSlidesDocument`（幻灯片预览页、幻灯片 PDF、全屏演示）是独立文档，`:host` 在那里是无效选择器，整块主题令牌失效、只剩 `SLIDES_CSS` 里的兜底色（恰好接近 elegant 的朱砂红，所以之前没被发现）。现在独立文档会把 `:host` 落回 `:root`，`linear-dark` 等深色主题的幻灯片终于用上自己的令牌（实测 `--seed-accent` 由 `#b0401f` 变成 `#6e79dd`）
+
+### Changed
+
+- `package.json`：`dsh.client.inject` 增补 `@deepseek-ai/dsh-client-ui-sidebar-documentpreview`，版本抬到 `0.8.4`
+- 客户端 `INJECT` 增补 `documentPreviews`；该服务缺失时只告警 `[colamd-themes] documentPreviews unavailable — Markdown keeps the builtin renderer`，其余界面照常
+
+## [0.8.3] - 2026-11-28
+
+### Added — DSH 主题选择器与侧边栏预览
+
+- **客户端 bundle**（[`client/client.js`](client/client.js)，手写、无构建步骤、只依赖平台模块表里的 `react`）：在输入框工具行左侧注册 **主题** 胶囊（`conversation.input.left`，`order: 12`），点开是主题样例卡片网格——缩略图的底色、主色条、正文/代码行全部取自该主题自己的种子令牌，因此不用等预览就能分辨深浅与色温；面板带搜索框与「全部 / 浅色 / 深色 / 暖调 / 冷调」分组，Esc、点击外部、窗口 resize 都会正确收起，定位按胶囊的实时矩形计算并夹在视口内
+- **侧边栏预览页**（`sidebarRightTabs` 页签 `colamd-themes-preview`，body 注册在 `sidebar.right.pane.tab`）：用 iframe 承载宿主生成的独立文档，工具栏支持 ‹ › 逐主题切换、窄栏（520px）/宽栏切换与重新加载；选择变化时 iframe 通过 `v=` 时间戳强制刷新。**选卡即预览**：卡片选中后写回选择并自动打开该页签（侧边栏收起时先展开），页脚的「在侧边栏预览」按钮与侧边栏引导入口保留为手动入口
+- **主题目录**（[`src/dsh-theme-catalog.ts`](src/dsh-theme-catalog.ts)）：解析 `themes/*.css` 的 banner 注释（`ColaMD 主题：…` / `ColaMD Theme: …` / `风格：…`）得到标题、副标题与说明，用首个 `:root` 块的种子色算明暗（相对亮度）与色温（HSL 饱和度/色相），产出 57 条目录（跳过 `template.css`）；15 秒 TTL 缓存 + 并发请求合并
+- **自带预览渲染器**（[`src/dsh-preview.ts`](src/dsh-preview.ts)）：Markdown → 语义 HTML 的全量实现（标题、表格含对齐、嵌套列表、任务列表、代码块、引用、行内 code/link/strong/em/del/mark），输出 `<!doctype html>` 独立文档并把主题 CSS 包在 `<article class="colamd-document">` 外层——**运行时不依赖 `@bytechain.cn/colamd`**，主题样式完整隔离在 iframe 内
+- **宿主 HTTP 路由**（`src/dsh-plugin.ts`，挂在 Harness `webServer` 服务上）：`/api/bytechain/colamd-themes/catalog`（目录 + 当前选择）、`…/preview`（独立预览文档，`theme` 白名单校验 + 20 秒 mtime 缓存 + 可选 `width=320…1600`）、`…/selection`（GET 读、POST 写，仅接受同源写入，其余方法 405）
+
+### Changed — DSH 插件契约
+
+- `src/dsh-plugin.ts` 的 `inject` 从 `["skills"]` 扩为 `["skills", "webServer"]`；`apply()` 变为 async 并返回路由 disposer；路由服务缺失时只告警 `[colamd-themes] UI routes unavailable: …`，skill provider 照常注册（AI 侧能力不受 UI 影响）
+- `package.json`：新增 `exports` 映射（`"."` / `"./client"` / `"./package.json"` / `"./dist/*"` / `"./themes/*"` / `"./skills/*"`）、`files` 加入 `client`、声明 `dsh.client`（`platform: "web"`、`immediately: true`、inject conversation/sidebar-right/locale），版本抬到 `0.8.3`
+- 当前选择持久化到 `~/.colamd-themes/dsh-ui.json`，加载时按目录校验，未知 id 回退 `elegant`
+
+### Fixed — 客户端取词
+
+- `ctx.locale.bind(ns)` 返回的是取词函数而非字典对象，早先按字典下标读取会让 `主题`、`预览` 等文案原地显示成字典键（`chip`、`groupDark`…）；`pick()` 现在兼容函数与字典两种形态
+- **面板改用 Popover 顶层层**：`conversation.input.left` 位于输入框卡片内，祖先带 `transform`/`overflow` 时 `position: fixed` 会被裁剪，面板现在是 `popover="manual"` + `showPopover()`（不支持时自动退化），并用 `inset: auto; margin: 0` 抵消 UA 默认定位
+- **`box-sizing: border-box`**：面板此前 `width` 只是内容宽，加上 24px 内边距与 2px 边框后会溢出视口夹取范围
+- **面板配色走 DSH 设计令牌**：原先用 `Canvas`/`CanvasText` 系统色，在 DSH 里会跟应用主题脱节；现改为 `--dsw-alias-bg-overlay` / `-bg-layer-1` / `-bg-layer-2` / `-border-l1` / `-border-l2` / `-brand-primary` / `-label-primary` / `-label-secondary` / `-state-error-primary`，各自带 `color-mix` 回退；`.ct-pv` 也声明同一组令牌（侧边栏不在 `.ct-root` 内），并补 `min-height: 260px` 防止 iframe 塌陷
+
+### Docs
+
+- `README.md` / `README_CN.md`：DSH 插件小节补充客户端入口、预览渲染与选择状态三条，目录树补 `client/client.js`、`dsh-theme-catalog.ts`、`dsh-preview.ts`
+
 ## [0.8.1] - 2026-11-24
 
 ### Fixed — Slide PDF export drops pages on long decks (PDF-03)

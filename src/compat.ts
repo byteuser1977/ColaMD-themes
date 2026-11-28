@@ -26,13 +26,15 @@ import { fileURLToPath } from "node:url";
 export const SUPPORTED_CONTRACT = "2.8.0";
 
 /**
- * Contracts we accept as "exact" — 2.8.0 stable only. Its contract.json is
- * identical to the 2.7.13 anchor (27 live / 18 dead variables unchanged);
- * 2.8.0 only refactors the slide PDF export (1920×1080 paper, per-page zoom
- * fit), so themes carry over unchanged.
+ * Contracts we accept as "exact". 2.8.0 and 2.8.2 ship the same contract.json
+ * as the 2.7.13 anchor (27 live / 18 dead variables unchanged) — 2.8.0
+ * refactored the slide PDF export (1920×1080 paper, per-page zoom fit) and
+ * 2.8.2 kept the token surface, so a 2.8.0-authorised theme runs on 2.8.2
+ * without a drift warning.
  */
 export const SUPPORTED_CONTRACTS: readonly string[] = Object.freeze([
   "2.8.0",
+  "2.8.2",
 ]);
 
 /** Minimum platform version with the slide layout system (2.7.13-rc.1+). */

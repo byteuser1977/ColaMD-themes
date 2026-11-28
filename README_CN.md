@@ -150,17 +150,57 @@ npm run build:skills -- dsh
 
 ### DSH 插件 (dsh-market)
 
-本包同时是可从 dsh-market 安装的 **DSH（DeepSeek Harness）插件 bundle**：
+本包同时是可从 dsh-market 安装的 **DSH（DeepSeek Harness）插件 bundle**。装入 DSH Profile 后同时提供三类能力：
 
-- **插件契约** — `package.json` 声明 `dsh.bundle.patch`，指向 [`cordis.patch.yml`](cordis.patch.yml)，向 Profile 组合树插入 `colamd-themes` Cordis Entry
-- **宿主入口** — [`src/dsh-plugin.ts`](src/dsh-plugin.ts) 导出 Cordis 协议（`name` / `inject: ["skills"]` / `apply`），经 `ctx.skills.registerProvider` 把捆绑的 `skills/colamd-themes/SKILL.md` 注册到 Harness `skills` 服务（与内置 dsh-ppt 插件同一 provider 协议）
-- **CLI 命令** — `colamd-themes` / `cthemes` 随包分发，安装后 Profile 内 Agent 可直接调用
-- **运行时兼容** — `@deepseek-ai/dsh-skill` 声明为 *optional* peer（`^0.2.0-rc || ^0.2.1-rc || ^0.2.2-rc || ^0.2.3-rc || ^0.2.4-rc || ^0.2.5-rc || ^0.2.6-rc || ^0.2.7-rc || ^0.2.8-rc || ^0.2.9-rc`，semver 预发布规则要求每个 rc 补丁位单独枚举，现已覆盖 0.2.x 全部小版本 rc（0.2.0～0.2.9），后续 0.2 小版本 rc 无需再改；0.1.x 与 0.3+ 宿主线不在支持范围内）：market 按 DSH 运行时版本校验，独立 `npm install` 不受影响
-- **向后兼容** — 运行时只消费 dsh-skill 的稳定常量 `BUNDLED_SKILL_RANK`，宿主入口 `apply()` 对 skills 服务协议漂移容错（降级为警告，不阻塞 Profile 加载）
-- **平台兼容层** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移，渲染器初始化时校验导出 API 面；平台升级导致的契约/API 变化在 `cthemes validate` 与导出阶段给出明确诊断，而非神秘报错
-- **Bundle 内容** — `dist/`（CLI + 宿主入口）、`themes/`（58 个契约 CSS 主题文件，全部通过 `validate`）、`skills/`（捆绑 skill）、`cordis.patch.yml`
+1. **Agent skill** — 捆绑的 `colamd-themes` skill（主题提取 / 校验 / 幻灯片 / 导出），注册到 Harness `skills` 服务
+2. **UI 集成** — 输入框主题胶囊、侧边栏预览页签、Markdown 就地渲染（含幻灯片模式）、文件导出与全屏演示窗口
+3. **CLI 命令** — `colamd-themes` / `cthemes`，安装后 Profile 内 Agent 可直接调用
 
 从 DSH Profile 安装（npm 发布后）：在 dsh-market 界面添加 `@bytechain.cn/colamd-themes`，或执行 `dsh plugin --profile <name> add @bytechain.cn/colamd-themes`。
+
+#### 架构
+
+| 组成 | 文件 | 职责 |
+|------|------|------|
+| 插件契约 | [`cordis.patch.yml`](cordis.patch.yml) | `package.json` 声明 `dsh.bundle.patch`，向 Profile 组合树插入 `colamd-themes` Cordis Entry |
+| 宿主入口 | [`src/dsh-plugin.ts`](src/dsh-plugin.ts) | 导出 Cordis 协议（`name` / `inject: ["skills", "webServer"]` / `apply`）。经 `ctx.skills.registerProvider` 把捆绑的 `skills/colamd-themes/SKILL.md` 注册到 Harness `skills` 服务（与内置 dsh-ppt 插件同一 provider 协议），并在 Harness `webServer` 服务上挂载下表六条 HTTP 路由。某个服务不可用时只告警——skill 注册与 CLI 命令照常生效 |
+| 客户端入口 | [`client/client.js`](client/client.js) | 手写的客户端 bundle（`package.json` 的 `dsh.client`，无需构建，只依赖 React）。占三个席位：输入框工具行的主题胶囊（`conversation.input.left`）、侧边栏 `colamd-themes-preview` 页签（`sidebar.right.pane.tab`）、文档标题栏胶囊（`sidebar.right.tab.document` / `sidebar.right.tab.document.action`） |
+| 主题目录 | [`src/dsh-theme-catalog.ts`](src/dsh-theme-catalog.ts) | 解析 `themes/*.css` 的头注释与 `:root` 种子色，产出目录条目（标题 / 副标题 / 明暗 / 色温 / 令牌）；15 秒 TTL 缓存 + 并发合并——一张坏样式表不会拖垮整个目录 |
+| 预览渲染 | [`src/dsh-preview.ts`](src/dsh-preview.ts) | 自带 Markdown→HTML 渲染器，外加独立文档模板、shadow 片段渲染与幻灯片渲染。预览运行时不需要 `@bytechain.cn/colamd`，主题 CSS 完整隔离在 iframe / shadow root 内，不污染应用 DOM |
+| 导出写入 | [`src/dsh-export.ts`](src/dsh-export.ts) · [`src/dsh-office.ts`](src/dsh-office.ts) · [`src/dsh-zip.ts`](src/dsh-zip.ts) | puppeteer 打印 PDF + 零依赖 OOXML 构造器——`buildDocx` / `buildPptx` 跑在 STORE 压缩包写入器上（CRC32、UTF-8 文件名标志、时间戳固定保证可复现） |
+
+#### 界面功能
+
+- **选主题** — 输入框工具行的 **主题** 胶囊点开是全部主题的卡片网格，每张缩略图都用该主题自己的种子色绘制，深浅与色温一眼可辨；面板带搜索框与「全部 / 浅色 / 深色 / 暖调 / 冷调」分组，选卡即写入选择，侧边栏预览立刻重渲染
+- **侧边栏预览** — `colamd-themes-preview` 页签用 iframe 承载所选主题的示例文档，支持 ‹ › 逐主题切换、窄栏 / 宽栏与重新加载；选择变化时经 `v=` 时间戳强制刷新
+- **Markdown 就地渲染** — 右侧边栏打开 Markdown（`md` / `markdown` / `mdx`）时，渲染器下拉里可选「ColaMD 主题」（渲染器 id `@bytechain.cn/colamd-themes/document`，注册在 `documentPreviews`）。正文由宿主 `POST /render` 渲染成主题片段挂进 shadow root：`renderThemeFragment` 把主题的 `:root` 改成 `:host`、把独立文档的 `body` 层压平，主题样式既不外泄也不需要导出 HTML 或另开浏览器。文档标题栏的主题胶囊点开是与输入框同一套「搜索 + 分类分组」面板，选中后正文就地重渲染，并与托盘胶囊、侧边栏预览页签保持同步
+- **幻灯片模式** — 「文稿 / 幻灯片」胶囊把预览切到上游 ColaMD-extend 的 deck 契约：`---` 分页，页首可写 `<!-- slide: <layout>` 多行块（带 `kicker:` / `label:` / `chapter:` 字段），deck 级用 `<!-- deck-brand: … -->` 一类指令。十一种版式（`cover / section / agenda / kpi / timeline / steps / matrix / two-col / figure / quote / closing`）按上游 `slides.css` 排版——kicker 在标题上、标题后第一段为导语、页眉品牌 + hairline、页脚品牌与页码。尺寸按页宽 `cqw` 缩放，可用主题的 `--slide-*` 令牌覆盖；内容超重时自动续页，内联脚本再按溢出逐级缩放
+- **导出** — 「导出」胶囊按当前模式给选项，并且一律打印「页面上那一版 CSS」，不做二次实现：
+  - 幻灯片模式：**幻灯片 PDF（16:9）**——一页一张、960×540pt，打印前在 print 媒体下重跑一次自适应缩放；以及 **幻灯片 PPT（.pptx）**
+  - 文稿模式：**文档 PDF（A4）** 与 **Word（.docx）**
+  - PPTX 由零依赖 OOXML 构造器写成显式文本框（kicker、accent 标题、正文、要点、可选代码框），可继续编辑，但只是**尽力还原**——PowerPoint 的文本框位置固定、不随页面缩放，`--slide-*` 令牌、分栏与 hairline 不会 1:1 重现，要「与页面一模一样」请用幻灯片 PDF。`format=pptx` 只在 `mode=slides` 下接受（文稿模式返回 400 `bad-format`）
+  - PDF 由宿主侧 puppeteer 打印（切 print 媒体 + 等 `document.fonts.ready` + 页面零边距、逐页克隆 `15mm 14mm` 内边距、`--page-bg` 铺满整页）
+- **全屏演示** — 「全屏」胶囊（以及预览页签上的独立按钮）打开真正的独立窗口，不在侧边栏里挤。Electron 外壳只放行指向 `http://127.0.0.1|localhost` 的弹窗，因此演示页由宿主渲染并用一次性地址交付。幻灯片支持 `←/→`、空格翻页，`Home`/`End` 跳页，`F` 切全屏，左右半屏点击也能翻页；文稿模式是居中的 920px 单栏
+
+#### HTTP API
+
+全部路由以 `exact` 方式挂在 Harness `webServer` 服务的 `/api/bytechain/colamd-themes` 前缀下。写接口只接受同源请求（校验 `sec-fetch-site` / `origin`，其余返回 403 `untrusted-origin`）。
+
+| 路由 | 方法 | 用途 |
+|------|------|------|
+| `/catalog` | GET | 主题目录 + 当前选择 |
+| `/preview` | GET `?theme=&mode=&width=` | 独立预览 HTML（20 秒 mtime 缓存；width 320–1600） |
+| `/render` | POST `{markdown, theme?, mode?}` ≤4 MiB | 供 shadow DOM 挂载的主题片段；theme 缺省或无效时回落当前选择 |
+| `/selection` | GET / POST `{theme}` | 读 / 写 UI 选择——持久化到 `~/.colamd-themes/dsh-ui.json`，按目录校验（未知 id 回退 `elegant`） |
+| `/export` | POST `{format, mode?, markdown, theme?, title?}` | 二进制下载（`pdf` / `docx` / `pptx`）；文件名经 RFC 5987 `content-disposition` 回传；缺 Chromium 时返回 503 并附可操作提示 |
+| `/present` | GET `?token=` · GET `?theme=&mode=` · POST | 全屏交付：POST 把渲染结果按 UUID token 存入内存（10 分钟 TTL、最多 24 份）并返回 `{ ok, url }`；无 token 的 GET 按当前主题现渲染示例稿给预览页签 |
+
+#### 兼容性
+
+- **运行时 peer** — `@deepseek-ai/dsh-skill` 声明为 *optional* peer（`^0.2.0-rc || ^0.2.1-rc || … || ^0.2.9-rc`，semver 预发布规则要求每个 rc 补丁位单独枚举，现已覆盖 0.2.x 全部小版本 rc（0.2.0～0.2.9），后续 0.2 小版本 rc 无需再改；0.1.x 与 0.3+ 宿主线不在支持范围内）：market 按 DSH 运行时版本校验，独立 `npm install` 不受影响
+- **向后兼容** — 运行时只消费 dsh-skill 的稳定常量 `BUNDLED_SKILL_RANK`，宿主入口 `apply()` 对 skills 服务协议漂移容错（降级为警告，不阻塞 Profile 加载）
+- **平台兼容层** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移，渲染器初始化时校验导出 API 面；平台升级导致的契约/API 变化在 `cthemes validate` 与导出阶段给出明确诊断，而非神秘报错
+- **Bundle 内容** — `dist/`（CLI + 宿主入口 + 预览/幻灯片渲染器 + OOXML 写入器）、`client/`（客户端 bundle）、`themes/`（58 个契约 CSS 主题文件，全部通过 `validate`）、`skills/`（捆绑 skill）、`cordis.patch.yml`
 
 ## 安装
 
@@ -495,6 +535,8 @@ ColaMD-themes/
 ├── .trae/rules/colamd-themes.md           # Trae 规则
 ├── .trae/skills/colamd-themes/            # Trae 项目级 Skill
 ├── cordis.patch.yml                        # DSH 插件 bundle patch（dsh-market）
+├── client/
+│   └── client.js                           # DSH 客户端 bundle：输入框主题胶囊 + 侧边栏预览
 ├── package.json
 ├── tsconfig.json
 ├── themes/                                  # 生成的 CSS 主题
@@ -506,7 +548,9 @@ ColaMD-themes/
 │   ├── renderer.ts                          # Puppeteer HTML/PDF 导出引擎
 │   ├── export-cli.ts                        # 导出 CLI 命令
 │   ├── theme-store.ts                       # 主题配置持久化（异步 API）
-│   ├── dsh-plugin.ts                        # DSH 宿主入口（Cordis skill provider）
+│   ├── dsh-plugin.ts                        # DSH 宿主入口（skill provider + UI HTTP 路由）
+│   ├── dsh-theme-catalog.ts                 # themes/*.css → 主题目录条目（标题/明暗/色温/令牌）
+│   ├── dsh-preview.ts                       # 自带 Markdown → 独立预览文档渲染
 │   ├── compat.ts                            # 平台兼容层（双契约 + 幻灯片探测 + 渲染器 API 探测）
 │   ├── slides.ts                            # PPT --slide-* 令牌、预设与品牌派生（2.7.13）
 │   ├── slides-markdown.ts                   # Markdown → 幻灯片 Markdown 转换 + 指令契约校验
