@@ -185,8 +185,14 @@ description:
 | 0xsline/awesome-deepseek-harness | `README.md` + `README.zh-CN.md`「UI, Themes & Interaction」 | 已提 PR [#901](https://github.com/0xsline/awesome-deepseek-harness/pull/901) |
 | Dominic789654/awesome-deepseek-harness | 已有条目（「Documents & Export」），本次只换描述 | 已提 PR [#812](https://github.com/Dominic789654/awesome-deepseek-harness/pull/812) |
 | Zhiyuan-Fan/Awesome-DeepSeek-Harness-Plugins | `README.md` + `README.zh-CN.md`「UI & Clients」表格 | 已提 PR [#135](https://github.com/Zhiyuan-Fan/Awesome-DeepSeek-Harness-Plugins/pull/135) |
+| libukai/awesome-deepseek-harness（三语 README） | `README.md` + `README_EN.md` + `README_JA.md`「主题与皮肤 / External Integrations / 外部連携」 | 已提 PR [#172](https://github.com/libukai/awesome-deepseek-harness/pull/172) |
+| walkinglabs/awesome-deepseek-harness-plugins | `README.md`「Interfaces & Web UI」+ `README.zh.md`「近期通过核验的新增」 | 已提 PR [#171](https://github.com/walkinglabs/awesome-deepseek-harness-plugins/pull/171) |
+| awesome-deepseekharness/awesome-deepseek-harness | 双 README 表格「Web UI, Skins & Desktop Pets / Web UI、皮肤与桌面宠物」 | 已提 PR [#247](https://github.com/awesome-deepseekharness/awesome-deepseek-harness/pull/247) |
+| TimeMachineLab/awesome-deepseek-harness-zh | `data/projects.json`「界面与交互」+ 重新生成三份文档表格 | 已提 PR [#7](https://github.com/TimeMachineLab/awesome-deepseek-harness-zh/pull/7) |
 | web-casa/Awesome-DeepSeek-Harness-Plugins（cordis.run） | 只接受 [cordis.run/submit](https://cordis.run/submit) 表单，不收 PR | 需登录后手工提交（表单要求英文、可走反链快速通道） |
 | bruc3van/awesome-dsh-plugin-pro | 作者自荐要求仓库 star > 10 | 跳过（本仓库 1★） |
+| fendouai/awesome-deepseek-harness | `data/*.json` + 生成脚本 | 跳过（近期 PR #134–#144 全部未合并，维护者不活跃） |
+| weekend-project-space/awesome-deepseek-harness-top-500 | 单文件排名榜，只收 top 500 | 跳过（本仓库不在榜内，且只接受维护者自建排名） |
 | npm | `@bytechain.cn/colamd-themes@0.8.6` | 已发布 |
 
 ### 各渠道的提交差异（避免重复踩坑）
@@ -196,4 +202,8 @@ description:
 - **0xsline**：手写 Markdown，必须同时改 `README.md` 与 `README.zh-CN.md`，`## UI, Themes & Interaction` 一节；条目格式 `- [owner/repo](url) - 一句话`。
 - **Dominic789654**：只允许改两个 README、**只允许新增行**（改已有行会被 insert-only 检查判失败），条目分隔符英文用 `—`、中文用 `——`；CI 会核对链接可达性与 `dsh`/`dsh-plugin`/`dsh-skill`/`deepseek-harness` topic。
 - **Zhiyuan-Fan**：表格行，四列 `Project | Description | Stars 徽章 | Referenced by`；没有 `Referenced by` 时写 `<details><summary>0 pages</summary><sub>No verified references yet.</sub></details>`。
+- **libukai**：三语 README（`README.md` / `README_EN.md` / `README_JA.md`）各加一行，中文段落里用全角冒号 `：`、英日段落用 `: `；仓库没有 CONTRIBUTING，按「精选插件 → 主题与皮肤」归类。
+- **walkinglabs**：`docs/INCLUSION_POLICY.md` 要求**源码级 DSH 证据**（`dsh.bundle` + 注入的 `@deepseek-ai/dsh-client-*` + `ctx.webServer` 路由），描述里要写兼容的 DSH 版本；英文 README 按分类插入，中文 README 只往「近期通过核验的新增」末尾追加。
+- **awesome-deepseekharness**：双 README 的**表格**各加一行（`| [owner/repo](url) | 一句话 | ⭐ |`），中英必须同步，CI 会查；PR 正文要写 DSH 关系、安装命令、License、topic、星数。
+- **TimeMachineLab**：数据驱动，改 `data/projects.json` 里某个 section 的 `items`，再按 `scripts/render.py` 的同一套逻辑重生成 `docs/*.md` 里 `<!-- BEGIN:projects -->` 区块；不能只改 markdown。
 - 本机 `git push` 到 github.com:443 间歇性被重置（`RPC failed; curl 28`），改用 GitHub API 造 blob → tree → commit → ref 再开 PR 稳定成功；脚本见 `.tmp-dsh/api-push-dominic.mjs`、`.tmp-dsh/zhiyuan-add.mjs`。
