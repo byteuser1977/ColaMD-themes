@@ -137,6 +137,9 @@
      绝对定位/网格装饰——45° 斜纹、珊瑚色带分区、巨号水印 03、zigzag、
      48px 图标方块、timeline 虚线与圆点气泡、social 方块、巨引号左栏——
      行式 DOM（CM6 每行一 div）无挂点，逐一在 1.6 注明未复刻或近似。）
+   导出域（body.slides-printing）：打印 DOM 没有 data-slide-layout，彩色页改按
+   行类复刻——行整块上色 + page-start 行画 1080px 全幅画布（默认 deck 奶油
+   纸色，墨页/珊瑚页各自覆盖），每页自足，不再用 :has 给整份文档换色。
    Bebas 400 唯一字重：文档层与令牌层一律 400（生成版 700 为错）。 */
 :root {
   --slide-mono: "JetBrains Mono", "Noto Sans Mono CJK SC", monospace;
@@ -206,7 +209,7 @@ body.presenting #editor[data-slide-layout='cover'] .cm-content {
   justify-content: flex-end;
   padding-bottom: 120px;                      /* 底部 meta 行区近似 */
 }
-body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title,
+body.presenting #editor .cm-content .cm-md-slide-cover.cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-size: var(--slide-cover-title-size);
   line-height: 0.9;
@@ -215,8 +218,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   border-bottom: 3px solid rgba(26, 26, 26, 0.15);  /* .title-rule 3px ink @15% */
   padding-bottom: 0.27em;                           /* rule 上距 clamp(16,2.5vh,32)→32px ÷120 */
 }
-body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-cover.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-cover.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-lead {
   font-size: 0.77em;                          /* meta 行以 body-text 20px ÷26 近似 */
   line-height: 1.7;
   max-width: 600px;
@@ -227,39 +230,71 @@ body.slides-printing .cm-md-slide-cover.cm-md-page-lead {
    max-width 600px；底部 80×4 珊瑚 accent-line（margin-top:auto 落底）无挂点未复刻。
    P5（巨词 IMPACT 200px + 珊瑚渐变区 + ink 页环境 + info-bar）同映射不单列——
    巨词/渐变/竖纹未复刻，取本档 100px */
-body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-section.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-section.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-lead {
   font-size: 0.77em;                          /* .body-text 20px ÷26 */
   line-height: 1.7;
   max-width: 600px;
   color: var(--text-secondary);
 }
 
+/* ── 1.6.3a 打印域页底画布（SLIDE-02 复刻基底）────────────────────────
+   打印 DOM 没有 data-slide-layout，彩色页改按行类复刻：每行整块上色 +
+   page-start 行画 1080px 全幅画布（默认 deck 纸色 var(--bg-color)，彩色页
+   各自覆盖），每页自足，不再用 :has 给整份文档换色。
+   画布要压得过 #editor 的 !important 纸底 → page-start 行建层叠上下文；
+   后一页的行一律提成定位元素，才画得在上一页溢出的画布之上（印刷分页会裁掉
+   越界部分，但连续流截图/预览会看到遮挡） */
+body.slides-printing #editor .cm-content {
+  background: transparent;
+}
+body.slides-printing #editor .cm-content > * {
+  position: relative;
+}
+body.slides-printing #editor .cm-content .cm-md-page-start {
+  position: relative;
+  isolation: isolate;
+}
+body.slides-printing #editor .cm-content .cm-md-page-start::after {
+  content: '';
+  visibility: visible;
+  position: absolute;
+  top: 0;
+  left: -115.2px;                             /* 出血到版面边（--slide-page-pad-x） */
+  right: -115.2px;
+  height: 1080px;                             /* 整张 16:9 画布 */
+  background: var(--bg-color);                /* deck 纸色 */
+  z-index: -1;
+}
+
 /* 1.6.4 agenda · P3（two-column，ink 墨底页）：页面底色 = ink（右栏）——
    左 50% 珊瑚面板 + 45° 斜纹 + 巨号 03（200px @12%）为分区装饰未复刻，
    页面按右栏 ink 底复刻。行式条目 = item-label 珊瑚 11px 700 大写 .27em +
    item-text 奶油 18px；条目无序号（listmark 隐藏） */
-/* ink 页整页换墨（P3 原页面底色即 ink）：底色打满整条层叠链——
-   body / #editor / .cm-editor / .cm-scroller / .cm-content 五层
-   （只挂 body 会被平台给 #editor 画的奶油底反盖，蓝页显成奶油页） */
-body.presenting:has(#editor[data-slide-layout='agenda']),
-body.slides-printing:has(.cm-md-slide-agenda) {
+/* ink 页换墨：放映域打满五层链——只挂 body 会被平台给 #editor 画的奶油底反盖
+   （蓝页显成奶油页）；打印域没有 data-slide-layout，改按行类复刻：行整块 ink +
+   page-start 行画 1080px 全幅 ink 画布（盖掉默认纸底） */
+body.presenting:has(#editor[data-slide-layout='agenda']) {
   background: var(--seed-ink);
 }
 body.presenting #editor[data-slide-layout='agenda'],
-body.slides-printing:has(.cm-md-slide-agenda) #editor,
 body.presenting #editor[data-slide-layout='agenda'] .cm-editor,
 body.presenting #editor[data-slide-layout='agenda'] .cm-scroller,
-body.presenting #editor[data-slide-layout='agenda'] .cm-content,
-body.slides-printing:has(.cm-md-slide-agenda) .cm-editor,
-body.slides-printing:has(.cm-md-slide-agenda) .cm-scroller,
-body.slides-printing:has(.cm-md-slide-agenda) .cm-content {
+body.presenting #editor[data-slide-layout='agenda'] .cm-content {
   background: var(--seed-ink);
 }
-body.presenting #editor[data-slide-layout='agenda'] .cm-content,
-body.slides-printing .cm-md-slide-agenda .cm-md-page-title ~ * { color: var(--bg-color); }
-body.presenting #editor .cm-content .cm-md-slide-agenda .cm-md-page-title,
-body.slides-printing .cm-md-slide-agenda.cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-agenda,
+body.slides-printing #editor .cm-content .cm-md-slide-agenda {
+  color: var(--bg-color);                     /* 墨面正文 = 奶油（表面反转手法） */
+}
+body.slides-printing #editor .cm-content .cm-md-slide-agenda {
+  background-color: var(--seed-ink);          /* 行块 ink（页内容短时也不露纸底） */
+}
+body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-page-start::after {
+  background: var(--seed-ink);                /* 整幅 ink 画布 */
+}
+body.presenting #editor .cm-content .cm-md-slide-agenda.cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-page-title {
   font-size: 2.77em;                          /* .col-title clamp(36,5vw,72) @1920=72px ÷26 */
   color: var(--bg-color);                     /* 珊瑚面板未复刻 → 标题奶油 on ink */
 }
@@ -284,20 +319,18 @@ body.slides-printing #editor .cm-content .cm-md-slide-agenda .cm-md-strong {
   color: var(--seed-accent);                  /* 珊瑚 on ink 5.1:1 ✓ */
   margin-right: 0.73em;                       /* label-text 间距 8px ÷11 */
 }
-/* 幽灵页码 = var(--text-color) 墨色，落 ink 页同色隐形 → 整页隐藏 */
-body.presenting:has(#editor[data-slide-layout='agenda']) .slide-ghost,
-body.slides-printing:has(.cm-md-slide-agenda) .slide-ghost {
+/* 幽灵页码 = var(--text-color) 墨色，落 ink 页同色隐形 → 整页隐藏；导出域
+   .slide-ghost 是 position:fixed 单实例，无版式属性可挂（已知缺口） */
+body.presenting:has(#editor[data-slide-layout='agenda']) .slide-ghost {
   opacity: 0;
 }
-body.presenting [data-slide-layout='agenda'] .slide-chrome,
-body.slides-printing [data-slide-layout='agenda'] .slide-chrome,
-body.presenting [data-slide-layout='agenda'] .slide-foot,
-body.slides-printing [data-slide-layout='agenda'] .slide-foot {
+body.presenting:has(#editor[data-slide-layout='agenda']) .slide-chrome,
+body.presenting:has(#editor[data-slide-layout='agenda']) .slide-foot {
   color: var(--bg-color);
 }
-/* 表格 td 换奶油面（墨底上墨字会被吃掉；th 自带 cream-dark 底不受影响） */
-body.presenting #editor[data-slide-layout='agenda'] .cm-md-table-widget td,
-body.slides-printing:has(.cm-md-slide-agenda) .cm-md-table-widget td {
+/* 表格 td 换奶油面（墨底上墨字会被吃掉；th 自带 cream-dark 底不受影响）。
+   导出域表格行不带版式类（只有 cm-md-page-N），无法按页上色 → 只做放映域 */
+body.presenting:has(#editor[data-slide-layout='agenda']) .cm-md-table-widget td {
   color: var(--bg-color);
 }
 
@@ -305,8 +338,8 @@ body.slides-printing:has(.cm-md-slide-agenda) .cm-md-table-widget td {
    图表版式默认；Chart.js 主系列 coral / 对比 coral-dark 已落 --pele-* 令牌。
    stat-number 96px 珊瑚大数字 + 3 张白底珊瑚左缘 sidebar 数据卡无对应元素
    （figure 无列表槽位）——未复刻 */
-body.presenting #editor[data-slide-layout='figure'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-figure.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-figure.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-page-lead {
   color: var(--text-secondary);
 }
 
@@ -315,12 +348,12 @@ body.slides-printing .cm-md-slide-figure.cm-md-page-lead {
    card-title Bebas 36px + card-text 16px gray；card-icon 48px 珊瑚方块与
    card-stat 珊瑚尾数无槽位（数字可写入说明）未复刻；P9 团队网格同形不单列
    （ink 底 + 半透明卡未复刻）。卡顶缘在条目折行时会逐行重复——行式 DOM 已知限制 */
-body.presenting #editor .cm-content .cm-md-slide-matrix .cm-md-page-title,
-body.slides-printing .cm-md-slide-matrix.cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-matrix.cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-slide-matrix.cm-md-page-title {
   font-size: var(--slide-title-size);         /* clamp(40,6vw,80) @1920=80px ÷26 */
 }
-body.presenting #editor[data-slide-layout='matrix'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-matrix.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-matrix.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-matrix.cm-md-page-lead {
   font-size: 0.54em;                          /* .slide-subtitle 14px ÷26 */
   letter-spacing: 0.14em;                     /* 2px ÷14px */
   color: var(--text-secondary);
@@ -355,32 +388,37 @@ body.slides-printing #editor .cm-content .cm-md-slide-matrix .cm-md-strong {
 }
 
 /* 1.6.7 quote · P7（quote，ink 墨底页）：40% 珊瑚左栏 + -45° 斜纹为分区装饰
-   未复刻；巨引号（giant-mark 280px @35%）以 ::before 珊瑚水印近似；
+   未复刻；巨引号（giant-mark 280px @35%）以引用行 ::before 珊瑚水印近似；
    引文 Inter 300 36px 奶油（系统唯一 Light 档，对冲 Bebas 主导声部）；
    署名行 = 60×4 珊瑚 quote-accent 条（::before 块）+ Inter 600 14px 珊瑚大写 .21em；
    quote-role 12px 第二行无槽位（并入署名行） */
-body.presenting:has(#editor[data-slide-layout='quote']),
-body.slides-printing:has(.cm-md-slide-quote) {
+/* ink 页换墨：放映域打满五层链；打印域按行类复刻（行整块 ink + page-start 全幅
+   ink 画布，盖掉默认奶油纸底） */
+body.presenting:has(#editor[data-slide-layout='quote']) {
   background: var(--seed-ink);
 }
 body.presenting #editor[data-slide-layout='quote'],
-body.slides-printing:has(.cm-md-slide-quote) #editor,
 body.presenting #editor[data-slide-layout='quote'] .cm-editor,
 body.presenting #editor[data-slide-layout='quote'] .cm-scroller,
-body.presenting #editor[data-slide-layout='quote'] .cm-content,
-body.slides-printing:has(.cm-md-slide-quote) .cm-editor,
-body.slides-printing:has(.cm-md-slide-quote) .cm-scroller,
-body.slides-printing:has(.cm-md-slide-quote) .cm-content {
+body.presenting #editor[data-slide-layout='quote'] .cm-content {
   background: var(--seed-ink);
 }
-body.presenting #editor[data-slide-layout='quote'] .cm-content,
-body.slides-printing .cm-md-slide-quote .cm-md-page-title ~ * { color: var(--bg-color); }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-page-title,
-body.slides-printing .cm-md-slide-quote.cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-quote,
+body.slides-printing #editor .cm-content .cm-md-slide-quote {
+  color: var(--bg-color);                     /* 墨面正文 = 奶油 */
+}
+body.slides-printing #editor .cm-content .cm-md-slide-quote {
+  background-color: var(--seed-ink);          /* 行块 ink */
+}
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-start::after {
+  background: var(--seed-ink);                /* 整幅 ink 画布 */
+}
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-title {
   color: var(--bg-color);
 }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote {
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote {
   font-family: var(--font-body);
   font-size: var(--slide-quote-size);         /* quote-text clamp(20,2.5vw,36) @1920=36px ÷26 */
   font-weight: 300;                           /* 系统唯一 Inter Light 部署 */
@@ -391,16 +429,21 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote {
   padding-left: 0;
   padding-right: 0;
 }
-body.presenting #editor .cm-content .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before,
-body.slides-printing #editor .cm-content .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before {
+/* 巨引号：模板 .giant-mark 是独立装饰块，编辑器里没有槽位 → 用引用行自己的
+   ::before 画水印。复合类才命中（打印 DOM 里指令行与引用行之间夹着 block-space
+   行，`指令 + 引用`同辈选择器永不成立），content 必须自己给——平台的巨引号规则
+   用的正是那条失效的同辈选择器 */
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote::before,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote::before {
+  content: '\201C';
   font-family: var(--slide-title-font);
   font-size: 7.78em;                          /* giant-mark 280px ÷36（引文实际字号） */
   line-height: 0.6;
   color: var(--seed-accent);
   opacity: 0.35;                              /* 模板 @35% 半装饰档 */
 }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line {
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line {
   margin-top: 2.86em;                         /* quote-accent 上距 40px ÷14 */
   font-family: var(--font-body);
   font-weight: 600;
@@ -409,8 +452,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + 
   text-transform: uppercase;
   color: var(--seed-accent);                  /* 珊瑚 on ink 5.1:1 ✓ */
 }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line::before,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line::before {
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line::before,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line::before {
   content: '';
   display: block;
   width: 60px;                                /* .quote-accent 60×4 */
@@ -418,19 +461,17 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + 
   background: var(--seed-accent);
   margin-bottom: 2.29em;                      /* accent-署名距 32px ÷14 */
 }
-body.presenting:has(#editor[data-slide-layout='quote']) .slide-ghost,
-body.slides-printing:has(.cm-md-slide-quote) .slide-ghost {
+/* 幽灵页码墨色落 ink 页隐形 → 整页隐藏；导出域 .slide-ghost 是 position:fixed
+   单实例，无版式属性可挂（已知缺口） */
+body.presenting:has(#editor[data-slide-layout='quote']) .slide-ghost {
   opacity: 0;
 }
-body.presenting [data-slide-layout='quote'] .slide-chrome,
-body.slides-printing [data-slide-layout='quote'] .slide-chrome,
-body.presenting [data-slide-layout='quote'] .slide-foot,
-body.slides-printing [data-slide-layout='quote'] .slide-foot {
+body.presenting:has(#editor[data-slide-layout='quote']) .slide-chrome,
+body.presenting:has(#editor[data-slide-layout='quote']) .slide-foot {
   color: var(--bg-color);
 }
-body.presenting #editor[data-slide-layout='quote'] .cm-md-table-widget td,
-body.slides-printing:has(.cm-md-slide-quote) .cm-md-table-widget td {
-  color: var(--bg-color);
+body.presenting:has(#editor[data-slide-layout='quote']) .cm-md-table-widget td {
+  color: var(--bg-color);                     /* 导出域表格无版式类，只做放映域 */
 }
 
 /* 1.6.8 timeline · P8（roadmap，cream）：页题 80px + 珊瑚眉标（全局档）；
@@ -468,36 +509,39 @@ body.slides-printing #editor .cm-content .cm-md-slide-timeline .cm-md-strong {
    硬边分区——取主导面珊瑚整页复刻；右栏分区/zigzag 底饰/44px social 方块
    未复刻。标题 120px 顶部（垂直居中近似）；清单 = contact-label 11px 黑 @72%
    + contact-value Bebas 40px（strong）。珊瑚面上正文一律黑（gray 1.6:1 不可读） */
-body.presenting:has(#editor[data-slide-layout='closing']),
-body.slides-printing:has(.cm-md-slide-closing) {
+/* coral 底页换色：放映域打满五层链；打印域按行类复刻（行整块珊瑚 +
+   page-start 全幅珊瑚画布，盖掉默认奶油纸底） */
+body.presenting:has(#editor[data-slide-layout='closing']) {
   background: var(--seed-accent);
 }
 body.presenting #editor[data-slide-layout='closing'],
-body.slides-printing:has(.cm-md-slide-closing) #editor,
 body.presenting #editor[data-slide-layout='closing'] .cm-editor,
 body.presenting #editor[data-slide-layout='closing'] .cm-scroller,
-body.presenting #editor[data-slide-layout='closing'] .cm-content,
-body.slides-printing:has(.cm-md-slide-closing) .cm-editor,
-body.slides-printing:has(.cm-md-slide-closing) .cm-scroller,
-body.slides-printing:has(.cm-md-slide-closing) .cm-content {
+body.presenting #editor[data-slide-layout='closing'] .cm-content {
   background: var(--seed-accent);
 }
-body.presenting #editor[data-slide-layout='closing'] .cm-content,
-body.slides-printing:has(.cm-md-slide-closing) .cm-content {
+body.presenting #editor .cm-content .cm-md-slide-closing,
+body.slides-printing #editor .cm-content .cm-md-slide-closing {
   color: var(--text-color);                   /* 珊瑚面上文字一律 ink-on-fire */
 }
-body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-page-title,
-body.slides-printing .cm-md-slide-closing.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-closing {
+  background-color: var(--seed-accent);       /* 行块珊瑚 */
+}
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-start::after {
+  background: var(--seed-accent);             /* 整幅珊瑚画布 */
+}
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title {
   font-size: var(--slide-closing-title-size); /* clamp(48,8vw,120) @1920=120px ÷26 */
   line-height: 0.95;
   letter-spacing: 0.033em;                    /* 4px ÷120px */
 }
-body.presenting #editor[data-slide-layout='closing'] .cm-content .cm-md-page-title[data-slide-kicker]::before,
-body.slides-printing .cm-md-slide-closing .cm-md-page-title[data-slide-kicker]::before {
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-page-title[data-slide-kicker]::before,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title[data-slide-kicker]::before {
   color: var(--text-color);                   /* 珊瑚面上眉标切墨（珊瑚上无珊瑚） */
 }
-body.presenting #editor[data-slide-layout='closing'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-closing.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-lead {
   font-size: 0.77em;                          /* .closing-subtitle clamp(14,1.3vw,20) @1920=20px ÷26 */
   line-height: 1.6;
   max-width: 400px;
@@ -543,6 +587,17 @@ body.slides-printing .slide-foot {
   text-transform: uppercase;
   opacity: 0.6;
   color: var(--text-color);
+}
+
+/* ── 1.6 收口 · 序号声部 ────────────────────────────────────────────────
+   编辑器给序号外层 .cm-md-listmark 的 token span 单独上了色（平台把序号刷成
+   裸 muted 色），主题把颜色写在 listmark 上会被该子 span 直接覆盖 —— 深底 /
+   彩底页的 "1." "2." 因此消失。这里强制子元素继承 listmark 的颜色。 */
+body.presenting #editor .cm-content .cm-md-listmark *,
+body.slides-printing #editor .cm-content .cm-md-listmark *,
+body.presenting #editor .cm-content .cm-md-li-bullet *,
+body.slides-printing #editor .cm-content .cm-md-li-bullet * {
+  color: inherit;
 }
 
 /* ═══════════════════════════════════════════════════════════

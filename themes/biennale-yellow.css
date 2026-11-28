@@ -175,7 +175,7 @@ body.presenting #editor[data-slide-layout='cover'] .cm-content {
   justify-content: flex-end;
   padding-bottom: 150px;
 }
-body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title,
+body.presenting #editor .cm-content .cm-md-slide-cover.cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-size: var(--slide-cover-title-size);
   line-height: 0.86;
@@ -185,8 +185,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
 
 /* 1.6.3 agenda · P3（programme strands）：巨词标题 194px；行式条目 = 56px
    序号列 + serif 行题 32px + Archivo 说明 15px + rgba ink .18 底线 */
-body.presenting #editor .cm-content .cm-md-slide-agenda .cm-md-page-title,
-body.slides-printing .cm-md-slide-agenda.cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-agenda.cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-page-title {
   font-size: 7.5em;                           /* .word 194px ÷26 */
   line-height: 0.86;
   letter-spacing: -0.018em;
@@ -219,20 +219,20 @@ body.slides-printing #editor .cm-content .cm-md-slide-agenda .cm-md-strong {
 
 /* 1.6.4 section · P4（chapter divider）：ttl 75px + lede 18px；
    vrail 竖排标签转 kicker 横排 .32em；巨数字 .nm 无对应元素（未复刻） */
-body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-section.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-section.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-lead {
   font-size: 0.69em;
   line-height: 1.55;
   max-width: 56ch;
 }
-body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title[data-slide-kicker]::before,
-body.slides-printing .cm-md-slide-section .cm-md-page-title[data-slide-kicker]::before {
+body.presenting #editor .cm-content .cm-md-slide-section.cm-md-page-title[data-slide-kicker]::before,
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title[data-slide-kicker]::before {
   letter-spacing: 0.32em;                     /* .vrail .32em */
 }
 
 /* 1.6.5 kpi · P5（data）：页题 56px + 1px ink 底线；奶油无卡——裸排大数字
    129px serif + lab2 micro + desc 15px；条形高亮条 = --pele-accent sun */
-body.presenting #editor[data-slide-layout='kpi'] .cm-content .cm-md-page-title,
+body.presenting #editor .cm-content .cm-md-slide-kpi.cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-title {
   font-size: 2.15em;                          /* .head .h 56px ÷26 */
   border-bottom: 1px solid var(--text-color);
@@ -261,30 +261,51 @@ body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-strong {
 }
 
 /* 1.6.6 quote · P6（quote spread）：金句 75px serif；右 32% 黄块无挂点（未复刻）；
-   署名行 = 1px ink 顶线 + Archivo 600 大写 .16em；y-mark 以巨引号近似 280px */
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote {
+   署名行 = 1px ink 顶线 + Archivo 600 大写 .16em；y-mark 以巨引号近似 280px。
+   整块上移一档近似模板的纵向居中（模板 qbody 顶 y≈415）；顶线只跨引文列宽
+   （模板 .qattr 只在左 68% 栏内）。 */
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote {
   font-size: var(--slide-quote-size);
   font-weight: 400;
   line-height: 1.06;
   letter-spacing: -0.005em;
   color: var(--text-color);
   background: transparent;
+  border-left: none;                          /* 模板引文无左侧竖线 */
   padding-left: 0;
   padding-right: 0;
   max-width: 62%;
+  margin-top: 3.35em;                         /* 模板内容顶 310px（margin 相对引文 81.2px） */
 }
-body.presenting #editor .cm-content .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before,
-body.slides-printing #editor .cm-content .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before {
+/* 巨引号：旧写法 `.cm-md-slide-directive + .cm-md-blockquote…::before` 在行流里
+   永远不成立（directive 与 blockquote 之间还夹一条 .cm-md-block-space），且同一个
+   ::before 被平台的引用面板层占用（position:absolute + inset:0 + z-index:-3 +
+   var(--blockquote-bg)）。这里直接接管 ::before：面板压透明、定位归位成普通块，
+   字号相对引文自身（1em = --slide-quote-size），3.45em ≈ 280px（模板 y-mark）。 */
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote::before,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote::before {
+  content: '\201C';
+  display: block;
+  position: static;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  z-index: auto;
+  height: auto;
+  background: transparent;
   font-family: var(--slide-title-font);
-  font-size: 10.8em;                          /* y-mark 280px ÷26 */
-  line-height: 0.6;
+  font-size: 3.45em;                          /* y-mark 280px ÷ 81.2px */
+  line-height: 0.5;
   color: var(--text-color);
   opacity: 0.9;
+  margin-bottom: 0.12em;
 }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line {
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line {
   margin-top: 1.7em;                          /* .qattr 顶线（CSS-03：纵向留白只能走 margin） */
+  max-width: 62%;                             /* 模板顶线只到左栏右缘 */
   border-top: 1px solid var(--text-color);
   font-family: var(--font-body);
   font-weight: 600;
@@ -293,15 +314,11 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + 
   text-transform: uppercase;
   color: var(--text-color);
 }
-body.presenting #editor[data-slide-layout='quote'] .cm-content .cm-md-page-title[data-slide-kicker]::before,
-body.slides-printing .cm-md-slide-quote .cm-md-page-title[data-slide-kicker]::before {
-  letter-spacing: 0.22em;                     /* .qkicker .22em */
-}
 
 /* 1.6.7 timeline · P7（calendar ledger）：页题 75px + 1px ink 底线；
    行式条目 = mono 日期 16px + serif 行题 30px + venue 15px + rgba .2 底线 */
-body.presenting #editor .cm-content .cm-md-slide-timeline .cm-md-page-title,
-body.slides-printing .cm-md-slide-timeline.cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-timeline.cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-page-title {
   font-size: 2.88em;                          /* .topbar .h 75px ÷26 */
   border-bottom: 1px solid var(--text-color);
   padding-bottom: 0.45em;
@@ -309,10 +326,16 @@ body.slides-printing .cm-md-slide-timeline.cm-md-page-title {
 body.presenting #editor .cm-content .cm-md-slide-timeline.cm-md-li,
 body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-li {
   font-size: 0.58em;                          /* .ven 15px ÷26 */
+  background: transparent;
+  border-left: none;                          /* 模板 ledger 无竖轨 */
   border-bottom: 1px solid rgba(27, 37, 102, 0.2);
   border-top: none;
   padding: 0.55em 0 0.7em;
   margin: 0;
+}
+body.presenting #editor .cm-content .cm-md-slide-timeline.cm-md-li::before,
+body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-li::before {
+  content: none;                              /* 上游 timeline 圆点：模板 ledger 无节点 */
 }
 body.presenting #editor .cm-content .cm-md-slide-timeline .cm-md-listmark,
 body.slides-printing #editor .cm-content .cm-md-slide-timeline .cm-md-listmark {
@@ -333,11 +356,12 @@ body.slides-printing #editor .cm-content .cm-md-slide-timeline .cm-md-strong {
 
 /* 1.6.8 closing · P8（colophon）：标题 172px 顶部左对齐；清单 = colofo 四列
    （23.2% 列宽）——1px ink 顶线 + ftag micro 大写 .16em + ftxt 13px */
-body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-page-title,
-body.slides-printing .cm-md-slide-closing.cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title {
   font-size: var(--slide-closing-title-size);
   line-height: 0.86;
   letter-spacing: -0.018em;
+  margin-bottom: 1.21em;                      /* 题→footer 空隙 ≈ 模板 141px（colofo 落在纸底） */
 }
 body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-li,
 body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-li {
@@ -347,9 +371,13 @@ body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-li {
   vertical-align: top;
   border-top: 1px solid var(--text-color);    /* .colofo 顶线 */
   border-bottom: none;
-  padding-top: 0.6em;
+  padding: 0.6em 0 0 0;                       /* 上游 .cm-md-li-0 的 1.5em 左缩进要清掉 */
   font-size: 0.5em;                           /* .ftxt 13px ÷26 */
   line-height: 1.5;
+}
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-li::before,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-li::before {
+  content: none;                              /* 上游收页的 ▸ 前缀：模板 colofo 无列表符 */
 }
 body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-listmark,
 body.slides-printing #editor .cm-content .cm-md-slide-closing .cm-md-listmark {
@@ -365,7 +393,22 @@ body.slides-printing #editor .cm-content .cm-md-slide-closing .cm-md-strong {
   color: var(--text-color);
 }
 
-/* 1.6.9 chrome · pagenum：JetBrains Mono 13px .08em 右下，不大写 */
+/* 1.6.9 无序列表符 · 上游无序项的符号是 <span class="cm-md-li-bullet">•</span>，
+   与有序列表的 .cm-md-listmark 不是同一族；只在 .cm-md-listmark 上写 display:none
+   会漏掉它。kpi/matrix/timeline/closing 的无序项因此会顶出一颗孤立圆点（KPI 数字
+   上方、矩阵卡首行、年份上方、收页短语前），模板这四处都没有列表符 —— 统一隐藏。 */
+body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-li-bullet,
+body.presenting #editor .cm-content .cm-md-slide-matrix .cm-md-li-bullet,
+body.presenting #editor .cm-content .cm-md-slide-timeline .cm-md-li-bullet,
+body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-li-bullet,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-li-bullet,
+body.slides-printing #editor .cm-content .cm-md-slide-matrix .cm-md-li-bullet,
+body.slides-printing #editor .cm-content .cm-md-slide-timeline .cm-md-li-bullet,
+body.slides-printing #editor .cm-content .cm-md-slide-closing .cm-md-li-bullet {
+  display: none;
+}
+
+/* 1.6.10 chrome · pagenum：JetBrains Mono 13px .08em 右下，不大写 */
 body.presenting .slide-chrome,
 body.slides-printing .slide-chrome {
   font-family: var(--slide-mono);
@@ -382,6 +425,17 @@ body.slides-printing .slide-foot {
   text-transform: none;
   opacity: 0.75;
   color: var(--text-color);
+}
+
+/* ── 1.6 收口 · 序号声部 ────────────────────────────────────────────────
+   编辑器给序号外层 .cm-md-listmark 的 token span 单独上了色（平台把序号刷成
+   裸 muted 色），主题把颜色写在 listmark 上会被该子 span 直接覆盖 —— 深底 /
+   彩底页的 "1." "2." 因此消失。这里强制子元素继承 listmark 的颜色。 */
+body.presenting #editor .cm-content .cm-md-listmark *,
+body.slides-printing #editor .cm-content .cm-md-listmark *,
+body.presenting #editor .cm-content .cm-md-li-bullet *,
+body.slides-printing #editor .cm-content .cm-md-li-bullet * {
+  color: inherit;
 }
 
 /* ═══════════════════════════════════════════════════════════

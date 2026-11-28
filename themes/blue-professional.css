@@ -195,19 +195,20 @@ body.slides-printing #editor .cm-content .cm-md-page-title[data-slide-kicker]::b
 
 /* 1.6.2 cover · P1：accent-line 60×4 短线（::before 近似，有 kicker 时让位）
    + 67.2px 左对齐标题 + subtitle 20px + meta 12.8px；斜切面板/点阵未复刻 */
-body.presenting #editor[data-slide-layout='cover'] .cm-content,
-body.slides-printing .cm-md-slide-cover .cm-md-page-title ~ * {
+/* 竖向居中只留放映域：导出域上的 justify-content 会改变行高与分页
+   （§6-10），且 `~ *` 会把后续所有版式页一起居中 → 删掉导出臂 */
+body.presenting #editor[data-slide-layout='cover'] .cm-content {
   justify-content: center;
 }
-body.presenting #editor .cm-content .cm-md-slide-cover .cm-md-page-title,
-body.slides-printing .cm-md-slide-cover.cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-cover.cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-size: var(--slide-cover-title-size);
   font-weight: 700;
   line-height: 1.05;
   max-width: 88%;
 }
-body.presenting #editor .cm-content .cm-md-slide-cover .cm-md-page-title:not([data-slide-kicker])::before,
-body.slides-printing .cm-md-slide-cover.cm-md-page-title:not([data-slide-kicker])::before {
+body.presenting #editor .cm-content .cm-md-slide-cover.cm-md-page-title:not([data-slide-kicker])::before,
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title:not([data-slide-kicker])::before {
   content: '';
   display: block;
   width: 60px;
@@ -216,16 +217,16 @@ body.slides-printing .cm-md-slide-cover.cm-md-page-title:not([data-slide-kicker]
   border-radius: 2px;
   margin-bottom: 1.5rem;
 }
-body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-cover.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-cover.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-lead {
   font-size: var(--slide-lead-size);
   line-height: 1.6;
   max-width: 62%;
   color: var(--text-secondary);
 }
 /* meta 行（导语后第二段）：SG 12.8px text-light .05em */
-body.presenting #editor .cm-content .cm-md-slide-cover .cm-md-page-lead + .cm-line,
-body.slides-printing #editor .cm-content .cm-md-slide-cover .cm-md-page-lead + .cm-line {
+body.presenting #editor .cm-content .cm-md-slide-cover.cm-md-page-lead + .cm-line,
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-lead + .cm-line {
   font-family: var(--slide-title-font);
   font-size: 0.49em;                          /* .meta 12.8px ÷26 */
   letter-spacing: 0.05em;
@@ -235,8 +236,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-cover .cm-md-page-lead + .
 /* 1.6.3 agenda · P2：页题下 accent-line（::after 近似）；行式条目 = 底边
    1px 钴蓝 20% 线 + SG 700 cobalt 序号 28.8px + SG 600 章名 19.2px + 文 15.2px；
    hover 卡底/hover 态未复刻 */
-body.presenting #editor .cm-content .cm-md-slide-agenda .cm-md-page-title::after,
-body.slides-printing .cm-md-slide-agenda.cm-md-page-title::after {
+body.presenting #editor .cm-content .cm-md-slide-agenda.cm-md-page-title::after,
+body.slides-printing #editor .cm-content .cm-md-slide-agenda.cm-md-page-title::after {
   content: '';
   display: block;
   width: 60px;
@@ -350,8 +351,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-two-col .cm-md-strong {
   color: var(--text-color);
 }
 /* split-highlight 引用面板：整块画底色（相邻行只 margin，CSS-03 安全） */
-body.presenting #editor .cm-content .cm-md-slide-two-col .cm-md-blockquote,
-body.slides-printing #editor .cm-content .cm-md-slide-two-col .cm-md-blockquote {
+body.presenting #editor .cm-content .cm-md-slide-two-col.cm-md-blockquote,
+body.slides-printing #editor .cm-content .cm-md-slide-two-col.cm-md-blockquote {
   font-family: var(--slide-title-font);
   font-size: 0.92em;                          /* .split-highlight 24px ÷26 */
   font-weight: 500;
@@ -365,8 +366,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-two-col .cm-md-blockquote 
   margin-top: 0.9em;
 }
 /* cite 署名行：blockquote 后一行 = 大写 .04em SG 500 */
-body.presenting #editor .cm-content .cm-md-slide-two-col .cm-md-blockquote + .cm-line,
-body.slides-printing #editor .cm-content .cm-md-slide-two-col .cm-md-blockquote + .cm-line {
+body.presenting #editor .cm-content .cm-md-slide-two-col.cm-md-blockquote + .cm-line,
+body.slides-printing #editor .cm-content .cm-md-slide-two-col.cm-md-blockquote + .cm-line {
   font-family: var(--slide-title-font);
   font-size: 0.48em;                          /* cite 12.5px ÷26 */
   font-weight: 500;
@@ -378,24 +379,29 @@ body.slides-printing #editor .cm-content .cm-md-slide-two-col .cm-md-blockquote 
 /* 1.6.7 figure · P6（bars 条形排行）：bar-track/fill 为双层嵌套 div，行式
    DOM 无挂点——条形图未复刻，图表主体走上游 figure 默认；页题默认声部；
    Pele 图表以 --pele-accent 钴蓝呼应模板 bar-fill。保持上游默认并注明 */
-body.presenting #editor[data-slide-layout='figure'] .cm-content .cm-md-page-title,
+body.presenting #editor .cm-content .cm-md-slide-figure.cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-page-title {
   margin-bottom: 0.7em;
 }
 
 /* 1.6.8 quote · P7：居中舞台 + 巨引号 ::before 近似 quote-mark 128px
    （cobalt 15%）+ SG 500 金句 38.4px + 署名行；装饰圆未复刻 */
-body.presenting #editor[data-slide-layout='quote'] .cm-content,
-body.slides-printing .cm-md-slide-quote .cm-md-page-title ~ * {
+/* 竖向居中只留放映域（§6-10）；导出改由行级 text-align 居中，
+   `~ *` 兄弟选择器会跨页命中后续版式页 → 不再使用 */
+body.presenting #editor[data-slide-layout='quote'] .cm-content {
   justify-content: center;
   text-align: center;
 }
+body.slides-printing #editor .cm-content .cm-md-slide-quote {
+  text-align: center;
+}
 body.presenting #editor[data-slide-layout='quote'] .cm-content .cm-line,
-body.slides-printing:has(.cm-md-slide-quote) .cm-content .cm-line {
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-line,
+body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-line {
   text-indent: 0;                             /* 居中页去首行缩进 */
 }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote {
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote {
   font-family: var(--slide-title-font);
   font-size: var(--slide-quote-size);
   font-weight: 500;
@@ -409,8 +415,20 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote {
   margin: 0 auto;
   max-width: 65%;
 }
-body.presenting #editor .cm-content .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before,
-body.slides-printing #editor .cm-content .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before {
+/* 巨引号：::before 由平台用做页首垫片，主题要显式接管（content/visibility/
+   display 都写全），否则只在放映域出现、导出一片空 */
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote::before,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote::before {
+  content: '\201C';
+  display: block;
+  position: static;
+  visibility: visible;
+  width: auto;                                /* 平台在 ::before 上画了引号色块，
+                                                 background/尺寸都要显式接管 */
+  height: auto;
+  margin: 0;
+  background: transparent;
+  border: 0;
   font-family: var(--slide-title-font);
   font-size: 4.92em;                          /* .quote-mark 128px ÷26 */
   font-weight: 700;
@@ -419,14 +437,14 @@ body.slides-printing #editor .cm-content .cm-md-slide-directive + .cm-md-blockqu
   opacity: 0.15;
 }
 /* 署名行（quote-source）：顶距走 margin（CSS-03），strong 回近黑 */
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line {
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line {
   margin-top: 1.6em;
   font-size: 0.62em;                          /* .quote-source 16px ÷26 */
   color: var(--text-secondary);
 }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line .cm-md-strong,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line .cm-md-strong {
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line .cm-md-strong,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line .cm-md-strong {
   font-weight: 600;
   color: var(--text-color);
 }
@@ -479,23 +497,26 @@ body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-strong {
 /* 1.6.10 closing · P10：居中舞台 + accent-line（::before 近似）+ 67.2px
    700 标题 + closing-sub 20.8px；CTA 药丸按钮无对应元素（未复刻，行动
    清单条目走上游默认）；contact 行 13.6px text-light */
-body.presenting #editor[data-slide-layout='closing'] .cm-content,
-body.slides-printing .cm-md-slide-closing .cm-md-page-title ~ * {
+/* 同 1.6.8：竖向居中只留放映域，导出行级居中，去掉跨页 `~ *` */
+body.presenting #editor[data-slide-layout='closing'] .cm-content {
   justify-content: center;
   text-align: center;
 }
+body.slides-printing #editor .cm-content .cm-md-slide-closing {
+  text-align: center;
+}
 body.presenting #editor[data-slide-layout='closing'] .cm-content .cm-line,
-body.slides-printing:has(.cm-md-slide-closing) .cm-content .cm-line {
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-line,
+body.slides-printing #editor .cm-content .cm-md-slide-closing .cm-line {
   text-indent: 0;
 }
-body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-page-title,
-body.slides-printing .cm-md-slide-closing.cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-page-title,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title {
   font-size: var(--slide-closing-title-size);
   font-weight: 700;
   line-height: 1.05;
-}
-body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-page-title:not([data-slide-kicker])::before,
-body.slides-printing .cm-md-slide-closing.cm-md-page-title:not([data-slide-kicker])::before {
+}body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-page-title:not([data-slide-kicker])::before,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title:not([data-slide-kicker])::before {
   content: '';
   display: block;
   width: 60px;
@@ -504,8 +525,8 @@ body.slides-printing .cm-md-slide-closing.cm-md-page-title:not([data-slide-kicke
   border-radius: 2px;
   margin: 0 auto 1.5rem;
 }
-body.presenting #editor[data-slide-layout='closing'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-closing.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-lead {
   font-size: 0.8em;                           /* .closing-sub 20.8px ÷26 */
   line-height: 1.6;
   max-width: 70%;
@@ -513,8 +534,8 @@ body.slides-printing .cm-md-slide-closing.cm-md-page-lead {
   color: var(--text-secondary);
 }
 /* contact 行（导语后第二段） */
-body.presenting #editor .cm-content .cm-md-slide-closing .cm-md-page-lead + .cm-line,
-body.slides-printing #editor .cm-content .cm-md-slide-closing .cm-md-page-lead + .cm-line {
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-page-lead + .cm-line,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-lead + .cm-line {
   font-size: 0.52em;                          /* .closing-contact 13.6px ÷26 */
   color: var(--text-muted);
 }
@@ -538,6 +559,17 @@ body.slides-printing .slide-foot {
   text-transform: none;
   opacity: 0.6;
   color: var(--text-secondary);
+}
+
+/* ── 1.6 收口 · 序号声部 ────────────────────────────────────────────────
+   编辑器给序号外层 .cm-md-listmark 的 token span 单独上了色（平台把序号刷成
+   裸 muted 色），主题把颜色写在 listmark 上会被该子 span 直接覆盖 —— 深底 /
+   彩底页的 "1." "2." 因此消失。这里强制子元素继承 listmark 的颜色。 */
+body.presenting #editor .cm-content .cm-md-listmark *,
+body.slides-printing #editor .cm-content .cm-md-listmark *,
+body.presenting #editor .cm-content .cm-md-li-bullet *,
+body.slides-printing #editor .cm-content .cm-md-li-bullet * {
+  color: inherit;
 }
 
 /* ═══════════════════════════════════════════════════════════

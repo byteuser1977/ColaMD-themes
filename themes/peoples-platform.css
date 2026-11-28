@@ -125,7 +125,7 @@
      agenda  ← P02 Contents         纸页 + 140px 蓝题 + 序号/章名/页码行
      section ← P03 Big Idea         cream 页 + 108px 蓝题 + 红 mono 眉标
      matrix  ← P04 Three Pillars    纸页 + 120px 蓝题 + 三列巨序号卡
-     kpi     ← P05 Big Stat         蓝页 + 540px 橙数字 + 30px 奶油说明
+     kpi     ← P05 Big Stat         蓝页 + 橙巨数字（两列并排）+ 30px 奶油说明
      agenda  ← P06 The Full Plan    与 P02 同形（序号+行题+说明）不单列
      quote   ← P07 Quote            橙页 + 300px 巨型引号 + 78px 蓝金句
      timeline← P08 Roadmap          cream 页 + 120px 蓝题 + 日期/节点行
@@ -134,7 +134,23 @@
    （figure / steps 无对应页，保持上游默认。绝对定位装饰——奶油内框、
      橙色缎带、时间轴横轨+圆点、KPI 三卡、头像/印章、纸张噪点、手写体——
      行式 DOM 无挂点，逐一注释"有意未复刻"。换底色页整链上色见 1.6.2。）
-   字重注：Alfa Slab One 只有 400（本身即超粗），生成版 700/800 全部改回 400。 */
+   字重注：Alfa Slab One 只有 400（本身即超粗），生成版 700/800 全部改回 400。
+
+   导出（slides-printing）换底策略（2026-11-28 重构，与 broadside / daisy-days 同款）：
+   导出的整册是一个 .cm-content，页面之间没有包裹层，所以换底色**不能在 body 上挂
+   :has**——六条 :has 会同时命中，最后一条颜色会把每一页都刷成同一个色（2026-11-28
+   报的「每页背景色不一致」）。改为按颜色族做行级上色：同一底色的版式（蓝：cover /
+   kpi / closing；橙：quote；cream：section / timeline）共用一条行级规则，行内文字色
+   也在这条规则里给；再给该族每页的 page-start 行挂一个整纸画布伪元素——left/right
+   各出血 -115.2px（纸面 pad-x 平台钉死 115.2px），高 1080px（一页纸 = 20×11.25in
+   @96dpi），z-index:-1 垫在内容下面。放映侧保留五层链（body:has / #editor /
+   .cm-editor / .cm-scroller / .cm-content），少一层都会被平台原底反盖。
+   已知残留：1) 平台会给超出 1080px 的页生成整页 fit-zoom，画布随该页等比缩小、
+   只能盖住纸面一部分——所以多 KPI 页改成两列并排、数字收到 7.5em，保证自然放下；
+   2) 需要逐卡装饰的版式（matrix 三列巨序号、timeline 横轨圆点）在导出里没有卡片
+   容器可挂，按行式 DOM 近似；3) chrome / foot 是全文档一份的 fixed 元素，导出无法
+   按页换色，交还平台默认声部；4) 表格无法按页定位（行上只有 cm-md-page-N），
+   彩色页上的表头底色回落到纸面默认。 */
 :root {
   --slide-mono: "DM Mono", "Noto Sans Mono CJK SC", monospace;
   --slide-title-font: "Alfa Slab One", "Noto Serif SC", serif;
@@ -154,7 +170,7 @@
   --slide-kicker-transform: uppercase;
   --slide-chrome-opacity: 0.85;               /* 模板 metadata 全色，chrome 略淡 */
   --slide-chrome-transform: uppercase;
-  --slide-kpi-number-size: 18.06em;           /* P05 v 540px ÷26 ÷1.15（li 基准=30px） */
+  --slide-kpi-number-size: 7.5em;             /* P05 v 540px 单数字页；两列并排时 7.5em 才装得下 */
   --slide-quote-size: 3em;                    /* P07 quote 78px ÷26 */
   --slide-page-pad-x: 4.7vw;                  /* 模板 gutter 90px @1920 */
   --slide-page-top-pad: 96px;                 /* head 顶 70px + chrome 安全区 */
@@ -197,55 +213,129 @@ body.slides-printing #editor .cm-content .cm-md-page-title {
 /* 1.6.2 换底色页的整条层叠链（陷阱 1：只挂 body 或漏 #editor 都会被原底色反盖）。
    蓝页 = cover(P01) / kpi(P05) / closing(P10)；橙页 = quote(P07)；
    cream 页 = section(P03) / timeline(P08)；其余纸页用 --bg-color 默认，不写背景。
-   注意 P04 只有中列是蓝 pane，页面仍是纸——不写页面级背景。 */
+   注意 P04 只有中列是蓝 pane，页面仍是纸——不写页面级背景。
+
+   放映侧：每族四臂平铺（#editor / .cm-editor / .cm-scroller / .cm-content），
+   原先用 :is(...) 一行写完，但 :is() 内的逗号会让 lint 把同一选择器数成重复，
+   且导出侧不能用 :has —— 平铺后两侧选择器形态一致，便于逐条对照。 */
 body.presenting:has(#editor[data-slide-layout='cover']),
 body.presenting:has(#editor[data-slide-layout='kpi']),
-body.presenting:has(#editor[data-slide-layout='closing']),
-body.slides-printing:has(.cm-md-slide-cover),
-body.slides-printing:has(.cm-md-slide-kpi),
-body.slides-printing:has(.cm-md-slide-closing) {
+body.presenting:has(#editor[data-slide-layout='closing']) {
   background: var(--seed-blue);
 }
-body.presenting:has(#editor[data-slide-layout='cover']) :is(#editor, .cm-editor, .cm-scroller, .cm-content),
-body.presenting:has(#editor[data-slide-layout='kpi']) :is(#editor, .cm-editor, .cm-scroller, .cm-content),
-body.presenting:has(#editor[data-slide-layout='closing']) :is(#editor, .cm-editor, .cm-scroller, .cm-content),
-body.slides-printing:has(.cm-md-slide-cover) :is(#editor, .cm-editor, .cm-scroller, .cm-content),
-body.slides-printing:has(.cm-md-slide-kpi) :is(#editor, .cm-editor, .cm-scroller, .cm-content),
-body.slides-printing:has(.cm-md-slide-closing) :is(#editor, .cm-editor, .cm-scroller, .cm-content) {
+body.presenting:has(#editor[data-slide-layout='cover']) #editor,
+body.presenting:has(#editor[data-slide-layout='cover']) .cm-editor,
+body.presenting:has(#editor[data-slide-layout='cover']) .cm-scroller,
+body.presenting:has(#editor[data-slide-layout='cover']) .cm-content,
+body.presenting:has(#editor[data-slide-layout='kpi']) #editor,
+body.presenting:has(#editor[data-slide-layout='kpi']) .cm-editor,
+body.presenting:has(#editor[data-slide-layout='kpi']) .cm-scroller,
+body.presenting:has(#editor[data-slide-layout='kpi']) .cm-content,
+body.presenting:has(#editor[data-slide-layout='closing']) #editor,
+body.presenting:has(#editor[data-slide-layout='closing']) .cm-editor,
+body.presenting:has(#editor[data-slide-layout='closing']) .cm-scroller,
+body.presenting:has(#editor[data-slide-layout='closing']) .cm-content {
   background: var(--seed-blue);
 }
-body.presenting:has(#editor[data-slide-layout='quote']),
-body.slides-printing:has(.cm-md-slide-quote) {
+body.presenting:has(#editor[data-slide-layout='quote']) {
   background: var(--seed-accent);
 }
-body.presenting:has(#editor[data-slide-layout='quote']) :is(#editor, .cm-editor, .cm-scroller, .cm-content),
-body.slides-printing:has(.cm-md-slide-quote) :is(#editor, .cm-editor, .cm-scroller, .cm-content) {
+body.presenting:has(#editor[data-slide-layout='quote']) #editor,
+body.presenting:has(#editor[data-slide-layout='quote']) .cm-editor,
+body.presenting:has(#editor[data-slide-layout='quote']) .cm-scroller,
+body.presenting:has(#editor[data-slide-layout='quote']) .cm-content {
   background: var(--seed-accent);
 }
 body.presenting:has(#editor[data-slide-layout='section']),
-body.presenting:has(#editor[data-slide-layout='timeline']),
-body.slides-printing:has(.cm-md-slide-section),
-body.slides-printing:has(.cm-md-slide-timeline) {
+body.presenting:has(#editor[data-slide-layout='timeline']) {
   background: var(--seed-cream);
 }
-body.presenting:has(#editor[data-slide-layout='section']) :is(#editor, .cm-editor, .cm-scroller, .cm-content),
-body.presenting:has(#editor[data-slide-layout='timeline']) :is(#editor, .cm-editor, .cm-scroller, .cm-content),
-body.slides-printing:has(.cm-md-slide-section) :is(#editor, .cm-editor, .cm-scroller, .cm-content),
-body.slides-printing:has(.cm-md-slide-timeline) :is(#editor, .cm-editor, .cm-scroller, .cm-content) {
+body.presenting:has(#editor[data-slide-layout='section']) #editor,
+body.presenting:has(#editor[data-slide-layout='section']) .cm-editor,
+body.presenting:has(#editor[data-slide-layout='section']) .cm-scroller,
+body.presenting:has(#editor[data-slide-layout='section']) .cm-content,
+body.presenting:has(#editor[data-slide-layout='timeline']) #editor,
+body.presenting:has(#editor[data-slide-layout='timeline']) .cm-editor,
+body.presenting:has(#editor[data-slide-layout='timeline']) .cm-scroller,
+body.presenting:has(#editor[data-slide-layout='timeline']) .cm-content {
   background: var(--seed-cream);
 }
 /* 换底页正文色：蓝页 = cream；橙页 = blue；cream 页 = ink（默认） */
 body.presenting:has(#editor[data-slide-layout='cover']) #editor .cm-content,
 body.presenting:has(#editor[data-slide-layout='kpi']) #editor .cm-content,
-body.presenting:has(#editor[data-slide-layout='closing']) #editor .cm-content,
-body.slides-printing:has(.cm-md-slide-cover) #editor .cm-content,
-body.slides-printing:has(.cm-md-slide-kpi) #editor .cm-content,
-body.slides-printing:has(.cm-md-slide-closing) #editor .cm-content {
+body.presenting:has(#editor[data-slide-layout='closing']) #editor .cm-content {
   color: var(--seed-cream);
 }
-body.presenting:has(#editor[data-slide-layout='quote']) #editor .cm-content,
-body.slides-printing:has(.cm-md-slide-quote) #editor .cm-content {
+body.presenting:has(#editor[data-slide-layout='quote']) #editor .cm-content {
   color: var(--seed-blue);
+}
+/* ── 导出：行级铺底 + 整纸画布（原理见上）──
+   导出的整册是**一个** .cm-content、一次分页成纸：body.slides-printing:has(...) 会同时命中
+   全册，最后一族的色会把每张纸刷成同色（2026-11-28 报的「每页背景色不一致」）。
+   所以导出侧按「同色一族」各写一条铺底规则 + 一条首页画布规则，绝不把不同色合并；
+   画布 left/right 用 -115.2px 出血到纸边（平台 pad-x 兜底，多出血部分被纸面裁掉）。 */
+body.slides-printing #editor .cm-content .cm-md-slide-cover,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi,
+body.slides-printing #editor .cm-content .cm-md-slide-closing {
+  background: var(--seed-blue);
+  color: var(--seed-cream);
+}
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-start,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-start,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-start {
+  position: relative;
+}
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-start::after,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-start::after,
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-start::after {
+  content: '';
+  visibility: visible;             /* 首页指令行 visibility:hidden，画布要显式点亮 */
+  position: absolute;
+  top: 0;
+  left: -115.2px;                  /* 纸面 pad-x 平台钉死 115.2px，出血到纸边 */
+  right: -115.2px;
+  height: 1080px;                  /* 一页纸正好 1080px（20×11.25in @96dpi） */
+  background: var(--seed-blue);
+  z-index: -1;
+}
+body.slides-printing #editor .cm-content .cm-md-slide-quote {
+  background: var(--seed-accent);
+  color: var(--seed-blue);
+}
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-start {
+  position: relative;
+}
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-start::after {
+  content: '';
+  visibility: visible;
+  position: absolute;
+  top: 0;
+  left: -115.2px;
+  right: -115.2px;
+  height: 1080px;
+  background: var(--seed-accent);
+  z-index: -1;
+}
+body.slides-printing #editor .cm-content .cm-md-slide-section,
+body.slides-printing #editor .cm-content .cm-md-slide-timeline {
+  background: var(--seed-cream);
+  color: var(--seed-ink);
+}
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-start,
+body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-page-start {
+  position: relative;
+}
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-start::after,
+body.slides-printing #editor .cm-content .cm-md-slide-timeline.cm-md-page-start::after {
+  content: '';
+  visibility: visible;
+  position: absolute;
+  top: 0;
+  left: -115.2px;
+  right: -115.2px;
+  height: 1080px;
+  background: var(--seed-cream);
+  z-index: -1;
 }
 
 /* 1.6.3 cover · P01：蓝页，240px 橙题 + 红/红深双层实体阴影；72px 奶油副题；
@@ -362,8 +452,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title[d
   color: var(--seed-red);                     /* 模板 kicker 红 */
   opacity: 1;
 }
-body.presenting #editor .cm-content .cm-md-slide-section .cm-md-page-title .cm-md-strong,
-body.slides-printing #editor .cm-content .cm-md-slide-section .cm-md-page-title .cm-md-strong {
+body.presenting #editor .cm-content .cm-md-slide-section.cm-md-page-title .cm-md-strong,
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title .cm-md-strong {
   color: var(--seed-accent);                  /* h1 .y 强调词 */
   text-shadow: 0.046em 0.046em 0 var(--seed-red);
 }
@@ -376,9 +466,10 @@ body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-lead {
   text-indent: 0;
 }
 
-/* 1.6.6 kpi · P05 Big Stat：蓝页，540px 橙数字（12/24px 双层红影）+ 64px 奶油标题
-   + 30px 奶油说明；整体无卡片（模板 stat 是裸排），缎带/上栏为绝对定位（未复刻）。
-   单数字页：li 纵向堆叠，多 KPI 请减项，避免超页。 */
+/* 1.6.6 kpi · P05 Big Stat：蓝页，橙数字（12/24px 双层红影）+ 奶油标题 + 奶油说明；
+   模板单数字页是整宽裸排，这里是两列并排（47.5%）：平台对溢出页会在行上生成整页
+   fit-zoom，画布随之等比缩小、盖不满纸面，所以多 KPI 页必须在 1080px 内自然放下，
+   数字尺寸随列宽收（模板 540px ÷ 两列）。 */
 body.presenting #editor .cm-content .cm-md-slide-kpi.cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-title {
   font-size: 2.46em;                          /* desc h3 64px ÷26 */
@@ -389,8 +480,9 @@ body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-page-title {
 }
 body.presenting #editor .cm-content .cm-md-slide-kpi.cm-md-li,
 body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-li {
-  display: block;
-  width: 100%;
+  display: inline-block;
+  width: 47.5%;
+  vertical-align: top;
   font-size: 1.15em;                          /* desc p 30px ÷26 */
   line-height: 1.4;
   color: var(--seed-cream);
@@ -398,12 +490,14 @@ body.slides-printing #editor .cm-content .cm-md-slide-kpi.cm-md-li {
   border: none;
   border-radius: 0;
   box-shadow: none;
-  margin: 0 0 1em;
+  margin: 0 2% 1.2em 0;
   padding: 0;
   text-indent: 0;
 }
 body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-listmark,
-body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-listmark {
+body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-listmark,
+body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-li-bullet,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-li-bullet {
   display: none;
 }
 body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-strong,
@@ -434,9 +528,7 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-page-title {
   color: var(--seed-blue);
   text-shadow: none;
 }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote,
 body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote,
 body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote {
   font-family: var(--slide-title-font);
   font-size: var(--slide-quote-size);
@@ -459,18 +551,28 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-em {
   color: var(--seed-cream);                   /* .em 奶油强调词 */
   text-shadow: 0.06em 0.06em 0 var(--seed-red);
 }
-body.presenting #editor .cm-content .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before,
-body.slides-printing #editor .cm-content .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before {
+/* 巨型引号：模板 marks 是 300px 蓝字 + 8px 红影。上游的引号规则挂在
+   `.cm-md-slide-directive + .cm-md-blockquote` 上 —— 指令行与引用行之间永远隔着
+   一个 block-space 行，这个 + 选择器两侧都不命中（槽位空着，或退回平台面板伪元素）。
+   改为直接挂 `.cm-md-slide-quote.cm-md-blockquote::before`；
+   同时必须 position:static + background:transparent：平台把「引用面板」也画在同一伪元素上
+   （platform 的 .cm-md-blockquote 面板伪元素：空 content + absolute + inset 0 + z-index -3 +
+   background var(--blockquote-bg)），级联是逐属性生效的 —— 只改 content 不清 position/background，
+   引号会被面板底色压在下面（daisy-days 实测：伪元素高度=整行高）。 */
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote::before,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote::before {
+  content: "\201C";
+  position: static;                           /* 收回平台面板的 inset/绝对定位 */
+  background: transparent;                    /* 并清掉面板底色 */
+  display: block;
   font-family: var(--slide-title-font);
-  font-size: 11.54em;                         /* marks 300px ÷26 */
+  font-size: 3.57em;                          /* marks 300px ÷ 引用字号 84px（3em×28px 基准） */
   line-height: 0.7;
   color: var(--seed-blue);
   text-shadow: 0.027em 0.027em 0 var(--seed-red);
   height: 0.62em;
 }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line,
 body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line,
 body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line {
   font-family: var(--slide-mono);
   font-size: 0.92em;                          /* who/role 24px ÷26 */
@@ -712,19 +814,29 @@ body.presenting:has(#editor[data-slide-layout='kpi']) .slide-ghost,
 body.presenting:has(#editor[data-slide-layout='quote']) .slide-ghost {
   opacity: 0;
 }
+/* 换底页上的表格正文：蓝页 = cream；橙页 = blue。
+   导出侧无法按页上色：表格是 cm-md-table-widget 容器行，只带 cm-md-page-N，不带版式类，
+   而导出又禁用 :has —— 表格在两处换底页上按纸面默认墨色输出，记入残差。 */
 body.presenting:has(#editor[data-slide-layout='cover']) #editor .cm-content .cm-md-table-widget td,
 body.presenting:has(#editor[data-slide-layout='kpi']) #editor .cm-content .cm-md-table-widget td,
-body.presenting:has(#editor[data-slide-layout='closing']) #editor .cm-content .cm-md-table-widget td,
-body.slides-printing:has(.cm-md-slide-cover) #editor .cm-content .cm-md-table-widget td,
-body.slides-printing:has(.cm-md-slide-kpi) #editor .cm-content .cm-md-table-widget td,
-body.slides-printing:has(.cm-md-slide-closing) #editor .cm-content .cm-md-table-widget td {
+body.presenting:has(#editor[data-slide-layout='closing']) #editor .cm-content .cm-md-table-widget td {
   color: var(--seed-cream);
 }
-body.presenting:has(#editor[data-slide-layout='quote']) #editor .cm-content .cm-md-table-widget td,
-body.slides-printing:has(.cm-md-slide-quote) #editor .cm-content .cm-md-table-widget td {
+body.presenting:has(#editor[data-slide-layout='quote']) #editor .cm-content .cm-md-table-widget td {
   color: var(--seed-blue);
 }
 /* figure / steps 无对应模板页：不写版式规则，保持上游默认（见 1.5 注释）。 */
+
+/* ── 1.6 收口 · 序号声部 ────────────────────────────────────────────────
+   编辑器给序号外层 .cm-md-listmark 的 token span 单独上了色（平台把序号刷成
+   裸 muted 色），主题把颜色写在 listmark 上会被该子 span 直接覆盖 —— 深底 /
+   彩底页的 "1." "2." 因此消失。这里强制子元素继承 listmark 的颜色。 */
+body.presenting #editor .cm-content .cm-md-listmark *,
+body.slides-printing #editor .cm-content .cm-md-listmark *,
+body.presenting #editor .cm-content .cm-md-li-bullet *,
+body.slides-printing #editor .cm-content .cm-md-li-bullet * {
+  color: inherit;
+}
 
 /* ═══════════════════════════════════════════════════════════
    SECTION 2 — Editor DOM（#editor .cm-content + .cm-md-*）

@@ -951,11 +951,35 @@ export function exportDeckChunks(md: string, maxPages: number): string[] {
   const pageNums = Array.from(scan.pages.keys()).sort((a, b) => a - b);
   if (pageNums.length === 0) return [normalized];
   const chunks: string[] = [];
+  // Non-first chunks start on a mid-deck page, so they lose the `<!-- deck -->`
+  // block that lives on page 0 — and with it the printed chrome (brand/foot).
+  // Re-attach just that comment: it is not a page, so page counts stay exact.
+  let deckBlock = "";
+  for (let i = 0; i < lines.length; i++) {
+    if (/^---+\s*$/.test(lines[i])) break;
+    if (/^\s*<!--\s*deck\b/.test(lines[i])) {
+      const end = lines.findIndex((_line, idx) => idx >= i && lines[idx].includes("-->"));
+      if (end >= 0) deckBlock = lines.slice(i, end + 1).join("\n") + "\n\n";
+      break;
+    }
+  }
   for (let start = 0; start < pageNums.length; start += maxPages) {
     const group = pageNums.slice(start, start + maxPages);
     const firstLine = Math.min(...(scan.pages.get(group[0]) ?? []));
     const lastLine = Math.max(...(scan.pages.get(group[group.length - 1]) ?? []));
-    chunks.push(lines.slice(firstLine - 1, lastLine).join("\n") + "\n");
+    const body = lines.slice(firstLine - 1, lastLine);
+    // The scan attributes the `---` that *starts* the following page to the
+    // last page of this group. Shipping it would append an empty page to the
+    // chunk (a 12-page deck at 6/chunk exported as 7+6 sheets), so drop the
+    // trailing separator and the blank lines that trail it.
+    while (body.length > 0) {
+      const last = body[body.length - 1];
+      if (last.trim() === "") { body.pop(); continue; }
+      if (/^---+$/.test(last.trim())) { body.pop(); continue; }
+      break;
+    }
+    const prefix = start > 0 ? deckBlock : "";
+    chunks.push(prefix + body.join("\n") + "\n");
   }
   return chunks;
 }

@@ -193,8 +193,8 @@ body.slides-printing #editor .cm-content .cm-line {
   text-indent: 0;
 }
 /* 模板 kicker = Cormorant italic 400：38px、ink-soft、句首大写、零字距 */
-body.presenting .cm-md-page-title[data-slide-kicker]::before,
-body.slides-printing .cm-md-page-title[data-slide-kicker]::before {
+body.presenting #editor .cm-content .cm-md-page-title[data-slide-kicker]::before,
+body.slides-printing #editor .cm-content .cm-md-page-title[data-slide-kicker]::before {
   font-family: var(--slide-title-font);
   font-style: italic;
   font-weight: 400;
@@ -206,22 +206,22 @@ body.slides-printing .cm-md-page-title[data-slide-kicker]::before {
 
 /* 1.6.2 cover · P01：奶油纸 + 三色圆点（装饰未复刻）；232px 标题（上游已垂直居中、
    已把 page-start 顶距归零），38px 斜体 kicker 在上，30px lede 限 60ch */
-body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-size: var(--slide-cover-title-size);
   line-height: 0.92;
   letter-spacing: -0.02em;
   max-width: 15em;
   margin-bottom: 0.16em;                       /* 模板 stack gap 36px ÷232 */
 }
-body.slides-printing .cm-md-slide-cover.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-title {
   font-size: calc(var(--slide-cover-title-size) * 0.88);   /* 打印域随上游缩 0.88 */
   line-height: 1.02;
   letter-spacing: -0.02em;
   max-width: 15em;
   margin-bottom: 0.16em;
 }
-body.presenting #editor[data-slide-layout='cover'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-cover.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-cover.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-cover.cm-md-page-lead {
   font-size: 1.15em;                           /* 30px ÷26 */
   line-height: 1.4;
   max-width: 50%;                              /* 模板 max-width 60ch */
@@ -230,7 +230,7 @@ body.slides-printing .cm-md-slide-cover.cm-md-page-lead {
 
 /* 1.6.3 two-col · P02（foreword）：左栏 56px 斜体 opener / 右栏 24px 正文。
    drop cap 132px 是 :first-letter 局部装饰，行式 DOM 无挂点——未复刻 */
-body.presenting #editor[data-slide-layout='two-col'] .cm-content .cm-md-page-title,
+body.presenting #editor .cm-content .cm-md-slide-two-col.cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-slide-two-col.cm-md-page-title {
   font-size: 2.15em;                           /* opener 56px ÷26 */
   font-style: italic;
@@ -240,8 +240,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-two-col.cm-md-page-title {
   color: var(--text-color);
   max-width: none;
 }
-body.presenting #editor[data-slide-layout='two-col'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-two-col.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-two-col.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-two-col.cm-md-page-lead {
   font-size: 1.15em;
   line-height: 1.5;
   color: var(--text-color);
@@ -272,6 +272,14 @@ body.slides-printing #editor .cm-content .cm-md-slide-matrix.cm-md-li {
   line-height: 1.45;
   color: var(--text-color);
 }
+/* 彩卡里不出现列表符号：上游给每个 li 行挂的 • 落在卡内左上，像一颗脏点
+   （模板的卡是纯彩块 + 衬线卡名，没有符号列） */
+body.presenting #editor .cm-content .cm-md-slide-matrix .cm-md-listmark,
+body.presenting #editor .cm-content .cm-md-slide-kpi .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-matrix .cm-md-listmark,
+body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-listmark {
+  display: none;
+}
 body.presenting #editor .cm-content .cm-md-slide-matrix .cm-md-strong,
 body.slides-printing #editor .cm-content .cm-md-slide-matrix .cm-md-strong {
   display: block;
@@ -286,21 +294,22 @@ body.slides-printing #editor .cm-content .cm-md-slide-matrix .cm-md-strong {
 /* 卡内 sans 副题（Work Sans 32px 500）在 Markdown 无独立行，随说明文字排 */
 
 /* 1.6.5 section · P05（closer）：⚠ 全篇唯一整页换底——#E1A4C2 粉底。
-   底色必须打满整条层叠链：body / #editor / .cm-editor / .cm-scroller /
-   .cm-content 五层同时上色（只挂 body 会被平台给 #editor 画的纸色反盖）；
-   打印域用 body.slides-printing:has(.cm-md-slide-section)。 */
-body.presenting:has(#editor[data-slide-layout='section']),
-body.slides-printing:has(.cm-md-slide-section) {
+   放映：底色必须打满整条层叠链 body / #editor / .cm-editor / .cm-scroller /
+   .cm-content 五层同时上色（只挂 body 会被平台给 #editor 画的纸色反盖）。
+   导出：整册是一个 DOM、一次分页，`body.slides-printing:has(...)` 会把「存在任一
+   section 行」提升成「全册粉底」（实际把封面到收束页一起刷粉，浅纸页全丢）。
+   导出改走行级上色 + page-start 画布（docs §6-16）：行自己上色铺满本页内容区，
+   页首行 ::after 画一张 1080px 高的整纸画布补足上下留白。::before 已被平台的
+   引用面板占用，所以用 ::after；directive 行在导出里是 visibility:hidden，
+   画布必须显式 visible。残留：导出 chrome/foot 是全文档一份的 fixed 元素，
+   无法按页换色（本页脚注 opacity 0.7 只能留在放映域）。 */
+body.presenting:has(#editor[data-slide-layout='section']) {
   background: #e1a4c2;
 }
 body.presenting #editor[data-slide-layout='section'],
-body.slides-printing:has(.cm-md-slide-section) #editor,
 body.presenting #editor[data-slide-layout='section'] .cm-editor,
 body.presenting #editor[data-slide-layout='section'] .cm-scroller,
-body.presenting #editor[data-slide-layout='section'] .cm-content,
-body.slides-printing:has(.cm-md-slide-section) .cm-editor,
-body.slides-printing:has(.cm-md-slide-section) .cm-scroller,
-body.slides-printing:has(.cm-md-slide-section) .cm-content {
+body.presenting #editor[data-slide-layout='section'] .cm-content {
   background: #e1a4c2;
 }
 /* 粉底上 ink 字仍 7:1，标题/导语不换色；居中舞台 1100px ≈ 57% */
@@ -308,32 +317,57 @@ body.presenting #editor[data-slide-layout='section'] .cm-content {
   align-items: center;
   text-align: center;
 }
-body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-section.cm-md-page-title {
   font-size: var(--slide-section-title-size);
   line-height: 0.95;
   letter-spacing: -0.015em;
   max-width: 57%;
   margin-bottom: 0.21em;                       /* 模板 margin-bottom 36px ÷168 */
 }
-body.slides-printing .cm-md-slide-section.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title {
   font-size: calc(var(--slide-section-title-size) * 0.88);
   line-height: 1.02;
   letter-spacing: -0.015em;
   max-width: 57%;
   padding-bottom: 0.3em;
+  /* 导出没有 flex 舞台可垂直居中：条目共 654px，居中于 1080 需上下各 ~213px，
+     页首行自带的平台安全区只有 24px（--slide-page-top-pad 且 !important），
+     用外边距把差值补在标题行上，标题不再与 chrome 相撞。 */
+  margin-top: 190px;
 }
-body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-section.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-section.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-lead {
   font-size: 1.08em;                           /* 28px ÷26 */
   line-height: 1.5;
   max-width: 57%;
   color: var(--text-color);
 }
 /* 眉标 marker 在粉底上转 ink（模板 .s-closer .marker / .eyebrow 全 ink） */
-body.presenting #editor[data-slide-layout='section'] .cm-content .cm-md-page-title[data-slide-kicker]::before,
-body.slides-printing .cm-md-slide-section .cm-md-page-title[data-slide-kicker]::before {
+body.presenting #editor .cm-content .cm-md-slide-section.cm-md-page-title[data-slide-kicker]::before,
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-title[data-slide-kicker]::before {
   color: var(--text-color);
   margin-bottom: 0.84em;                       /* 模板 32px ÷38 */
+}
+
+/* 导出 section 页登记：行级粉底 + 页首 1080px 画布。
+   位置必须在本页所有角色规则之后 —— 角色规则里的 background/color 会把行底色
+   重新画掉（层级/先后都吃，见 docs §6-16 的级联顺序注）。 */
+body.slides-printing #editor .cm-content .cm-md-slide-section {
+  background: #e1a4c2;
+}
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-start {
+  position: relative;
+}
+body.slides-printing #editor .cm-content .cm-md-slide-section.cm-md-page-start::after {
+  content: '';
+  visibility: visible;
+  position: absolute;
+  top: 0;
+  left: -115.2px;                              /* 页边距 115.2px @1080 纸 */
+  right: -115.2px;
+  height: 1080px;
+  background: #e1a4c2;
+  z-index: -1;
 }
 /* 幽灵页码 = var(--text-color) 巨字形，模板没有这个装饰 → 整页隐藏；
    页脚在粉底上按模板降到 70%（.s-closer .footer rgba ink .7）。
@@ -375,8 +409,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-kpi .cm-md-strong {
 
 /* 1.6.7 quote · P07：220px blush 大引号 + 88px 居中引文（模板正体，不斜）+
    48px 间距 + Work Sans 24px 500 署名 */
-body.presenting .cm-content .cm-md-slide-quote .cm-md-blockquote,
-body.slides-printing .cm-content .cm-md-slide-quote .cm-md-blockquote {
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote {
   font-family: var(--slide-title-font);
   font-style: normal;                          /* 模板 blockquote 正体 */
   font-weight: 500;
@@ -392,8 +426,8 @@ body.slides-printing .cm-content .cm-md-slide-quote .cm-md-blockquote {
   margin: 0 auto;
   text-align: center;
 }
-body.presenting .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before,
-body.slides-printing .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before {
+body.presenting #editor .cm-content .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before,
+body.slides-printing #editor .cm-content .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quote::before {
   font-size: 2.5em;                            /* 220px ÷88 */
   line-height: 0.7;
   font-style: normal;
@@ -401,8 +435,8 @@ body.slides-printing .cm-md-slide-directive + .cm-md-blockquote.cm-md-slide-quot
   opacity: 1;
   margin-bottom: 0.14em;                       /* 模板 12px ÷88 */
 }
-body.presenting #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line,
-body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + .cm-line {
+body.presenting #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line,
+body.slides-printing #editor .cm-content .cm-md-slide-quote.cm-md-blockquote + .cm-line {
   margin-top: 1.85em;                          /* 模板 48px ÷26（CSS-03：纵向留白走 margin） */
   font-family: var(--font-body);
   font-weight: 500;
@@ -416,13 +450,13 @@ body.slides-printing #editor .cm-content .cm-md-slide-quote .cm-md-blockquote + 
 /* 1.6.8 closing · P08（next）：124px 左对齐标题 + 3 张 28px 圆角行动卡
    （模板 1fr 右栏竖排；行式 DOM 无左右分栏挂点 → 标题在上、卡片满列）
    卡：38px 衬线行题 + 24px ink .85 说明；模板无 ▸ 前缀 */
-body.presenting #editor[data-slide-layout='closing'] .cm-content .cm-md-page-title {
+body.presenting #editor .cm-content .cm-md-slide-closing.cm-md-page-title {
   font-size: var(--slide-closing-title-size);
   line-height: 0.95;
   letter-spacing: -0.015em;
   max-width: 55%;
 }
-body.slides-printing .cm-md-slide-closing.cm-md-page-title {
+body.slides-printing #editor .cm-content .cm-md-slide-closing.cm-md-page-title {
   font-size: calc(var(--slide-closing-title-size) * 0.9);
   line-height: 0.95;
   letter-spacing: -0.015em;
@@ -465,7 +499,7 @@ body.presenting:has(#editor[data-slide-layout='closing']) .slide-foot {
 /* 1.6.9 figure · P10（chart）+ P12（matrix 表格）：96px 左栏标题；
    chart 绘图区/P10 图例色条为绝对定位装饰——未复刻，图表交给 Pele。
    表格按模板画：th 衬线 500 + 1.5px ink .4 底线，td 1px dashed ink .18 */
-body.presenting #editor[data-slide-layout='figure'] .cm-content .cm-md-page-title,
+body.presenting #editor .cm-content .cm-md-slide-figure.cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-slide-figure.cm-md-page-title {
   font-size: 3.7em;                            /* 96px ÷26 */
   line-height: 0.98;
@@ -494,7 +528,6 @@ body.slides-printing #editor .cm-content .cm-md-table-widget td {
    节点箭头连线、Week 时间条（绝对定位 SVG / 条形）——未复刻 */
 body.presenting #editor .cm-content .cm-md-slide-steps.cm-md-page-start,
 body.presenting #editor .cm-content .cm-md-slide-steps.cm-md-page-title,
-body.presenting #editor .cm-content .cm-md-slide-steps .cm-md-page-title,
 body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-page-start,
 body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-page-title {
   counter-reset: soft-step;
@@ -546,8 +579,8 @@ body.slides-printing #editor .cm-content .cm-md-slide-steps .cm-md-strong {
   margin-bottom: 0.2em;
 }
 /* 副题（P11 head .sub）：28px 斜体衬线、挤到右侧、max-width 32ch */
-body.presenting #editor[data-slide-layout='steps'] .cm-content .cm-md-page-lead,
-body.slides-printing .cm-md-slide-steps.cm-md-page-lead {
+body.presenting #editor .cm-content .cm-md-slide-steps.cm-md-page-lead,
+body.slides-printing #editor .cm-content .cm-md-slide-steps.cm-md-page-lead {
   font-family: var(--slide-title-font);
   font-style: italic;
   font-size: 1.08em;                           /* 28px ÷26 */
@@ -593,6 +626,17 @@ body.slides-printing .slide-foot-brand {
 body.presenting .slide-ghost,
 body.slides-printing .slide-ghost {
   font-weight: 500;                            /* 上游 800 → Cormorant 500 */
+}
+
+/* ── 1.6 收口 · 序号声部 ────────────────────────────────────────────────
+   编辑器给序号外层 .cm-md-listmark 的 token span 单独上了色（平台把序号刷成
+   裸 muted 色），主题把颜色写在 listmark 上会被该子 span 直接覆盖 —— 深底 /
+   彩底页的 "1." "2." 因此消失。这里强制子元素继承 listmark 的颜色。 */
+body.presenting #editor .cm-content .cm-md-listmark *,
+body.slides-printing #editor .cm-content .cm-md-listmark *,
+body.presenting #editor .cm-content .cm-md-li-bullet *,
+body.slides-printing #editor .cm-content .cm-md-li-bullet * {
+  color: inherit;
 }
 
 /* ═══════════════════════════════════════════════════════════

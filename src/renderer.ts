@@ -131,12 +131,13 @@ function optimizeExportHtml(html: string, markdown: string, optimize: boolean): 
  */
 
 /**
- * Max deck pages per print-layout pass. CM6's height map is estimated from
- * the lines it has rendered; pages past that range get underestimated heights
- * and the platform's per-page measure loses the DOM tail (PDF-03). Decks with
- * more pages are split into chunks, rendered separately and merged (pdf-lib).
+ * Fallback chunk size for decks whose tail CM6 trims in a single print-layout
+ * pass. A pass renders at most as many pages as the reading-layout height map
+ * lets it; pages past that never reach the DOM and lose their sheet breaks
+ * (PDF-03). Six pages per pass stays inside the reliably-rendered range on
+ * every theme measured (8 pages already overflowed back to 7 sheets).
  */
-const SLIDES_CHUNK_PAGES = 10;
+const SLIDES_FALLBACK_CHUNK_PAGES = 6;
 
 /** PDF export options. */
 export interface PDFExportOptions {
@@ -455,23 +456,25 @@ export class ColamdRenderer {
    * Requires a platform whose lib entry exposes the slides export API
    * (`enterSlidesPrintLayout` / `exitSlidesPrintLayout`).
    *
-   * Long decks are split into chunks (see SLIDES_CHUNK_PAGES) that are each
-   * rendered on a fresh print layout and merged afterwards: CM6's height map
-   * underestimates paper-layout line heights for pages it never rendered, so
-   * its viewport trims the DOM tail on long decks and the trimmed pages would
-   * lose their sheet breaks (PDF-03). Chunking keeps every render inside the
-   * reliably-rendered range.
+   * Decks normally export in one print-layout pass. Some themes make the
+   * paper layout so tall that CM6's height map never covers the tail, and the
+   * pages past the rendered range lose their sheet breaks (PDF-03); such a
+   * deck is re-exported in `SLIDES_FALLBACK_CHUNK_PAGES`-sized chunks that are
+   * merged afterwards. Print mode hides the page counter
+   * (`body.slides-printing .slide-foot-num`), so chunked sheets keep correct
+   * chrome; the `<!-- deck -->` block is re-attached to every chunk.
    */
   async exportSlidesPDF(input: RenderInput): Promise<Buffer> {
     const { countDeckPages, exportDeckChunks } = await import("./slides-markdown.js");
     const deckPageCount = countDeckPages(input.markdown);
-    if (deckPageCount <= SLIDES_CHUNK_PAGES) {
-      return this.exportSlidesPDFOnce(input);
+    const single = await this.exportSlidesPDFOnce(input);
+    if (single.domPages >= deckPageCount || deckPageCount <= SLIDES_FALLBACK_CHUNK_PAGES) {
+      return single.buffer;
     }
-    const chunks = exportDeckChunks(input.markdown, SLIDES_CHUNK_PAGES);
+    const chunks = exportDeckChunks(input.markdown, SLIDES_FALLBACK_CHUNK_PAGES);
     const buffers: Buffer[] = [];
     for (const chunk of chunks) {
-      buffers.push(await this.exportSlidesPDFOnce({ ...input, markdown: chunk }));
+      buffers.push((await this.exportSlidesPDFOnce({ ...input, markdown: chunk })).buffer);
     }
     const { PDFDocument } = await import("pdf-lib");
     const merged = await PDFDocument.create();
@@ -486,7 +489,7 @@ export class ColamdRenderer {
   }
 
   /** Render one deck (or deck chunk) on a single print-layout pass. */
-  private async exportSlidesPDFOnce(input: RenderInput): Promise<Buffer> {
+  private async exportSlidesPDFOnce(input: RenderInput): Promise<{ buffer: Buffer; domPages: number }> {
     const page = await this.prepare(input, { keepSlideTokens: true });
 
     const missingApi = await page.evaluate(
@@ -547,13 +550,25 @@ export class ColamdRenderer {
       );
     }
 
-    // The print layout re-scales every line (paper CSS), so CM6's first
-    // measure inside enterSlidesPrintLayout runs against a stale height map
-    // and may trim the viewport to a prefix — pages missing from the DOM then
-    // miss their page breaks (PDF-03 page loss). With the printing flag
-    // pinned, a fresh measure recomputes the viewport back to the whole
-    // document; if pages are still missing, redo the print layout now that
-    // line heights have settled.
+    // The paper layout re-scales every line, so CM6's first measure inside
+    // enterSlidesPrintLayout runs against a stale height map and can keep only
+    // a prefix of the flattened document — pages past that prefix never reach
+    // the DOM and lose their sheet breaks (PDF-03 page loss). The flattened
+    // document is ~1080px per sheet (a 12-page deck is ~13000px), so re-pin the
+    // viewport to it before the measure retries below.
+    const paperHeight = (await page.evaluate(() => {
+      const root = document.querySelector("#editor .cm-content");
+      return root ? Math.ceil(root.scrollHeight) : 0;
+    })) as number;
+    if (paperHeight > 1200) {
+      await this.page!.setViewport({
+        width: 1920,
+        height: Math.min(paperHeight + 1200, 65536),
+        deviceScaleFactor: 1,
+      });
+      await new Promise((r) => setTimeout(r, 600));
+    }
+
     const { countDeckPages } = await import("./slides-markdown.js");
     const expectedPages = countDeckPages(input.markdown);
     const countDomPages = () => page.evaluate(() => {
@@ -583,6 +598,7 @@ export class ColamdRenderer {
     }
 
     try {
+      const domPages = await countDomPages();
       // No CLI-side fitting: the platform's export layout already zooms each
       // overflowing page back onto one sheet (whole-page zoom, measured on
       // the paper), which is what keeps PDF-03 page parity true.
@@ -591,7 +607,7 @@ export class ColamdRenderer {
         preferCSSPageSize: true,
         margin: { top: "0", right: "0", bottom: "0", left: "0" },
       });
-      return Buffer.from(pdfBuffer);
+      return { buffer: Buffer.from(pdfBuffer), domPages };
     } finally {
       await page
         .evaluate(() => {
