@@ -227,7 +227,7 @@ All routes are mounted `exact` under `/api/bytechain/colamd-themes` on the Harne
 - **Runtime peer** — `@deepseek-ai/dsh-skill` is declared as an *optional* peer (`^0.2.0-rc || ^0.2.1-rc || … || ^0.2.9-rc`; semver's prerelease rule forces one comparator per rc patch line, so every 0.2.x rc release (0.2.0–0.2.9) is accepted without further edits; 0.1.x and 0.3+ host lines are out of scope). The market checks it against the DSH runtime version, while standalone `npm install` is unaffected
 - **Backward compatibility** — the runtime consumes only the stable `BUNDLED_SKILL_RANK` constant, and the host entry's `apply()` tolerates skills-service protocol drift (warning instead of a broken profile load)
 - **Platform compat layer** — [`src/compat.ts`](src/compat.ts) probes the installed `@bytechain.cn/colamd` version and its `themes/contract.json` for contract drift, and the renderer verifies the export API surface at init; platform upgrades are diagnosed clearly at `cthemes validate`/export time instead of failing cryptically
-- **Bundle contents** — `dist/` (CLI + host entry + preview/slide renderers + OOXML writers), `client/` (client bundle), `themes/` (58 contract CSS theme files, all passing `validate`), `skills/` (bundled skill), `cordis.patch.yml`
+- **Bundle contents** — `dist/` (CLI + host entry + preview/slide renderers + OOXML writers), `client/` (client bundle), `themes/` (57 contract CSS theme files plus 12 ColaMD built-in themes under `themes/core/`, all passing `validate`), `skills/` (bundled skill), `cordis.patch.yml`
 
 ## Installation
 

@@ -50,6 +50,10 @@ export interface ThemeEntry {
   size: number;
   /** 命中搜索用的可检索文本（小写）。 */
   search: string;
+  /** 来源分组：`local` 为本仓库生成的主题，`core` 为 ColaMD-extend 内置主题。 */
+  group: "local" | "core";
+  /** 相对 `themes/` 的文件名（core 主题在 `core/` 子目录里）。 */
+  file: string;
 }
 
 const SKIP_IDS = new Set(["template"]);
@@ -192,7 +196,8 @@ const NOISE_RE =
 
 /** 从文件头注释里拆出名字与中文副标题。 */
 function splitTitle(raw: string): { title: string; subtitle: string } {
-  const text = raw.trim();
+  // 内置主题的 banner 形如 `===== ColaMD Theme: 简白 Notion =====`，尾部等号要剪掉。
+  const text = raw.trim().replace(/\s*=+\s*$/, "").trim();
   const bracket = /^(.+?)\s*[（(]\s*([^）)]+?)\s*[）)]\s*$/u.exec(text);
   if (bracket) return { title: (bracket[1] ?? "").trim(), subtitle: (bracket[2] ?? "").trim() };
   return { title: text, subtitle: "" };
@@ -295,7 +300,13 @@ function pickToken(tokens: Record<string, string>, ...keys: string[]): string {
 }
 
 /** 解析一份样式表的元数据。 */
-export function parseThemeCss(id: string, css: string, size: number): ThemeEntry {
+export function parseThemeCss(
+  id: string,
+  css: string,
+  size: number,
+  group: "local" | "core" = "local",
+  file: string = `${id}.css`
+): ThemeEntry {
   const tokens = collectTokens(css);
   const named = readHead(css, id);
   const description = named.description;
@@ -326,8 +337,18 @@ export function parseThemeCss(id: string, css: string, size: number): ThemeEntry
     },
     size,
     search: "",
+    group,
+    file,
   };
-  entry.search = [entry.id, entry.title, entry.subtitle, entry.description, entry.tone, entry.accent]
+  entry.search = [
+    entry.id,
+    entry.title,
+    entry.subtitle,
+    entry.description,
+    entry.tone,
+    entry.accent,
+    group === "core" ? "colamd 内置 builtin core" : "local 生成",
+  ]
     .join(" ")
     .toLowerCase();
   return entry;
@@ -350,32 +371,42 @@ export async function loadThemeCatalog(dir: string): Promise<ThemeEntry[]> {
   if (inflight !== undefined) return inflight;
 
   inflight = (async () => {
-    let names: string[];
-    try {
-      names = await readdir(dir);
-    } catch {
-      cache = { dir, at: Date.now(), entries: [] };
-      return [];
-    }
-    const files = names
-      .filter((name) => name.toLowerCase().endsWith(".css"))
-      .filter((name) => !SKIP_IDS.has(name.replace(/\.css$/i, "").toLowerCase()))
-      .sort((left, right) => left.localeCompare(right));
+    /** 顶层是本仓库生成的主题（group=local），`core/` 里是 ColaMD-extend 内置主题（group=core）。 */
+    const scan = async (sub: string, group: "local" | "core", prefix: string): Promise<ThemeEntry[]> => {
+      let names: string[];
+      try {
+        names = await readdir(path.join(dir, sub));
+      } catch {
+        return [];
+      }
+      const files = names
+        .filter((name) => name.toLowerCase().endsWith(".css"))
+        .filter((name) => !SKIP_IDS.has(name.replace(/\.css$/i, "").toLowerCase()))
+        .sort((left, right) => left.localeCompare(right));
+      const entries = await Promise.all(
+        files.map(async (file) => {
+          const base = file.replace(/\.css$/i, "");
+          const full = path.join(dir, sub, file);
+          try {
+            const [css, info] = await Promise.all([readFile(full, "utf8"), stat(full)]);
+            const id = `${prefix}${base}`;
+            const rel = sub === "" ? file : `${sub}/${file}`;
+            return parseThemeCss(id, css, info.size, group, rel);
+          } catch {
+            return undefined;
+          }
+        })
+      );
+      return entries.filter((entry): entry is ThemeEntry => entry !== undefined);
+    };
 
-    const entries = await Promise.all(
-      files.map(async (file) => {
-        const full = path.join(dir, file);
-        try {
-          const [css, info] = await Promise.all([readFile(full, "utf8"), stat(full)]);
-          return parseThemeCss(file.replace(/\.css$/i, ""), css, info.size);
-        } catch {
-          return undefined;
-        }
-      })
-    );
-
-    const list = entries.filter((entry): entry is ThemeEntry => entry !== undefined);
-    list.sort((left, right) => left.title.localeCompare(right.title, "zh-Hans-CN"));
+    // core 主题文件名本身已带 `colamd-` 前缀，id 直接用文件名，避免与本地主题重名。
+    const [local, core] = await Promise.all([scan("", "local", ""), scan("core", "core", "")]);
+    const list = [...local, ...core];
+    list.sort((left, right) => {
+      if (left.group !== right.group) return left.group === "local" ? -1 : 1;
+      return left.title.localeCompare(right.title, "zh-Hans-CN");
+    });
     cache = { dir, at: Date.now(), entries: list };
     return list;
   })();

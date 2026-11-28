@@ -1,0 +1,47 @@
+/* ===== ColaMD Theme: 简白 Notion =====
+   Clean minimal workspace, warm off-black text on white.
+
+   Import: Theme > Import Theme, or place in ~/.colamd/themes/
+   Variables target :root; element rules target the ColaMD editor DOM. */
+
+:root {
+  --bg-color: #ffffff;
+  --text-color: #37352f;
+  --text-secondary: #777674;
+  --text-muted: #9b9a97;
+  --border-color: #eeeeed;
+  --link-color: #37352f;
+  --code-bg: #f7f6f3;
+  --code-block-bg: #f7f6f3;
+  --blockquote-border: #37352f;
+  --table-header-bg: #f7f6f3;
+  --selection-bg: rgba(35, 131, 226, 0.14);
+  --highlight-bg: #fdecc8;
+}
+
+#editor .cm-content .cm-md-atxheading1,
+#editor .cm-content .cm-md-atxheading2 {
+  border-bottom: none;
+  padding-bottom: 0;
+  font-weight: 700;
+}
+
+#editor .cm-content .cm-md-strong {
+  color: #37352f;
+}
+
+#editor .cm-content .cm-md-inlinecode {
+  color: #eb5757;
+  background: #f7f6f3;
+}
+
+#editor .cm-content .cm-md-table-header .cm-md-table-cell,
+#editor .cm-content .cm-md-table-row:not(.cm-md-table-header) .cm-md-table-cell {
+  border-right: none;
+}
+
+#editor .cm-content .cm-md-url {
+  color: #9b9a97;
+}
+
+#editor .cm-content .cm-md-table-cell[data-column="0"] { border-left: none; }

@@ -33,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **标题栏主题选择**（`client/client.js` 的 `DocumentThemeSwitch`）：文档预览标题栏里、渲染器下拉右侧出现一枚主题胶囊（调色板图标 + 当前主题名），点开就是与输入框胶囊**同一套面板**——搜索框、`全部 / 浅色 / 深色 / 暖调 / 冷调` 分类分组、样例卡片；选卡后写回同一份选择并收起面板（不再额外打开侧边栏预览页签，因为当前就在文档页签里），正文即时重渲染。注册在 `sidebar.right.tab.document.action`（按渲染器 id 分键），因此只在选中「ColaMD 主题」时出现；面板向下展开并按视口夹取
 - 打开 Markdown 时按界面上当前选中的主题渲染（`DocumentBody` 把 store 里的选择随请求发给 `/render`，选择变化立即重渲染）
 
+### Added — ColaMD 内置主题
+
+- **内置主题单独分类**：把 ColaMD-extend 自带的 12 个主题（bear / dark / dracula / elegant / gruvbox / light / midnight / nord / notion / sepia / solarized-dark / writer）收进 `themes/core/colamd-*.css`，主题目录因此 69 条（本地 57 + 内置 12）。`ThemeEntry` 新增 `group`（local / core）与 `file`（相对 `themes/` 的路径，内置主题在 `core/` 子目录），宿主读样式表改走 `entry.file`，不再拼 `${id}.css`。
+- **选择器里的「内置」分类**：输入框胶囊与文档标题栏共用同一个面板，分类行变成「全部 / 浅色 / 深色 / 暖调 / 冷调 / 内置」六档，内置主题卡片右下角带「内置」徽标；搜索词追加了 `colamd 内置 builtin core`，搜「内置」「builtin」都能命中。
+- **内置主题的渲染兜底**：它们只有 `:root` 配色变量（`--bg-color`、`--text-color`、`--border-color` 等），没有 `--seed-*`、没有 `.colamd-document` 与 `--slide-*`，所以文档预览与幻灯片都走 BASE_CSS / `slides.css` 的默认排版；页面底色链补成 `var(--page-bg, var(--bg-color, var(--seed-surface, …)))`。
+
 ### Added — 幻灯片（PPT）模式与导出
 
 - **幻灯片模式**（`src/dsh-preview.ts` 的 `splitDeck` / `paginateDeck` / `renderSlidesFragment`）：文档预览标题栏多了「文稿 / 幻灯片」胶囊。切到幻灯片后，Markdown 先按 `<!-- slide -->` 注释、`---` 分隔线或 `#`/`##` 标题切页，再按内容权重自动续页（列表按条目、表格按行并重复表头、代码按行），标题沿用、续页不重复；版式是 16:9 容器查询（`container-type: inline-size` + `cqw`），全部尺寸走主题的 `--slide-*` 令牌（58 个主题里 37 个带幻灯片令牌），顶部 accent 细条 + 左上品牌 + 右上 `1 / N`；`--slide-fit` 由内联脚本按溢出情况逐级缩放（1 → 0.42，最多 30 次）

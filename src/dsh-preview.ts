@@ -732,13 +732,13 @@ function adaptSlidesCss(css: string): string {
 /** 纸面与舞台：1920×1080（20 × 11.25 英寸 @96dpi，与上游 PRINT_PAPER 同一个解）。 */
 const DECK_CSS = `
 html, body { margin: 0; padding: 0; }
-body { background: var(--page-bg, var(--seed-surface, #fff)); }
+body { background: var(--page-bg, var(--bg-color, var(--seed-surface, #fff))); }
 .ct-stage {
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
   position: relative;
   box-sizing: border-box;
-  background: var(--page-bg, var(--seed-surface, #fff));
+  background: var(--page-bg, var(--bg-color, var(--seed-surface, #fff)));
   color: var(--text-color, var(--seed-ink, #1f1f1f));
   font-family: var(--font-body, system-ui, -apple-system, "Segoe UI", sans-serif);
 }
@@ -1203,7 +1203,7 @@ html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
   padding: 0;
-  background: var(--page-bg, var(--seed-surface, #f6f5f2));
+  background: var(--page-bg, var(--bg-color, var(--seed-surface, #f6f5f2)));
   color: var(--text-color, var(--seed-ink, #262626));
   font-family: var(--font-body, -apple-system, "Segoe UI", "Noto Sans SC", "PingFang SC", sans-serif);
   font-size: var(--editor-font-size, 16px);
@@ -1356,11 +1356,11 @@ export interface PreviewOptions {
 /** 打印/导出用：A4 无边距 + 逐页克隆内边距，续页也有左右与上下留白。 */
 const DOCUMENT_PRINT_CSS = `
 @page { size: A4; margin: 0; }
-html, body { margin: 0 !important; padding: 0 !important; background: var(--page-bg, var(--seed-surface, #fff)); }
+html, body { margin: 0 !important; padding: 0 !important; background: var(--page-bg, var(--bg-color, var(--seed-surface, #fff))); }
 .colamd-document {
   max-width: none !important;
   padding: 15mm 14mm !important;
-  background: var(--page-bg, var(--seed-surface, #fff));
+  background: var(--page-bg, var(--bg-color, var(--seed-surface, #fff)));
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
@@ -1416,7 +1416,7 @@ ${renderMarkdown(markdown)}
 
 /** 全屏演示层的样式：文档模式居中限宽，幻灯片模式一次只显示一页。 */
 const PRESENT_STYLE = `<style data-colamd-present>
-body.colamd-present { margin: 0; background: var(--page-bg, #f4f4f3); }
+body.colamd-present { margin: 0; background: var(--page-bg, var(--bg-color, #f4f4f3)); }
 body.colamd-present-doc .colamd-document {
   max-width: 920px;
   margin: 0 auto;

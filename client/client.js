@@ -39,6 +39,8 @@ window.__ModuleLoader__.load({
       groupWarm: '暖调',
       groupCool: '冷调',
       groupNeutral: '中性',
+      groupCore: '内置',
+      badgeCore: '内置',
       empty: '没有匹配的主题',
       loading: '正在读取主题目录…',
       failed: '主题目录加载失败',
@@ -84,6 +86,8 @@ window.__ModuleLoader__.load({
       groupWarm: 'Warm',
       groupCool: 'Cool',
       groupNeutral: 'Neutral',
+      groupCore: 'Built-in',
+      badgeCore: 'Built-in',
       empty: 'No matching themes',
       loading: 'Loading theme catalog…',
       failed: 'Failed to load the theme catalog',
@@ -590,6 +594,7 @@ window.__ModuleLoader__.load({
     }
 
     function matchesGroup(theme, group) {
+      if (group === 'core') return theme.group === 'core';
       if (group === 'light' || group === 'dark') return theme.tone === group;
       if (group === 'warm' || group === 'cool') return theme.accent === group;
       return true;
@@ -788,6 +793,7 @@ window.__ModuleLoader__.load({
         { id: 'dark', label: t('groupDark') },
         { id: 'warm', label: t('groupWarm') },
         { id: 'cool', label: t('groupCool') },
+        { id: 'core', label: t('groupCore') },
       ];
     }
 
@@ -810,6 +816,9 @@ window.__ModuleLoader__.load({
           h('span', { className: 'ct-card-name' }, theme.title),
           h('span', { className: 'ct-card-sub' }, theme.subtitle || props.sub || '')
         ),
+        theme.group === 'core'
+          ? h('span', { className: 'ct-card-badge' }, props.badge || 'core')
+          : null,
         active ? h('span', { className: 'ct-card-check' }, '✓') : null
       );
     }
@@ -903,6 +912,7 @@ window.__ModuleLoader__.load({
               key: theme.id,
               theme: theme,
               sub: toneLabel(t, theme),
+              badge: t('badgeCore'),
               selected: state.selected,
               onPick: pickTheme,
             })
@@ -1524,6 +1534,19 @@ window.__ModuleLoader__.load({
 .ct-card-meta { display: flex; flex-direction: column; gap: 1px; padding: 0 2px 1px; }
 .ct-card-name { font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ct-card-sub { font-size: 10.5px; color: var(--ct-ink-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ct-card-badge {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 0 6px;
+  height: 16px;
+  line-height: 16px;
+  border-radius: 8px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ct-ink-dim);
+  background: color-mix(in srgb, var(--ct-ink) 12%, transparent);
+}
 .ct-card-check { position: absolute; top: 8px; right: 8px; width: 16px; height: 16px; border-radius: 999px; background: var(--ct-brand); color: var(--ct-surface); font-size: 10px; line-height: 16px; text-align: center; }
 .ct-thumb { position: relative; border-radius: 7px; border: 1px solid; padding: 8px 9px 9px; height: 74px; overflow: hidden; display: flex; flex-direction: column; gap: 5px; }
 .ct-thumb-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }

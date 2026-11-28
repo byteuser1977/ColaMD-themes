@@ -259,9 +259,10 @@ function createRoutes(ctx: DshPluginContext): (() => void)[] {
 
   /** 取主题样式表全文；id 先过目录白名单，避免路径穿越。 */
   const readThemeCss = async (entries: ThemeEntry[], id: string): Promise<string | undefined> => {
-    if (!entries.some((entry) => entry.id === id)) return undefined;
+    const found = entries.find((entry) => entry.id === id);
+    if (found === undefined) return undefined;
     try {
-      return await readFile(path.join(themesDir, `${id}.css`), "utf8");
+      return await readFile(path.join(themesDir, found.file), "utf8");
     } catch {
       return undefined;
     }
@@ -317,7 +318,7 @@ function createRoutes(ctx: DshPluginContext): (() => void)[] {
       return;
     }
 
-    const cssPath = path.join(themesDir, `${id}.css`);
+    const cssPath = path.join(themesDir, entry.file);
     let mtimeMs = 0;
     try {
       mtimeMs = (await stat(cssPath)).mtimeMs;

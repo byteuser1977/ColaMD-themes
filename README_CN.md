@@ -200,7 +200,7 @@ npm run build:skills -- dsh
 - **运行时 peer** — `@deepseek-ai/dsh-skill` 声明为 *optional* peer（`^0.2.0-rc || ^0.2.1-rc || … || ^0.2.9-rc`，semver 预发布规则要求每个 rc 补丁位单独枚举，现已覆盖 0.2.x 全部小版本 rc（0.2.0～0.2.9），后续 0.2 小版本 rc 无需再改；0.1.x 与 0.3+ 宿主线不在支持范围内）：market 按 DSH 运行时版本校验，独立 `npm install` 不受影响
 - **向后兼容** — 运行时只消费 dsh-skill 的稳定常量 `BUNDLED_SKILL_RANK`，宿主入口 `apply()` 对 skills 服务协议漂移容错（降级为警告，不阻塞 Profile 加载）
 - **平台兼容层** — [`src/compat.ts`](src/compat.ts) 运行时探测已安装 `@bytechain.cn/colamd` 的版本与 `themes/contract.json` 契约漂移，渲染器初始化时校验导出 API 面；平台升级导致的契约/API 变化在 `cthemes validate` 与导出阶段给出明确诊断，而非神秘报错
-- **Bundle 内容** — `dist/`（CLI + 宿主入口 + 预览/幻灯片渲染器 + OOXML 写入器）、`client/`（客户端 bundle）、`themes/`（58 个契约 CSS 主题文件，全部通过 `validate`）、`skills/`（捆绑 skill）、`cordis.patch.yml`
+- **Bundle 内容** — `dist/`（CLI + 宿主入口 + 预览/幻灯片渲染器 + OOXML 写入器）、`client/`（客户端 bundle）、`themes/`（57 个契约 CSS 主题文件 + `themes/core/` 下 12 个 ColaMD 内置主题，全部通过 `validate`）、`skills/`（捆绑 skill）、`cordis.patch.yml`
 
 ## 安装
 
