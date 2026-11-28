@@ -179,6 +179,21 @@ description:
 
 | 渠道 | 入口 | 状态 |
 | --- | --- | --- |
-| awesome-dsh-plugin（站点 + dsh-market 数据源） | `data/plugins/byteuser1977__ColaMD-themes.yml` | 已收录（PR #14284，2026-11-11）；本次更新分类与描述 |
-| awesome-dsh-plugin 讨论帖 | Discussions #15449 `plugin:byteuser1977/ColaMD-themes` | 已建帖；本次补充 0.8.6 更新说明 |
+| awesome-dsh-plugin（站点 + dsh-market 数据源） | `data/plugins/byteuser1977__ColaMD-themes.yml` | 已收录（PR #14284，2026-11-11）；0.8.6 的条目更新见 PR [#19599](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/19599)（分类 `dev` → `docs`、描述重写、加 `icon`） |
+| awesome-dsh-plugin 讨论帖 | Discussions [#15449](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/discussions/15449) `plugin:byteuser1977/ColaMD-themes` | 已建帖；已追加 0.8.6 更新说明（中文 [#discussioncomment-19976222](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/discussions/15449#discussioncomment-19976222)、英文 [#discussioncomment-19976224](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/discussions/15449#discussioncomment-19976224)） |
+| imsai-sh/awesome-deepseek-harness-plugins（deepseek1024.com 目录） | `catalog/plugins/byteuser1977--colamd-themes.json` | **已合并**：PR [#1139](https://github.com/imsai-sh/awesome-deepseek-harness-plugins/pull/1139)，`category: tools`，`added: 2026-11-28` |
+| 0xsline/awesome-deepseek-harness | `README.md` + `README.zh-CN.md`「UI, Themes & Interaction」 | 已提 PR [#901](https://github.com/0xsline/awesome-deepseek-harness/pull/901) |
+| Dominic789654/awesome-deepseek-harness | 已有条目（「Documents & Export」），本次只换描述 | 已提 PR [#812](https://github.com/Dominic789654/awesome-deepseek-harness/pull/812) |
+| Zhiyuan-Fan/Awesome-DeepSeek-Harness-Plugins | `README.md` + `README.zh-CN.md`「UI & Clients」表格 | 已提 PR [#135](https://github.com/Zhiyuan-Fan/Awesome-DeepSeek-Harness-Plugins/pull/135) |
+| web-casa/Awesome-DeepSeek-Harness-Plugins（cordis.run） | 只接受 [cordis.run/submit](https://cordis.run/submit) 表单，不收 PR | 需登录后手工提交（表单要求英文、可走反链快速通道） |
+| bruc3van/awesome-dsh-plugin-pro | 作者自荐要求仓库 star > 10 | 跳过（本仓库 1★） |
 | npm | `@bytechain.cn/colamd-themes@0.8.6` | 已发布 |
+
+### 各渠道的提交差异（避免重复踩坑）
+
+- **awesome-dsh-plugin**：一条 YAML，`data/plugins/<owner>__<repo>.yml`；`ENTRY_KEYS` 只认 `url/name/category/description/icon/tarball/file`，**没有 `screenshots` 字段**；`description.en` 单行、含 `: ` 要加引号；`npm:` 手写会被拒（由 registry 自动映射）。
+- **imsai-sh**：`catalog/plugins/*.json` 一条一文件，文件名是 id 的 `/` → `--` 转写；`category` 只能取 `catalog/categories.json` 的 11 个 id（**没有 `docs`**，主题类放 `theme`、工具类放 `tools`）；新增条目会被机器人自动 squash-merge，改已有条目要维护者人工合。
+- **0xsline**：手写 Markdown，必须同时改 `README.md` 与 `README.zh-CN.md`，`## UI, Themes & Interaction` 一节；条目格式 `- [owner/repo](url) - 一句话`。
+- **Dominic789654**：只允许改两个 README、**只允许新增行**（改已有行会被 insert-only 检查判失败），条目分隔符英文用 `—`、中文用 `——`；CI 会核对链接可达性与 `dsh`/`dsh-plugin`/`dsh-skill`/`deepseek-harness` topic。
+- **Zhiyuan-Fan**：表格行，四列 `Project | Description | Stars 徽章 | Referenced by`；没有 `Referenced by` 时写 `<details><summary>0 pages</summary><sub>No verified references yet.</sub></details>`。
+- 本机 `git push` 到 github.com:443 间歇性被重置（`RPC failed; curl 28`），改用 GitHub API 造 blob → tree → commit → ref 再开 PR 稳定成功；脚本见 `.tmp-dsh/api-push-dominic.mjs`、`.tmp-dsh/zhiyuan-add.mjs`。
