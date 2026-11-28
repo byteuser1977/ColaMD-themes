@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.5] - 2026-11-28
+
+### Changed — 33 个模板主题按 2.8.0 幻灯片契约精修
+
+- **放映/导出选择器同构**：行角色类与版式类必须落在同一个 `div` 上，放映侧统一写成 `.cm-md-slide-x.cm-md-role` 的复合选择器，导出侧再补 `#editor .cm-content` 提权（`docs/slide-theme-replication.md` §6-8、§6-21）。原先后代式写法在放映侧根本打不中，导出侧又输给 1.6.1 的页题声明，页题因此长期停在 81px 一类的默认字号
+- **整册换底改用整纸画布**：`body.slides-printing:has(...)` 的链式规则在单 DOM 的整册里是「命中即全册」，只要册内有一张该版式页，所有页都会被染成同一底色。改为行级底色 + `page-start::after` 的 1920×1080 画布（§6-16、§6-17）：retro-zine 的全册墨黑、daisy-days 的全册桃色、creative-mode 的全册绿、editorial-forest 的逐行绿/粉条都由此消除
+- **`pink-script` 从零补齐 1.6**：318 → 1068 行，16 个分块（1.6.0 双作用域 28px 基准，cover / section / agenda / kpi / timeline / steps / matrix / two-col / figure / quote / closing 十一个版式，chrome 与页脚），实测封面标题 301.6px、agenda 236.9px
+- **序号墨色继承**：平台把颜色写在内层 token span 上，主题只给 `.cm-md-listmark` 上色时，深底/彩底页的序号会消失（signal 骨白压骨白 1.16、stencil-tablet 纯黑压纯黑 1.06、editorial-forest 绿页 1.77）。33 个主题统一补一条 `color: inherit` 收口规则，同时覆盖 `.cm-md-listmark` 与 `.cm-md-li-bullet` 两个族
+- 逐主题修掉打印侧死掉的 `[data-slide-layout]` 选择器、`~ *` 墨色泄漏、`th` / `td` 死选择器（真实单元格是 `.cm-md-table-cell`）、`cm-md-listmark` 与 `cm-md-li-bullet` 混用；`editorial-tri-tone` 段头注释里的 `.cm-md-page-*/` 提前闭合了注释，把 1.6.0 的 28px 基准整段吃掉，一并修正
+- `themes/broadside.css` 与 `themes/pink-script-dark.css` 作为参考实现未改动
+
+### Fixed — 幻灯片 PDF 导出页数与 deck 页数不一致
+
+- **单趟优先、分块兜底**（`src/renderer.ts`）：先按整篇单趟导出，只有打印排版下 DOM 页数仍落后于 deck 才回落到分块（`SLIDES_FALLBACK_CHUNK_PAGES = 6`，8 页实测已会溢出成 7 张）
+- **分块切片修正**（`src/slides-markdown.ts`）：`---` 归它结束的那一页，原实现把分隔符也切进块尾，每块会多出一张空页；现在从块尾剥掉空行与分隔符，并把第 0 页的 `<!-- deck -->` 注释块前置到后续块——注释不是页，页数不变，但合并后的册子保住了品牌行与页脚
+- 结果：33 个模板主题全部 12 张 / 12 页（`stencil-tablet`、`soft-editorial`、`editorial-forest` 因 CM6 渲染窗口裁尾走分块，38–43s，其余 4–7s）
+
 ## [0.8.4] - 2026-11-28
 
 ### Added — Markdown 文件就地按主题渲染（DSH 文档预览）
@@ -23,21 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **零依赖 OOXML 生成**（`src/dsh-zip.ts` + `src/dsh-office.ts`）：自己写 STORE 压缩包（CRC32、UTF-8 文件名标志、固定时间戳保证可复现）与 `buildDocx` / `buildPptx`，不引入任何 pptx/docx 库；Word 侧样式覆盖 Normal/Heading1-4/Quote/Code/ListParagraph 与两级编号、表格表头重复；PPT 侧标题 32pt 加粗主色、正文 18pt、要点 `a:buChar •`、代码 12pt 等宽深色底，每个 run 都写 `a:latin/a:ea/a:cs` 免得中文回退成西文字体
 - `src/dsh-preview.ts` 重构出块级 AST（`parseBlocks` / `MdBlock` / `blockPlainText` / `plainInline`），HTML 渲染与 Office 导出共用同一份解析；重构前后 4 篇真实文档（demo、CHANGELOG、README、README_CN）的 HTML 输出逐字节一致
 - PDF 走宿主侧的 puppeteer（`printPdf`，`printBackground` + `preferCSSPageSize` + 零边距）；幻灯片打印前先把文档外层的 margin/padding 清零，否则第一页会被顶下去、14 页排成 16 页
-
-### Changed — 33 个模板主题按 2.8.0 幻灯片契约精修
-
-- **放映/导出选择器同构**：行角色类与版式类必须落在同一个 `div` 上，放映侧统一写成 `.cm-md-slide-x.cm-md-role` 的复合选择器，导出侧再补 `#editor .cm-content` 提权（`docs/slide-theme-replication.md` §6-8、§6-21）。原先后代式写法在放映侧根本打不中，导出侧又输给 1.6.1 的页题声明，页题因此长期停在 81px 一类的默认字号
-- **整册换底改用整纸画布**：`body.slides-printing:has(...)` 的链式规则在单 DOM 的整册里是「命中即全册」，只要册内有一张该版式页，所有页都会被染成同一底色。改为行级底色 + `page-start::after` 的 1920×1080 画布（§6-16、§6-17）：retro-zine 的全册墨黑、daisy-days 的全册桃色、creative-mode 的全册绿、editorial-forest 的逐行绿/粉条都由此消除
-- **`pink-script` 从零补齐 1.6**：318 → 1068 行，16 个分块（1.6.0 双作用域 28px 基准，cover / section / agenda / kpi / timeline / steps / matrix / two-col / figure / quote / closing 十一个版式，chrome 与页脚），实测封面标题 301.6px、agenda 236.9px
-- **序号墨色继承**：平台把颜色写在内层 token span 上，主题只给 `.cm-md-listmark` 上色时，深底/彩底页的序号会消失（signal 骨白压骨白 1.16、stencil-tablet 纯黑压纯黑 1.06、editorial-forest 绿页 1.77）。33 个主题统一补一条 `color: inherit` 收口规则，同时覆盖 `.cm-md-listmark` 与 `.cm-md-li-bullet` 两个族
-- 逐主题修掉打印侧死掉的 `[data-slide-layout]` 选择器、`~ *` 墨色泄漏、`th` / `td` 死选择器（真实单元格是 `.cm-md-table-cell`）、`cm-md-listmark` 与 `cm-md-li-bullet` 混用；`editorial-tri-tone` 段头注释里的 `.cm-md-page-*/` 提前闭合了注释，把 1.6.0 的 28px 基准整段吃掉，一并修正
-- `themes/broadside.css` 与 `themes/pink-script-dark.css` 作为参考实现未改动
-
-### Fixed — 幻灯片 PDF 导出页数与 deck 页数不一致
-
-- **单趟优先、分块兜底**（`src/renderer.ts`）：先按整篇单趟导出，只有打印排版下 DOM 页数仍落后于 deck 才回落到分块（`SLIDES_FALLBACK_CHUNK_PAGES = 6`，8 页实测已会溢出成 7 张）
-- **分块切片修正**（`src/slides-markdown.ts`）：`---` 归它结束的那一页，原实现把分隔符也切进块尾，每块会多出一张空页；现在从块尾剥掉空行与分隔符，并把第 0 页的 `<!-- deck -->` 注释块前置到后续块——注释不是页，页数不变，但合并后的册子保住了品牌行与页脚
-- 结果：33 个模板主题全部 12 张 / 12 页（`stencil-tablet`、`soft-editorial`、`editorial-forest` 因 CM6 渲染窗口裁尾走分块，38–43s，其余 4–7s）
 
 ### Fixed — 幻灯片改用上游 ColaMD-extend 的同一套样式表渲染
 

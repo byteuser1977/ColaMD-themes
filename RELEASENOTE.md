@@ -1,6 +1,33 @@
 # Release Notes
 
 
+## Version 0.8.5 (2026-11-28) — 33 Template Themes Aligned with 2.8.0 🎨
+
+Every theme that mirrors a template in `beautiful-html-templates` was rebuilt page by page against that template and re-verified on the 2.8.0 paper.
+
+### 🎨 Changed — theme fidelity and the 2.8.0 print contract
+
+- **Presenter and export selectors now share one shape** — a role class and a layout class sit on the same line element, so rules read `.cm-md-slide-x.cm-md-role`; on the export side they also carry `body.slides-printing #editor .cm-content`, which outranks the 1.6.1 page-title default (`docs/slide-theme-replication.md`, §6-8 and §6-21). The old descendant selectors never matched in the presenter and the old export rules lost the cascade, which is why page titles sat at the 81px fallback
+- **Deck-wide fills became per-page canvases** — a `body.slides-printing:has(...)` chain matches the whole deck at once, so a single such page painted every sheet. Themes now fill the row and draw the paper in a `page-start::after` box of 1920×1080 (§6-16, §6-17). This removes the all-black retro-zine export, the all-peach daisy-days deck, the all-green creative-mode deck and the per-line green/pink bars in editorial-forest
+- **`themes/pink-script.css` gained its own SECTION 1.6** — 318 → 1068 lines in sixteen blocks: the 28px base on both scopes, eleven layouts (cover / section / agenda / kpi / timeline / steps / matrix / two-col / figure / quote / closing) plus deck chrome and foot. Measured: cover title 301.6px, agenda 236.9px
+- **Ordered-list ink inherits again** — the platform colours an inner token span, so a theme that only coloured `.cm-md-listmark` lost its numbers on dark or coloured registers (signal 1.16, stencil-tablet 1.06, editorial-forest 1.77). All 33 themes now carry one `color: inherit` rule covering both `.cm-md-listmark` and `.cm-md-li-bullet`
+- Dead selectors were removed per theme: `[data-slide-layout]` on the print side, `~ *` ink leaks, `th` / `td` (real cells are `.cm-md-table-cell`), and `cm-md-listmark` mixed with `cm-md-li-bullet`; in `editorial-tri-tone` a `.cm-md-page-*/` inside a banner comment closed the comment early and swallowed the 28px base
+- `themes/broadside.css` and `themes/pink-script-dark.css` are the reference implementations and stay untouched
+
+### 🐛 Fixed — slide PDF export dropped or added sheets
+
+- **Single pass first, six-page chunks only as a fallback** (`src/renderer.ts`) — the deck is exported in one pass; if the print layout still reports fewer DOM pages than the deck has, export falls back to chunking (`SLIDES_FALLBACK_CHUNK_PAGES = 6`; eight pages already overflow into seven sheets)
+- **Chunk slicing corrected** (`src/slides-markdown.ts`) — a `---` belongs to the page it ends, so the cut used to carry the separator into the next chunk and add an empty sheet. Chunks now drop trailing blank lines and separators, and page 0's `<!-- deck -->` block is re-emitted for later chunks (a comment is not a page, so the count is unchanged while chrome and foot survive)
+- Result: all 33 template themes export 12 sheets / 12 pages (`stencil-tablet`, `soft-editorial` and `editorial-forest` take the chunked path because CM6 trims the rendered tail, 38–43s; the rest 4–7s)
+
+### 📦 Install
+
+```bash
+npm install @bytechain.cn/colamd-themes@0.8.5
+```
+
+## Version 0.8.4 (2026-11-28) — Document Renderer, Slide Export & Present Window 📄
+
 > Platform dependency bumped to @bytechain.cn/colamd@2.8.2; the theme contract is unchanged, so existing themes and exports keep working.
 
 ### 📄 Added — ColaMD document renderer
