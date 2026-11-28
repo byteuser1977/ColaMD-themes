@@ -17,6 +17,7 @@ logs/
 # 编辑器 / IDE
 .vscode/
 .idea/
+.trae/  
 *.swp
 
 # 操作系统
@@ -36,3 +37,4 @@ docs/upstream-2.7.7-requirements.md
 !.trae/rules/
 !.trae/skills/
 .tmp-dsh/
+
